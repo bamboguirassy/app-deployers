@@ -1,0 +1,32 @@
+@use 'variables' as *;
+
+@function theme($name) {
+    @return var(--#{$name});
+}
+
+@mixin card-surface {
+    background-color: theme('color-surface');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-lg;
+    box-shadow: theme('shadow-card');
+}
+
+@mixin focus-ring {
+    outline: none;
+    box-shadow: 0 0 0 2px theme('color-bg'), 0 0 0 4px theme('color-primary');
+}
+
+@mixin scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('color-border') transparent;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: theme('color-border');
+        border-radius: 999px;
+    }
+}

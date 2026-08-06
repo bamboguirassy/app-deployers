@@ -1,0 +1,16 @@
+// Surcharges ciblées d'Ant Design pour coller à nos tokens de thème (les
+// couleurs de base sont déjà transmises via ConfigProvider côté React ;
+// ceci couvre les détails que les design tokens antd ne couvrent pas).
+@use '../abstracts' as *;
+
+.ant-layout {
+    background-color: transparent;
+}
+
+.ant-card {
+    @include card-surface;
+}
+
+.ant-table-wrapper {
+    @include scrollbar-thin;
+}
