@@ -18,7 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        //
+        $middleware->alias([
+            'permissions.team' => \App\Http\Middleware\SetPermissionsTeam::class,
+        ]);
+
+        // Les webhooks entrants (GitHub/GitLab/Bitbucket) sont authentifiés par
+        // signature HMAC/token, pas par session — ils ne portent jamais de jeton CSRF.
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

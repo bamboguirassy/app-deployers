@@ -1,22 +1,22 @@
-import { ButtonHTMLAttributes } from 'react';
+import { Button, ButtonProps } from 'antd';
 
 export default function DangerButton({
     className = '',
-    disabled,
+    htmlType = 'submit',
+    size = 'large',
     children,
     ...props
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
+}: ButtonProps) {
     return (
-        <button
+        <Button
+            danger
+            type="primary"
+            htmlType={htmlType}
+            size={size}
+            className={className}
             {...props}
-            className={
-                `inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 active:bg-red-700 dark:focus:ring-offset-gray-800 ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
-            disabled={disabled}
         >
             {children}
-        </button>
+        </Button>
     );
 }

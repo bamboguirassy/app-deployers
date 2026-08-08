@@ -1,5 +1,4 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
-import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -10,6 +9,9 @@ export default {
         './resources/js/**/*.tsx',
     ],
 
+    // Les composants de formulaire passent tous par Ant Design désormais ;
+    // le plugin @tailwindcss/forms forçait un style natif (fond blanc, bordure
+    // grise) qui entrait en conflit avec le thème clair/sombre d'antd.
     theme: {
         extend: {
             fontFamily: {
@@ -18,5 +20,5 @@ export default {
         },
     },
 
-    plugins: [forms],
+    plugins: [],
 };

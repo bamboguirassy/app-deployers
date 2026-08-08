@@ -1,0 +1,109 @@
+@use '../abstracts' as *;
+
+.field-label {
+    display: block;
+    margin-bottom: space('2');
+    font-size: 13px;
+    font-weight: 500;
+    color: theme('color-text-muted');
+}
+
+.field-error {
+    margin: space('2') 0 0;
+    font-size: 13px;
+    color: theme('color-danger');
+}
+
+.app-modal-panel {
+    background-color: theme('color-surface-raised');
+    color: theme('color-text');
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: space('4');
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space('3');
+    margin-top: space('2');
+
+    &--end {
+        justify-content: flex-end;
+    }
+}
+
+.form-status {
+    padding: space('3');
+    border-radius: $radius-md;
+    background-color: rgba(22, 163, 74, 0.12);
+    color: theme('color-success');
+    font-size: 13px;
+}
+
+.form-link {
+    font-size: 13px;
+    color: theme('color-text-muted');
+
+    &:hover {
+        color: theme('color-primary');
+    }
+}
+
+.section-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: theme('color-text');
+}
+
+.section-hint {
+    margin: space('1') 0 0;
+    font-size: 13px;
+    color: theme('color-text-muted');
+}
+
+.saved-hint {
+    font-size: 13px;
+    color: theme('color-success');
+}
+
+.ssh-key-textarea {
+    font-family: $font-family-mono;
+    font-size: 12px;
+}
+
+.directory-browser-list {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid theme('color-border');
+    border-radius: $radius-md;
+}
+
+.directory-browser-item {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    width: 100%;
+    padding: space('2') space('3');
+    border: none;
+    border-bottom: 1px solid theme('color-border');
+    background: transparent;
+    color: theme('color-text');
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: theme('color-surface-raised');
+        color: theme('color-primary');
+    }
+}

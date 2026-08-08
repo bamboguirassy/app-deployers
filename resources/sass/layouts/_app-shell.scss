@@ -1,0 +1,420 @@
+@use '../abstracts' as *;
+
+.app-shell {
+    height: 100vh;
+    overflow: hidden;
+    background-color: theme('color-bg');
+}
+
+.app-shell__sider--desktop {
+    display: none !important;
+    position: relative;
+    flex-direction: column;
+    background-color: theme('color-surface') !important;
+    border-right: 1px solid theme('color-border');
+    transition: width 0.2s ease;
+    height: 100vh;
+
+    @include respond-to('lg') {
+        display: flex !important;
+    }
+
+    .ant-layout-sider-children {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+}
+
+.app-shell__drawer {
+    .ant-drawer-content {
+        background-color: theme('color-surface');
+    }
+
+    @include respond-to('lg') {
+        display: none;
+    }
+}
+
+.app-shell__brand {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+    height: 64px;
+    padding: 0 space('5');
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+    position: relative;
+
+    svg {
+        width: 24px;
+        height: 24px;
+        color: theme('color-primary');
+        fill: currentColor;
+        flex-shrink: 0;
+    }
+
+    span {
+        font-weight: 700;
+        font-size: 15px;
+        color: theme('color-text');
+        white-space: nowrap;
+        overflow: hidden;
+    }
+}
+
+.app-shell__collapse-toggle {
+    display: none;
+
+    @include respond-to('lg') {
+        display: inline-flex;
+    }
+
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    right: -14px;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid theme('color-border');
+    background-color: theme('color-surface');
+    color: theme('color-text-muted');
+    cursor: pointer;
+    z-index: z('sticky');
+    box-shadow: theme('shadow-card');
+
+    &:hover {
+        color: theme('color-primary');
+        border-color: theme('color-primary');
+    }
+}
+
+.app-shell__app-switcher {
+    padding: space('3') space('4');
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+}
+
+.app-shell__workspace-switcher {
+    padding: 0 space('4') space('3');
+    flex-shrink: 0;
+}
+
+.app-shell__workspace-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: space('2') space('3');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-md;
+    background: theme('color-surface');
+    color: theme('color-text');
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        border-color: theme('color-primary');
+    }
+}
+
+.app-shell__workspace-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-shell__menu {
+    flex: 1;
+    overflow-y: auto;
+    @include scrollbar-thin;
+    background: transparent !important;
+    padding: space('2');
+
+    .ant-menu-item {
+        border-radius: $radius-md;
+        margin: 2px 0 !important;
+        width: 100% !important;
+    }
+
+    .ant-menu-item-selected {
+        background-color: theme('color-primary-soft') !important;
+        color: theme('color-primary') !important;
+        font-weight: 600;
+    }
+}
+
+.app-shell__account {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+    margin: space('3');
+    padding: space('2') space('3');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-md;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+
+    &:hover {
+        border-color: theme('color-primary');
+    }
+}
+
+.app-shell__account-chevron {
+    color: theme('color-text-muted');
+    flex-shrink: 0;
+}
+
+.app-shell__account-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    strong {
+        font-size: 13px;
+        color: theme('color-text');
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    small {
+        font-size: 11px;
+        color: theme('color-text-muted');
+    }
+}
+
+.app-shell__body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: theme('color-bg');
+}
+
+.app-shell__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 space('4');
+    background-color: theme('color-surface') !important;
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+    z-index: z('sticky');
+    gap: space('3');
+
+    @include respond-to('lg') {
+        padding: 0 space('5');
+    }
+}
+
+.app-shell__header-left {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+    min-width: 0;
+}
+
+.app-shell__hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-md;
+    border: 1px solid theme('color-border');
+    background: transparent;
+    color: theme('color-text');
+    cursor: pointer;
+    flex-shrink: 0;
+
+    @include respond-to('lg') {
+        display: none;
+    }
+}
+
+.app-shell__breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: space('1');
+    min-width: 0;
+    overflow: hidden;
+}
+
+.app-shell__breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: space('1');
+    white-space: nowrap;
+
+    a {
+        color: theme('color-text-muted');
+        font-size: 14px;
+
+        &:hover {
+            color: theme('color-primary');
+        }
+    }
+}
+
+.app-shell__breadcrumb-current {
+    color: theme('color-text');
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.app-shell__breadcrumb-sep {
+    color: theme('color-text-muted');
+    margin: 0 space('1');
+}
+
+.app-shell__header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: theme('color-text');
+}
+
+.app-shell__header-right {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    flex-shrink: 0;
+}
+
+.app-shell__search {
+    display: none;
+    width: 200px;
+
+    @include respond-to('xl') {
+        display: inline-flex;
+    }
+}
+
+.app-shell__search-kbd {
+    font-size: 11px;
+    color: theme('color-text-muted');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-sm;
+    padding: 0 4px;
+}
+
+.app-shell__icon-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: $radius-md;
+    border: none;
+    background: transparent;
+    color: theme('color-text-muted');
+    cursor: pointer;
+
+    &:hover {
+        background-color: theme('color-bg');
+        color: theme('color-text');
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+
+        &:hover {
+            background-color: transparent;
+            color: theme('color-text-muted');
+        }
+    }
+
+    @include respond-to('md') {
+        display: inline-flex;
+    }
+}
+
+.app-shell__user {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    padding: space('1');
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: theme('color-bg');
+    }
+}
+
+.app-shell__subheader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: space('3');
+    padding: 0 space('4');
+    background-color: theme('color-surface');
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+
+    @include respond-to('lg') {
+        padding: 0 space('5');
+    }
+}
+
+.app-shell__tabs {
+    display: flex;
+    align-items: center;
+    gap: space('5');
+    overflow-x: auto;
+    @include scrollbar-thin;
+}
+
+.app-shell__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: space('2');
+    padding: space('3') 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: theme('color-text-muted');
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        color: theme('color-text');
+    }
+}
+
+.app-shell__tab--active {
+    color: theme('color-primary');
+    border-bottom-color: theme('color-primary');
+    font-weight: 600;
+}
+
+.app-shell__page-actions {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    padding: space('3') 0;
+    flex-shrink: 0;
+}
+
+.app-shell__content {
+    flex: 1;
+    overflow-y: auto;
+    margin: space('4');
+    @include scrollbar-thin;
+
+    @include respond-to('lg') {
+        margin: space('5');
+    }
+}

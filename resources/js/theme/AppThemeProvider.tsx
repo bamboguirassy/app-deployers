@@ -1,5 +1,6 @@
-import { ConfigProvider, theme as antdTheme } from 'antd';
+import { ConfigProvider, Modal, theme as antdTheme } from 'antd';
 import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { ConfirmContext } from './ConfirmContext';
 import { ThemeContext, ThemeMode } from './ThemeContext';
 
 const STORAGE_KEY = 'app-deployers:theme';
@@ -8,8 +9,19 @@ const STORAGE_KEY = 'app-deployers:theme';
 // resources/sass/themes/_light.scss et _dark.scss.
 const PALETTE: Record<ThemeMode, { colorPrimary: string; colorBgBase: string; colorTextBase: string }> = {
     light: { colorPrimary: '#4f46e5', colorBgBase: '#ffffff', colorTextBase: '#1a1f27' },
-    dark: { colorPrimary: '#6366f1', colorBgBase: '#171a21', colorTextBase: '#e7e9ee' },
+    dark: { colorPrimary: '#6d5ef8', colorBgBase: '#12141b', colorTextBase: '#eef0f5' },
 };
+
+function ConfirmBridge({ children }: PropsWithChildren) {
+    const [modal, contextHolder] = Modal.useModal();
+
+    return (
+        <ConfirmContext.Provider value={modal}>
+            {contextHolder}
+            {children}
+        </ConfirmContext.Provider>
+    );
+}
 
 function getPreferredMode(): ThemeMode {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -41,13 +53,13 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
                         colorPrimary: PALETTE[mode].colorPrimary,
                         colorBgBase: PALETTE[mode].colorBgBase,
                         colorTextBase: PALETTE[mode].colorTextBase,
-                        borderRadius: 10,
+                        borderRadius: 12,
                         fontFamily:
                             "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
                     },
                 }}
             >
-                {children}
+                <ConfirmBridge>{children}</ConfirmBridge>
             </ConfigProvider>
         </ThemeContext.Provider>
     );

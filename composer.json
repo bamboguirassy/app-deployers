@@ -13,6 +13,7 @@
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "phpseclib/phpseclib": "^3.0",
         "predis/predis": "^3.5",
         "spatie/laravel-permission": "^8.3",
         "tightenco/ziggy": "^2.0"

@@ -1,182 +1,327 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import ThemeToggle from '@/Components/ThemeToggle';
+import { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, ReactNode, useState } from 'react';
+import { Avatar, Drawer, Dropdown, Input, Layout, Menu, Tooltip, type MenuProps } from 'antd';
+import {
+    Bell,
+    Boxes,
+    Check,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    HelpCircle,
+    History,
+    LayoutDashboard,
+    LogOut,
+    Menu as MenuIcon,
+    Plus,
+    Search,
+    Server as ServerIcon,
+    User as UserIcon,
+    Users,
+} from 'lucide-react';
+import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
+
+const COLLAPSE_STORAGE_KEY = 'app-deployers:sidebar-collapsed';
+
+const { Sider, Header, Content } = Layout;
+
+export interface Breadcrumb {
+    label: string;
+    href?: string;
+}
+
+export interface PageTab {
+    key: string;
+    label: string;
+    icon?: ReactNode;
+    href?: string;
+    onClick?: () => void;
+}
 
 export default function Authenticated({
     header,
+    breadcrumbs,
+    tabs,
+    activeTab,
+    appSwitcher,
+    actions,
     children,
-}: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user;
+}: PropsWithChildren<{
+    header?: ReactNode;
+    breadcrumbs?: Breadcrumb[];
+    tabs?: PageTab[];
+    activeTab?: string;
+    appSwitcher?: ReactNode;
+    actions?: ReactNode;
+}>) {
+    const { auth, workspace, workspaces } = usePage<PageProps>().props;
+    const user = auth.user;
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1');
 
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    useEffect(() => {
+        localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? '1' : '0');
+    }, [collapsed]);
 
-    return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                                </Link>
-                            </div>
+    const wsSlug = workspace?.slug;
+    const canManageServers = workspace?.role === 'owner' || workspace?.role === 'manager';
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
+    const menuItems: MenuProps['items'] = [
+        {
+            key: 'dashboard',
+            icon: <LayoutDashboard size={16} />,
+            label: <Link href={route('dashboard', wsSlug)}>Dashboard</Link>,
+        },
+        {
+            key: 'deployments',
+            icon: <History size={16} />,
+            label: <Link href={route('deployments.all', wsSlug)}>Déploiements</Link>,
+        },
+        {
+            key: 'applications',
+            icon: <Boxes size={16} />,
+            label: <Link href={route('applications.index', wsSlug)}>Applications</Link>,
+        },
+        ...(canManageServers
+            ? [
+                  {
+                      key: 'servers',
+                      icon: <ServerIcon size={16} />,
+                      label: <Link href={route('servers.index', wsSlug)}>Serveurs</Link>,
+                  },
+              ]
+            : []),
+        {
+            key: 'users',
+            icon: <Users size={16} />,
+            label: <Link href={route('users.index', wsSlug)}>Utilisateurs</Link>,
+        },
+    ];
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
-                            <ThemeToggle />
+    const workspaceMenuItems: MenuProps['items'] = [
+        ...workspaces.map((ws) => ({
+            key: `ws-${ws.slug}`,
+            icon: ws.slug === workspace?.slug ? <Check size={14} /> : <span style={{ width: 14, display: 'inline-block' }} />,
+            label: <Link href={route('dashboard', ws.slug)}>{ws.name}</Link>,
+        })),
+        { type: 'divider' as const },
+        {
+            key: 'ws-create',
+            icon: <Plus size={14} />,
+            label: <Link href={route('workspaces.create')}>Nouveau workspace</Link>,
+        },
+    ];
 
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
-                                            >
-                                                {user.name}
+    const selectedKey = route().current('applications.*')
+        ? 'applications'
+        : route().current('deployments.*')
+          ? 'deployments'
+          : route().current('servers.*')
+            ? 'servers'
+            : route().current('users.*')
+              ? 'users'
+              : route().current('dashboard')
+                ? 'dashboard'
+                : '';
 
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
+    const userMenuItems: MenuProps['items'] = [
+        {
+            key: 'profile',
+            icon: <UserIcon size={14} />,
+            label: <Link href={route('profile.edit')}>Profil</Link>,
+        },
+        {
+            key: 'logout',
+            icon: <LogOut size={14} />,
+            danger: true,
+            label: (
+                <Link href={route('logout')} method="post" as="button">
+                    Déconnexion
+                </Link>
+            ),
+        },
+    ];
 
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
+    const sidebarContent = (isDesktop: boolean) => (
+        <>
+            <div className="app-shell__brand">
+                <Link href="/">
+                    <ApplicationLogo />
+                </Link>
+                {(!isDesktop || !collapsed) && <span>App Deployers</span>}
 
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none dark:text-gray-500 dark:hover:bg-gray-900 dark:hover:text-gray-400 dark:focus:bg-gray-900 dark:focus:text-gray-400"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+                {isDesktop && (
+                    <button
+                        type="button"
+                        className="app-shell__collapse-toggle"
+                        onClick={() => setCollapsed((c) => !c)}
+                        aria-label={collapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
+                    >
+                        {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                    </button>
+                )}
+            </div>
+
+            {workspace && (!isDesktop || !collapsed) && (
+                <div className="app-shell__workspace-switcher">
+                    <Dropdown menu={{ items: workspaceMenuItems }} trigger={['click']} placement="bottomLeft" getPopupContainer={() => document.body}>
+                        <button type="button" className="app-shell__workspace-trigger">
+                            <span className="app-shell__workspace-name">{workspace.name}</span>
+                            <ChevronDown size={13} />
+                        </button>
+                    </Dropdown>
                 </div>
-
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
-                >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
-                            </div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white shadow dark:bg-gray-800">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
-                    </div>
-                </header>
             )}
 
-            <main>{children}</main>
-        </div>
+            {appSwitcher && (!isDesktop || !collapsed) && <div className="app-shell__app-switcher">{appSwitcher}</div>}
+
+            <Menu
+                mode="inline"
+                inlineCollapsed={isDesktop && collapsed}
+                selectedKeys={[selectedKey]}
+                items={menuItems}
+                className="app-shell__menu"
+                style={{ borderInlineEnd: 'none', paddingTop: 8 }}
+                onClick={() => setMobileOpen(false)}
+            />
+
+            <div className="app-shell__account">
+                <Avatar size={32}>{user.name.charAt(0).toUpperCase()}</Avatar>
+                {(!isDesktop || !collapsed) && (
+                    <>
+                        <div className="app-shell__account-info">
+                            <strong>{user.name}</strong>
+                            <small>App Deployers</small>
+                        </div>
+                        <ChevronDown size={14} className="app-shell__account-chevron" />
+                    </>
+                )}
+            </div>
+        </>
+    );
+
+    return (
+        <Layout className="app-shell">
+            <Sider
+                className="app-shell__sider app-shell__sider--desktop"
+                trigger={null}
+                collapsed={collapsed}
+                collapsedWidth={72}
+                width={240}
+            >
+                {sidebarContent(true)}
+            </Sider>
+
+            <Drawer
+                placement="left"
+                open={mobileOpen}
+                onClose={() => setMobileOpen(false)}
+                width={260}
+                closable={false}
+                className="app-shell__drawer"
+                styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column' } }}
+            >
+                {sidebarContent(false)}
+            </Drawer>
+
+            <Layout className="app-shell__body">
+                <Header className="app-shell__header">
+                    <div className="app-shell__header-left">
+                        <button
+                            type="button"
+                            className="app-shell__hamburger"
+                            onClick={() => setMobileOpen(true)}
+                            aria-label="Ouvrir le menu"
+                        >
+                            <MenuIcon size={20} />
+                        </button>
+
+                        <div className="app-shell__breadcrumbs">
+                            {breadcrumbs && breadcrumbs.length > 0 ? (
+                                breadcrumbs.map((crumb, index) => (
+                                    <span key={crumb.label} className="app-shell__breadcrumb-item">
+                                        {crumb.href ? (
+                                            <Link href={crumb.href}>{crumb.label}</Link>
+                                        ) : (
+                                            <span className="app-shell__breadcrumb-current">{crumb.label}</span>
+                                        )}
+                                        {index < breadcrumbs.length - 1 && <span className="app-shell__breadcrumb-sep">/</span>}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="app-shell__header-title">{header ?? 'Dashboard'}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="app-shell__header-right">
+                        <Tooltip title="Recherche globale (bientôt disponible)">
+                            <Input
+                                className="app-shell__search"
+                                prefix={<Search size={14} />}
+                                placeholder="Rechercher..."
+                                suffix={<span className="app-shell__search-kbd">⌘K</span>}
+                                disabled
+                            />
+                        </Tooltip>
+
+                        <Tooltip title="Notifications (bientôt disponible)">
+                            <button type="button" className="app-shell__icon-btn" aria-label="Notifications (bientôt disponible)" disabled>
+                                <Bell size={18} />
+                            </button>
+                        </Tooltip>
+
+                        <Tooltip title="Aide (bientôt disponible)">
+                            <button type="button" className="app-shell__icon-btn" aria-label="Aide (bientôt disponible)" disabled>
+                                <HelpCircle size={18} />
+                            </button>
+                        </Tooltip>
+
+                        <ThemeToggle />
+
+                        <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
+                            <div className="app-shell__user">
+                                <Avatar size="small">{user.name.charAt(0).toUpperCase()}</Avatar>
+                            </div>
+                        </Dropdown>
+                    </div>
+                </Header>
+
+                {(tabs && tabs.length > 0) || actions ? (
+                    <div className="app-shell__subheader">
+                        <div className="app-shell__tabs">
+                            {tabs?.map((tab) =>
+                                tab.onClick ? (
+                                    <button
+                                        key={tab.key}
+                                        type="button"
+                                        onClick={tab.onClick}
+                                        className={`app-shell__tab ${activeTab === tab.key ? 'app-shell__tab--active' : ''}`}
+                                    >
+                                        {tab.icon}
+                                        {tab.label}
+                                    </button>
+                                ) : (
+                                    <Link
+                                        key={tab.key}
+                                        href={tab.href ?? '#'}
+                                        className={`app-shell__tab ${activeTab === tab.key ? 'app-shell__tab--active' : ''}`}
+                                    >
+                                        {tab.icon}
+                                        {tab.label}
+                                    </Link>
+                                ),
+                            )}
+                        </div>
+
+                        {actions && <div className="app-shell__page-actions">{actions}</div>}
+                    </div>
+                ) : null}
+
+                <Content className="app-shell__content">{children}</Content>
+            </Layout>
+        </Layout>
     );
 }

@@ -1,0 +1,73 @@
+@use '../abstracts' as *;
+
+.auth-shell {
+    position: relative;
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: space('5');
+    background-color: theme('color-bg');
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.25;
+        pointer-events: none;
+    }
+
+    &::before {
+        top: -120px;
+        left: -80px;
+        width: 360px;
+        height: 360px;
+        background: theme('color-primary');
+    }
+
+    &::after {
+        bottom: -140px;
+        right: -100px;
+        width: 420px;
+        height: 420px;
+        background: theme('color-info');
+    }
+}
+
+.auth-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: space('6') space('5');
+    @include card-surface;
+}
+
+.auth-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: space('3');
+    margin-bottom: space('6');
+    text-align: center;
+
+    svg {
+        width: 44px;
+        height: 44px;
+        color: theme('color-primary');
+        fill: currentColor;
+    }
+
+    h1 {
+        font-size: 18px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+        color: theme('color-text-muted');
+    }
+}

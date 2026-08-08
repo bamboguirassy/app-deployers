@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,11 +30,23 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $workspace = $request->route('workspace');
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
+            'workspace' => $workspace instanceof Workspace ? [
+                'id' => $workspace->id,
+                'name' => $workspace->name,
+                'slug' => $workspace->slug,
+                'role' => $user?->roleInWorkspace($workspace),
+            ] : null,
+            'workspaces' => $user
+                ? $user->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
+                : [],
         ];
     }
 }
