@@ -211,27 +211,43 @@ class RunDeploymentJob implements ShouldQueue
 
     /**
      * Bufferise la sortie incrémentale d'un step et ne broadcast qu'au plus
-     * toutes les 400ms (ou dès que le buffer dépasse 4 Ko) — sans ce
-     * throttle, une commande très verbeuse (ex: `npm install`) saturerait
-     * Reverb d'un événement par ligne. Le reliquat du buffer en dessous du
-     * seuil au moment où le step se termine n'est jamais flush : acceptable,
-     * la sortie complète reste disponible via DeploymentStepUpdated.
+     * toutes les 400ms (ou dès que le buffer dépasse la taille max d'un
+     * morceau) — sans ce throttle, une commande très verbeuse (ex:
+     * `npm install`) saturerait Reverb d'un événement par ligne. Le reliquat
+     * du buffer en dessous du seuil au moment où le step se termine n'est
+     * jamais flush : acceptable, la sortie complète reste disponible via
+     * DeploymentStepUpdated.
+     *
+     * Le flush découpe systématiquement en morceaux bornés (boucle, pas un
+     * simple if) : un chunk reçu d'un coup peut largement dépasser la taille
+     * seuil à lui seul (ex: rafale de logs d'un `npm run build`) — sans cette
+     * boucle, il partait en un seul broadcast dépassant la taille de payload
+     * max acceptée par Reverb (`REVERB_MAX_REQUEST_SIZE`), rejeté côté client
+     * avec "Pusher error: Payload too large".
      */
     private function throttledOutputBroadcaster(int $applicationId, DeploymentStep $step): callable
     {
         $buffer = '';
         $lastBroadcastAt = 0.0;
+        $maxChunkSize = 4000;
 
-        return function (string $chunk) use ($applicationId, $step, &$buffer, &$lastBroadcastAt) {
+        $flush = function () use (&$buffer, $applicationId, $step, $maxChunkSize) {
+            while ($buffer !== '') {
+                $piece = mb_substr($buffer, 0, $maxChunkSize);
+                $buffer = mb_substr($buffer, mb_strlen($piece));
+                broadcast(new DeploymentStepOutputAppended($applicationId, $step->deployment_id, $step->id, $piece));
+            }
+        };
+
+        return function (string $chunk) use (&$buffer, &$lastBroadcastAt, $flush, $maxChunkSize) {
             $buffer .= $chunk;
             $now = microtime(true);
 
-            if ($now - $lastBroadcastAt < 0.4 && mb_strlen($buffer) < 4000) {
+            if ($now - $lastBroadcastAt < 0.4 && mb_strlen($buffer) < $maxChunkSize) {
                 return;
             }
 
-            broadcast(new DeploymentStepOutputAppended($applicationId, $step->deployment_id, $step->id, $buffer));
-            $buffer = '';
+            $flush();
             $lastBroadcastAt = $now;
         };
     }

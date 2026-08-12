@@ -50,6 +50,18 @@ function insertAtCursor(el: HTMLTextAreaElement | HTMLInputElement | null | unde
     return current.slice(0, start) + insert + current.slice(end);
 }
 
+/**
+ * Dérive un nom d'étape lisible à partir d'une commande shell : une seule
+ * ligne, espaces normalisés, tronquée pour rester lisible dans la liste des
+ * étapes (la colonne "Étape" est étroite) — le backend accepte jusqu'à 255
+ * caractères mais un nom aussi long serait illisible.
+ */
+function deriveLabelFromCommand(command: string): string {
+    const singleLine = command.trim().replace(/\s+/g, ' ');
+
+    return singleLine.length > 60 ? `${singleLine.slice(0, 60)}…` : singleLine;
+}
+
 /** Petit menu "Insérer une variable" réutilisé pour l'objet et le corps du mail. */
 function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }) {
     return (
@@ -99,6 +111,12 @@ function StepEditorDrawer({
     const [timeoutSeconds, setTimeoutSeconds] = useState<number | null>(null);
     const [continueOnFailure, setContinueOnFailure] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    // Tant que l'utilisateur n'a pas lui-même modifié le nom, on le fait
+    // suivre la commande en direct (pratique pour aller vite) — dès qu'il y
+    // touche, on arrête de l'écraser. Toujours "touché" en modification :
+    // on ne réécrit jamais le nom existant d'une étape sous le pied de
+    // l'utilisateur, il l'édite lui-même s'il le souhaite.
+    const labelTouchedRef = useRef(false);
 
     const labelRef = useRef<InputRef>(null);
     const subjectRef = useRef<InputRef>(null);
@@ -115,12 +133,14 @@ function StepEditorDrawer({
             setConfig(step.config);
             setTimeoutSeconds(step.timeout_seconds);
             setContinueOnFailure(step.continue_on_failure);
+            labelTouchedRef.current = true;
         } else {
             setType('command');
             setLabel('');
             setConfig(defaultConfigFor('command'));
             setTimeoutSeconds(null);
             setContinueOnFailure(false);
+            labelTouchedRef.current = false;
         }
         setShowPreview(false);
     }, [open, step]);
@@ -158,6 +178,7 @@ function StepEditorDrawer({
         setTimeoutSeconds(null);
         setContinueOnFailure(false);
         setShowPreview(false);
+        labelTouchedRef.current = false;
         labelRef.current?.focus();
     };
 
@@ -228,7 +249,15 @@ function StepEditorDrawer({
 
                 <div>
                     <label className="step-editor__field-label">Nom de l&apos;étape</label>
-                    <Input ref={labelRef} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="ex: Build & déploiement" />
+                    <Input
+                        ref={labelRef}
+                        value={label}
+                        onChange={(e) => {
+                            labelTouchedRef.current = true;
+                            setLabel(e.target.value);
+                        }}
+                        placeholder="ex: Build & déploiement"
+                    />
                 </div>
 
                 {type === 'command' && (
@@ -238,7 +267,14 @@ function StepEditorDrawer({
                             className="step-editor__mono"
                             rows={6}
                             value={(config as CommandStepConfig).command ?? ''}
-                            onChange={(e) => setConfig((c) => ({ ...c, command: e.target.value }))}
+                            onChange={(e) => {
+                                const command = e.target.value;
+                                setConfig((c) => ({ ...c, command }));
+
+                                if (!labelTouchedRef.current) {
+                                    setLabel(deriveLabelFromCommand(command));
+                                }
+                            }}
                             placeholder="npm run build && npm run deploy"
                         />
                     </div>
