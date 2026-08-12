@@ -29,7 +29,12 @@ return new class extends Migration
         ]);
 
         DB::table('applications')->whereNull('workspace_id')->update(['workspace_id' => $workspaceId]);
-        DB::statement('ALTER TABLE applications MODIFY workspace_id BIGINT UNSIGNED NOT NULL');
+
+        match (DB::getDriverName()) {
+            'pgsql' => DB::statement('ALTER TABLE applications ALTER COLUMN workspace_id SET NOT NULL'),
+            'sqlite' => null,
+            default => DB::statement('ALTER TABLE applications MODIFY workspace_id BIGINT UNSIGNED NOT NULL'),
+        };
 
         $membershipRows = DB::table('model_has_roles')
             ->where('model_type', 'App\\Models\\User')
