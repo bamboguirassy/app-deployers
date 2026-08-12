@@ -130,7 +130,7 @@ export default function ServerFormModal({
                     <InputLabel htmlFor="server-name" value="Nom du serveur" />
                     <Input
                         id="server-name"
-                        placeholder="ex: Serveur de production"
+                        placeholder="ex : Serveur de production à Dakar"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         autoFocus

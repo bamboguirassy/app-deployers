@@ -7,7 +7,7 @@ export default function Terms() {
                 Les présentes conditions d'utilisation (les « <strong>Conditions</strong> ») régissent l'accès et
                 l'utilisation de la plateforme App Deployer (le « <strong>Service</strong> »), éditée par{' '}
                 <strong>BAMBOCLOUD</strong>, SARL, immatriculée sous le numéro
-                009687362-2R6, dont le siège social est situé à HLM Grand Médine, Villa n°00380 (l'«{' '}
+                009687362-2R5, dont le siège social est situé à HLM Grand Médine, Villa n°380 (l'«{' '}
                 <strong>Éditeur</strong> »). En créant un compte ou en utilisant le Service, vous acceptez d'être lié
                 par les présentes Conditions.
             </p>
@@ -98,8 +98,8 @@ export default function Terms() {
 
             <h2>9. Droit applicable</h2>
             <p>
-                Les présentes Conditions sont régies par le droit [juridiction à compléter]. Tout litige relève de
-                la compétence exclusive des tribunaux de [ville/juridiction à compléter], sous réserve des
+                Les présentes Conditions sont régies par le droit sénégalais. Tout litige relève de
+                la compétence exclusive des tribunaux de Dakar, au Sénégal, sous réserve des
                 dispositions impératives applicables aux consommateurs.
             </p>
 
