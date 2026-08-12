@@ -10,12 +10,15 @@
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^13.8",
         "laravel/horizon": "^5.48",
+        "laravel/octane": "^2.19",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "phpseclib/phpseclib": "^3.0",
         "predis/predis": "^3.5",
         "spatie/laravel-permission": "^8.3",
+        "spiral/roadrunner-cli": "^2.6.0",
+        "spiral/roadrunner-http": "^3.3.0",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
