@@ -17,6 +17,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(PlanSeeder::class);
-        $this->call(FrameworkSeeder::class);
+        $this->call(FrameworksSeeder::class);
     }
 }
