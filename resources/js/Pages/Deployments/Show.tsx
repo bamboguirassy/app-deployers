@@ -181,18 +181,18 @@ export default function Show({
         <AuthenticatedLayout header="Déploiement">
             <Head title={`Déploiement #${deployment.id}`} />
 
-            <Space size={16} wrap className="deployment-breadcrumbs">
-                <Link href={route('deployments.index', [workspace!.slug, application.slug])} className="form-link">
-                    <ChevronLeft size={14} style={{ verticalAlign: 'middle' }} /> Historique des déploiements
+            <Space size={8} wrap className="deployment-breadcrumbs" aria-label="Navigation du déploiement">
+                <Link href={route('deployments.index', [workspace!.slug, application.slug])} className="deployment-nav-link deployment-nav-link--back">
+                    <ChevronLeft size={15} /> <span>Historique des déploiements</span>
                 </Link>
-                <Link href={route('applications.show', [workspace!.slug, application.slug])} className="form-link">
-                    <Boxes size={14} style={{ verticalAlign: 'middle' }} /> Voir l&apos;application
+                <Link href={route('applications.show', [workspace!.slug, application.slug])} className="deployment-nav-link">
+                    <Boxes size={15} /> <span>Voir l&apos;application</span>
                 </Link>
                 <Link
                     href={`${route('applications.show', [workspace!.slug, application.slug])}?tab=targets&target=${target.uuid}`}
-                    className="form-link"
+                    className="deployment-nav-link deployment-nav-link--config"
                 >
-                    <Pencil size={14} style={{ verticalAlign: 'middle' }} /> Modifier le pipeline
+                    <Pencil size={15} /> <span>Modifier le pipeline</span>
                 </Link>
             </Space>
 
@@ -210,11 +210,11 @@ export default function Show({
                         </Text>
                     </div>
 
-                    <div className="deployment-hero__actions">
-                    <div className="deployment-hero__status"><StatusTag status={deployment.status} variant="tag" /></div>
+                    <div className="deployment-hero__actions" aria-label="Actions du déploiement">
+                    <div className="deployment-hero__status"><span className="deployment-action-label">État actuel</span><StatusTag status={deployment.status} variant="tag" /></div>
                     {isActive && (
                         <Tooltip title="Arrêter l'étape en cours et annuler les suivantes">
-                            <Button danger size="small" icon={<Square size={14} />} onClick={cancel} aria-label="Annuler le déploiement">
+                            <Button className="deployment-action deployment-action--danger" danger size="middle" icon={<Square size={14} />} onClick={cancel} aria-label="Annuler le déploiement">
                                 Annuler
                             </Button>
                         </Tooltip>
@@ -222,7 +222,8 @@ export default function Show({
                     {canRetry && (
                         <Tooltip title="Relancer un nouveau déploiement avec la même branche">
                             <Button
-                                size="small"
+                                className="deployment-action deployment-action--secondary"
+                                size="middle"
                                 icon={<RotateCcw size={14} />}
                                 loading={retrying}
                                 onClick={retry}
@@ -235,7 +236,8 @@ export default function Show({
                     {canRollback && (
                         <Tooltip title="Redéployer cette version connue-bonne">
                             <Button
-                                size="small"
+                                className="deployment-action deployment-action--primary"
+                                size="middle"
                                 icon={<History size={14} />}
                                 loading={rollingBack}
                                 onClick={rollback}

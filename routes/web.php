@@ -34,6 +34,14 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('welcome');
 
+// Pages légales publiques, requises pour l'approbation du domaine par Paddle
+// (Checkout > Website approval) : conditions d'utilisation, confidentialité,
+// remboursement. Volontairement hors du groupe 'auth' — accessibles sans
+// connexion, y compris par les robots de vérification de Paddle.
+Route::get('/terms', fn () => Inertia::render('Legal/Terms'))->name('legal.terms');
+Route::get('/privacy', fn () => Inertia::render('Legal/Privacy'))->name('legal.privacy');
+Route::get('/refunds', fn () => Inertia::render('Legal/Refunds'))->name('legal.refunds');
+
 Route::middleware('auth')->group(function () {
     Route::get('/home', [WorkspaceController::class, 'redirectToDefault'])->name('home');
     Route::get('/workspaces/create', [WorkspaceController::class, 'create'])->name('workspaces.create');

@@ -298,6 +298,11 @@ export default function Welcome() {
                     <span>App Deployer</span>
                 </div>
                 <p>&copy; {new Date().getFullYear()} App Deployer. Tous droits réservés.</p>
+                <p className="legal-footer-links">
+                    <Link href={route('legal.terms')}>Conditions d'utilisation</Link>
+                    <Link href={route('legal.privacy')}>Politique de confidentialité</Link>
+                    <Link href={route('legal.refunds')}>Politique de remboursement</Link>
+                </p>
             </footer>
         </div>
     );

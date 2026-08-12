@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Alert, Button, Segmented, Tooltip, Typography, message } from 'antd';
 import { Check, Rocket, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -301,6 +301,12 @@ export default function Show({
                     </div>
                 </div>
             </div>
+
+            <Paragraph type="secondary" style={{ marginTop: 24, fontSize: 12 }}>
+                Le passage à un plan payant est facturé par notre partenaire Paddle. En souscrivant, vous acceptez
+                nos <Link href={route('legal.terms')}>conditions d'utilisation</Link> et notre{' '}
+                <Link href={route('legal.refunds')}>politique de remboursement</Link>.
+            </Paragraph>
         </AuthenticatedLayout>
     );
 }
