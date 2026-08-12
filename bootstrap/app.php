@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'permissions.team' => \App\Http\Middleware\SetPermissionsTeam::class,
+            'super_admin' => \App\Http\Middleware\EnsureIsSuperAdmin::class,
         ]);
 
         // Les webhooks entrants (GitHub/GitLab/Bitbucket) sont authentifiés par

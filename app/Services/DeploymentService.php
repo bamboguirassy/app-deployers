@@ -16,7 +16,13 @@ class DeploymentService
     }
 
     /**
+     * Crée toujours le déploiement et le dispatch immédiatement — la
+     * concurrence de plan (QuotaGuard::acquireDeploymentSlot) n'est plus
+     * vérifiée ici mais au démarrage du job (RunDeploymentJob::handle), qui
+     * se remet en file plutôt que d'échouer si aucun slot n'est disponible.
+     *
      * @throws DeploymentAlreadyRunningException
+     * @throws TargetEnvironmentMissingServerException
      */
     public function trigger(
         TargetEnvironment $targetEnvironment,
@@ -25,6 +31,12 @@ class DeploymentService
         ?string $commitSha = null,
         ?string $branch = null,
     ): Deployment {
+        if (! $targetEnvironment->server_id) {
+            throw new TargetEnvironmentMissingServerException(
+                'Aucun serveur configuré pour cet environnement — configurez-en un avant de déployer.'
+            );
+        }
+
         $acquired = Cache::add(
             self::lockKey($targetEnvironment->id),
             true,
@@ -37,7 +49,7 @@ class DeploymentService
             );
         }
 
-        $targetEnvironment->loadMissing('target.pipelineSteps');
+        $targetEnvironment->loadMissing('target.pipelineSteps', 'target.application.workspace');
 
         $deployment = Deployment::create([
             'target_environment_id' => $targetEnvironment->id,
@@ -52,7 +64,8 @@ class DeploymentService
             $deployment->steps()->create([
                 'pipeline_step_id' => $step->id,
                 'label_snapshot' => $step->label,
-                'command_snapshot' => $step->command,
+                'type' => $step->type,
+                'config_snapshot' => $step->config,
                 'order' => $index,
                 'status' => 'pending',
             ]);

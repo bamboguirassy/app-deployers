@@ -33,7 +33,7 @@ function TargetEditModal({
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        patch(route('targets.update', [workspace!.slug, application.slug, target.id]), { onSuccess: onClose });
+        patch(route('targets.update', [workspace!.slug, application.slug, target.uuid]), { onSuccess: onClose });
     };
 
     return (
@@ -72,24 +72,28 @@ export default function TargetWorkspace({
     application,
     frameworks,
     canManage,
+    initialTargetId,
+    activeMembers,
 }: {
     application: Application;
     frameworks: Framework[];
     canManage: boolean;
+    initialTargetId?: string;
+    activeMembers: { id: number; name: string; email: string }[];
 }) {
     const { workspace } = usePage<PageProps>().props;
-    const [selectedId, setSelectedId] = useState<number | null>(application.targets[0]?.id ?? null);
+    const [selectedId, setSelectedId] = useState<string | null>(initialTargetId ?? application.targets[0]?.uuid ?? null);
     const [creating, setCreating] = useState(false);
     const [editing, setEditing] = useState(false);
     const confirm = useConfirm();
 
     useEffect(() => {
-        if (!application.targets.some((t) => t.id === selectedId)) {
-            setSelectedId(application.targets[0]?.id ?? null);
+        if (!application.targets.some((t) => t.uuid === selectedId)) {
+            setSelectedId(application.targets[0]?.uuid ?? null);
         }
     }, [application.targets, selectedId]);
 
-    const selected = application.targets.find((t) => t.id === selectedId) ?? null;
+    const selected = application.targets.find((t) => t.uuid === selectedId) ?? null;
 
     const destroy = (target: Target) => {
         confirm.confirm({
@@ -98,7 +102,7 @@ export default function TargetWorkspace({
             okType: 'danger',
             okText: 'Supprimer',
             cancelText: 'Annuler',
-            onOk: () => router.delete(route('targets.destroy', [workspace!.slug, application.slug, target.id])),
+            onOk: () => router.delete(route('targets.destroy', [workspace!.slug, application.slug, target.uuid])),
         });
     };
 
@@ -140,8 +144,8 @@ export default function TargetWorkspace({
                         <button
                             key={target.id}
                             type="button"
-                            className={`target-workspace__item ${target.id === selectedId ? 'target-workspace__item--active' : ''}`}
-                            onClick={() => setSelectedId(target.id)}
+                            className={`target-workspace__item ${target.uuid === selectedId ? 'target-workspace__item--active' : ''}`}
+                            onClick={() => setSelectedId(target.uuid)}
                         >
                             <Avatar
                                 size={32}
@@ -187,7 +191,7 @@ export default function TargetWorkspace({
                         </div>
 
                         <h4 className="target-workspace__section-title">Étapes du pipeline</h4>
-                        <PipelineStepsPanel application={application} target={selected} canManage={canManage} />
+                        <PipelineStepsPanel application={application} target={selected} canManage={canManage} activeMembers={activeMembers} />
 
                         <h4 className="target-workspace__section-title">Intégration webhook</h4>
                         <WebhooksPanel

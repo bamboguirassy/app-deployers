@@ -39,7 +39,7 @@ export default function Index({
                 searchUrl={route('deployments.search', [workspace!.slug, application.slug])}
                 initialItems={deployments.data}
                 initialKpis={kpis}
-                getRowHref={(deployment) => route('deployments.show', [workspace!.slug, application.slug, deployment.id])}
+                getRowHref={(deployment) => route('deployments.show', [workspace!.slug, application.slug, deployment.uuid])}
             />
         </AuthenticatedLayout>
     );

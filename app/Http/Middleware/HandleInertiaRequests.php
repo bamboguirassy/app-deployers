@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Deployment;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -32,6 +33,7 @@ class HandleInertiaRequests extends Middleware
     {
         $workspace = $request->route('workspace');
         $user = $request->user();
+        $plan = $workspace instanceof Workspace ? $workspace->effectivePlan() : null;
 
         return [
             ...parent::share($request),
@@ -43,10 +45,60 @@ class HandleInertiaRequests extends Middleware
                 'name' => $workspace->name,
                 'slug' => $workspace->slug,
                 'role' => $user?->roleInWorkspace($workspace),
+                'plan' => ['slug' => $plan->slug, 'name' => $plan->name],
             ] : null,
             'workspaces' => $user
                 ? $user->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
                 : [],
+            'flash' => [
+                'status' => fn () => $request->session()->get('status'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            // État initial du badge "déploiements en cours" (sidebar) — tenu à
+            // jour ensuite en direct via le channel privé workspace.{id} (voir
+            // DeploymentStatusUpdated). Évalué à la volée : jamais mis en cache,
+            // toujours l'état réel au moment du rendu de la page.
+            'activeDeployments' => fn () => $workspace instanceof Workspace
+                ? $this->activeDeployments($workspace)
+                : ['count' => 0, 'items' => []],
+        ];
+    }
+
+    private function activeDeployments(Workspace $workspace): array
+    {
+        $query = Deployment::query()
+            ->whereIn('status', ['pending', 'running'])
+            ->whereHas('targetEnvironment.target.application', fn ($q) => $q->where('workspace_id', $workspace->id));
+
+        $items = (clone $query)
+            ->with(['targetEnvironment.target.application', 'targetEnvironment.environment'])
+            ->withCount([
+                'steps as steps_total',
+                'steps as steps_done' => fn ($q) => $q->whereIn('status', ['succes', 'echec', 'annule', 'skipped']),
+            ])
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(function (Deployment $deployment) use ($workspace) {
+                $target = $deployment->targetEnvironment->target;
+                $application = $target->application;
+
+                return [
+                    'id' => $deployment->id,
+                    'status' => $deployment->status,
+                    'started_at' => $deployment->started_at?->toIso8601String(),
+                    'application_name' => $application->name,
+                    'target_name' => $target->name,
+                    'environment_name' => $deployment->targetEnvironment->environment->name,
+                    'show_url' => route('deployments.show', [$workspace->slug, $application->slug, $deployment->uuid]),
+                    'steps_total' => $deployment->steps_total,
+                    'steps_done' => $deployment->steps_done,
+                ];
+            });
+
+        return [
+            'count' => (clone $query)->count(),
+            'items' => $items,
         ];
     }
 }

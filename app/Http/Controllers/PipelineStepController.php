@@ -3,26 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
-use App\Models\Workspace;
 use App\Models\PipelineStep;
 use App\Models\Target;
+use App\Models\Workspace;
+use App\StepActions\StepActionRegistry;
 use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PipelineStepController extends Controller
 {
+    public function __construct(private StepActionRegistry $stepActions) {}
+
     public function store(Request $request, Workspace $workspace, Application $application, Target $target): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace), 404);
 
-        $data = $request->validate([
-            'label' => ['required', 'string', 'max:255'],
-            'command' => ['required', 'string', 'max:2000'],
-            'timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:3600'],
-            'continue_on_failure' => ['boolean'],
-        ]);
+        $data = $request->validate($this->rules($request));
 
         $step = $target->pipelineSteps()->create([
             ...$data,
@@ -37,14 +36,9 @@ class PipelineStepController extends Controller
     public function update(Request $request, Workspace $workspace, Application $application, Target $target, PipelineStep $pipelineStep): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id && $pipelineStep->target_id === $target->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace) && $pipelineStep->target_id === $target->id, 404);
 
-        $data = $request->validate([
-            'label' => ['required', 'string', 'max:255'],
-            'command' => ['required', 'string', 'max:2000'],
-            'timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:3600'],
-            'continue_on_failure' => ['boolean'],
-        ]);
+        $data = $request->validate($this->rules($request));
 
         $pipelineStep->update($data);
 
@@ -53,10 +47,37 @@ class PipelineStepController extends Controller
         return back()->with('status', 'Étape mise à jour.');
     }
 
+    /**
+     * Règles communes à tous les types + règles spécifiques au type
+     * sélectionné, déléguées au StepAction correspondant
+     * (App\StepActions\StepActionContract::rules()).
+     */
+    private function rules(Request $request): array
+    {
+        $rules = [
+            'label' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', Rule::in($this->stepActions->types())],
+            'timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:3600'],
+            'continue_on_failure' => ['boolean'],
+        ];
+
+        $type = $request->input('type');
+
+        if ($type && $this->stepActions->has($type)) {
+            $action = $this->stepActions->get($type);
+
+            foreach ($action::rules() as $key => $rule) {
+                $rules["config.{$key}"] = $rule;
+            }
+        }
+
+        return $rules;
+    }
+
     public function destroy(Workspace $workspace, Application $application, Target $target, PipelineStep $pipelineStep): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id && $pipelineStep->target_id === $target->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace) && $pipelineStep->target_id === $target->id, 404);
 
         $pipelineStep->delete();
 
@@ -68,7 +89,7 @@ class PipelineStepController extends Controller
     public function reorder(Request $request, Workspace $workspace, Application $application, Target $target): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'ids' => ['required', 'array'],

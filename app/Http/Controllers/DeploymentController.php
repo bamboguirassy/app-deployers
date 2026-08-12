@@ -6,10 +6,12 @@ use App\Http\Controllers\Concerns\FiltersLists;
 use App\Jobs\RunDeploymentJob;
 use App\Models\Application;
 use App\Models\Deployment;
+use App\Models\Environment;
 use App\Models\TargetEnvironment;
 use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentService;
+use App\Services\TargetEnvironmentMissingServerException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,9 +24,7 @@ class DeploymentController extends Controller
 {
     use FiltersLists;
 
-    public function __construct(private DeploymentService $deployments)
-    {
-    }
+    public function __construct(private DeploymentService $deployments) {}
 
     private function deploymentKpis($query): array
     {
@@ -45,7 +45,8 @@ class DeploymentController extends Controller
 
     public function indexAll(Workspace $workspace): Response
     {
-        $applicationIds = $workspace->visibleApplicationsFor(auth()->user())->pluck('applications.id');
+        $visibleApplications = $workspace->visibleApplicationsFor(auth()->user());
+        $applicationIds = $visibleApplications->pluck('applications.id');
 
         $scope = fn (Builder $q) => $q->whereHas('targetEnvironment.target', fn ($t) => $t->whereIn('application_id', $applicationIds));
 
@@ -57,6 +58,12 @@ class DeploymentController extends Controller
         return Inertia::render('Deployments/All', [
             'deployments' => ['data' => $deployments->items()],
             'kpis' => $this->deploymentKpis(Deployment::query()->tap($scope)),
+            'can' => ['deploy' => auth()->user()->can('deployments.trigger')],
+            'deployableApplications' => auth()->user()->can('deployments.trigger')
+                ? $visibleApplications
+                    ->with(['targets.targetEnvironments.environment'])
+                    ->get(['applications.id', 'applications.name', 'applications.slug'])
+                : [],
         ]);
     }
 
@@ -172,25 +179,78 @@ class DeploymentController extends Controller
     public function store(Workspace $workspace, Application $application, TargetEnvironment $targetEnvironment): RedirectResponse
     {
         $this->authorize('deploy', $application);
-        abort_unless($targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($targetEnvironment->belongsToWorkspace($workspace), 404);
 
         try {
-            $deployment = $this->deployments->trigger(
+            $this->deployments->trigger(
                 $targetEnvironment,
                 source: 'manual',
                 user: auth()->user(),
             );
-        } catch (DeploymentAlreadyRunningException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('deployments.show', [$workspace->slug, $application->slug, $deployment->id]);
+        // Reste sur la page d'origine plutôt que de forcer une navigation vers
+        // le détail — le badge "déploiements en cours" (sidebar) et les listes
+        // en direct donnent déjà la visibilité nécessaire sans quitter le
+        // contexte (pipeline, matrice d'environnements...) depuis lequel le
+        // déploiement a été lancé.
+        return back()->with('status', 'Déploiement lancé.');
+    }
+
+    /**
+     * Déclenche un déploiement pour chaque target configuré sur cet
+     * environnement, en parallèle (une file d'attente par target — pas un
+     * déploiement combiné unique, le modèle de données reste un déploiement =
+     * un couple target/environnement).
+     */
+    public function storeForEnvironment(Workspace $workspace, Application $application, Environment $environment): RedirectResponse
+    {
+        $this->authorize('deploy', $application);
+        abort_unless($environment->belongsToWorkspace($workspace), 404);
+
+        $targetEnvironments = TargetEnvironment::query()
+            ->whereHas('target', fn ($q) => $q->where('application_id', $application->id))
+            ->where('environment_id', $environment->id)
+            ->with('target')
+            ->get();
+
+        abort_if($targetEnvironments->isEmpty(), 404);
+
+        $triggered = 0;
+        $skipped = [];
+        $missingServer = [];
+
+        foreach ($targetEnvironments as $targetEnvironment) {
+            try {
+                $this->deployments->trigger($targetEnvironment, source: 'manual', user: auth()->user());
+                $triggered++;
+            } catch (DeploymentAlreadyRunningException) {
+                $skipped[] = $targetEnvironment->target->name;
+            } catch (TargetEnvironmentMissingServerException) {
+                $missingServer[] = $targetEnvironment->target->name;
+            }
+        }
+
+        // Pas de limite de concurrence à signaler ici : un déploiement sans
+        // slot disponible n'est jamais rejeté, il patiente en file d'attente
+        // ("pending") jusqu'à ce qu'un slot se libère (RunDeploymentJob).
+        $message = "{$triggered} déploiement(s) lancé(s) sur {$environment->name}.";
+        if (! empty($skipped)) {
+            $message .= ' Déjà en cours, ignoré(s) : '.implode(', ', $skipped).'.';
+        }
+        if (! empty($missingServer)) {
+            $message .= ' Sans serveur configuré, ignoré(s) : '.implode(', ', $missingServer).'.';
+        }
+
+        return back()->with($triggered > 0 ? 'status' : 'error', $message);
     }
 
     public function show(Workspace $workspace, Application $application, Deployment $deployment): Response
     {
         $this->authorize('deploy', $application);
-        abort_unless($deployment->targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($deployment->belongsToWorkspace($workspace), 404);
 
         $deployment->load(['steps', 'targetEnvironment.target', 'targetEnvironment.environment', 'triggeredBy']);
 
@@ -203,7 +263,7 @@ class DeploymentController extends Controller
     public function cancel(Workspace $workspace, Application $application, Deployment $deployment): RedirectResponse
     {
         $this->authorize('deploy', $application);
-        abort_unless($deployment->targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($deployment->belongsToWorkspace($workspace), 404);
 
         if (in_array($deployment->status, ['running', 'pending'], true)) {
             Cache::put(RunDeploymentJob::cancelKey($deployment->id), true, now()->addMinutes(20));
@@ -211,5 +271,67 @@ class DeploymentController extends Controller
         }
 
         return back()->with('status', 'Annulation demandée.');
+    }
+
+    /**
+     * Relance un nouveau déploiement sur le même couple target/environnement,
+     * en reprenant la branche et le commit du déploiement d'origine — pas une
+     * reprise du déploiement existant (l'historique de celui-ci reste figé),
+     * juste un raccourci pour éviter de ressaisir la config depuis la liste.
+     */
+    public function retry(Workspace $workspace, Application $application, Deployment $deployment): RedirectResponse
+    {
+        $this->authorize('deploy', $application);
+        abort_unless($deployment->belongsToWorkspace($workspace), 404);
+
+        if (! in_array($deployment->status, ['echec', 'annule'], true)) {
+            return back()->with('error', 'Seul un déploiement en échec ou annulé peut être relancé.');
+        }
+
+        try {
+            $retried = $this->deployments->trigger(
+                $deployment->targetEnvironment,
+                source: 'manual',
+                user: auth()->user(),
+                commitSha: $deployment->commit_sha,
+                branch: $deployment->branch,
+            );
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('deployments.show', [$workspace->slug, $application->slug, $retried->uuid]);
+    }
+
+    /**
+     * Revient à une version connue-bonne : redéploie la branche/commit d'un
+     * déploiement passé en succès sur le même target/environnement. À la
+     * différence de retry() (qui relance un échec/annulation avec la même
+     * config), le rollback part toujours d'un déploiement qui a réussi —
+     * c'est un raccourci pour "reviens à ce qui marchait avant", pas une
+     * reprise de l'historique existant (qui reste figé).
+     */
+    public function rollback(Workspace $workspace, Application $application, Deployment $deployment): RedirectResponse
+    {
+        $this->authorize('deploy', $application);
+        abort_unless($deployment->belongsToWorkspace($workspace), 404);
+
+        if ($deployment->status !== 'succes') {
+            return back()->with('error', 'Seul un déploiement en succès peut servir de cible de rollback.');
+        }
+
+        try {
+            $rolledBack = $this->deployments->trigger(
+                $deployment->targetEnvironment,
+                source: 'manual',
+                user: auth()->user(),
+                commitSha: $deployment->commit_sha,
+                branch: $deployment->branch,
+            );
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('deployments.show', [$workspace->slug, $application->slug, $rolledBack->uuid]);
     }
 }

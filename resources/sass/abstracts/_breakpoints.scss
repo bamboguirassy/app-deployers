@@ -16,3 +16,13 @@ $breakpoints: (
         @content;
     }
 }
+
+@mixin respond-below($name) {
+    @if not map-has-key($breakpoints, $name) {
+        @error 'Unknown breakpoint `#{$name}`. Available: #{map-keys($breakpoints)}';
+    }
+
+    @media (max-width: map-get($breakpoints, $name) - 1px) {
+        @content;
+    }
+}

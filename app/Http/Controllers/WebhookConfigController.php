@@ -22,7 +22,7 @@ class WebhookConfigController extends Controller
     public function store(Request $request, Workspace $workspace, Application $application, Target $target): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'provider' => ['required', 'in:github,gitlab,bitbucket'],
@@ -56,11 +56,11 @@ class WebhookConfigController extends Controller
     public function revealSecret(Workspace $workspace, Application $application, WebhookConfig $webhookConfig): \Illuminate\Http\JsonResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($webhookConfig->target->application_id === $application->id, 404);
+        abort_unless($webhookConfig->belongsToWorkspace($workspace), 404);
 
         AuditLogger::log($application, 'webhook_config.secret_revealed', $webhookConfig);
 
-        $url = route('webhooks.receive', [$webhookConfig->provider, $webhookConfig->id]);
+        $url = route('webhooks.receive', [$webhookConfig->provider, $webhookConfig->uuid]);
 
         return response()->json([
             'secret' => $webhookConfig->secret,
@@ -71,7 +71,7 @@ class WebhookConfigController extends Controller
     public function update(Request $request, Workspace $workspace, Application $application, WebhookConfig $webhookConfig): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($webhookConfig->target->application_id === $application->id, 404);
+        abort_unless($webhookConfig->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'enabled' => ['required', 'boolean'],
@@ -87,7 +87,7 @@ class WebhookConfigController extends Controller
     public function destroy(Workspace $workspace, Application $application, WebhookConfig $webhookConfig): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($webhookConfig->target->application_id === $application->id, 404);
+        abort_unless($webhookConfig->belongsToWorkspace($workspace), 404);
 
         $webhookConfig->delete();
 
@@ -99,7 +99,7 @@ class WebhookConfigController extends Controller
     public function storeBranchMapping(Request $request, Workspace $workspace, Application $application, WebhookConfig $webhookConfig): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($webhookConfig->target->application_id === $application->id, 404);
+        abort_unless($webhookConfig->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'environment_id' => ['required', 'exists:environments,id'],
@@ -117,7 +117,7 @@ class WebhookConfigController extends Controller
     {
         $this->authorize('manageTargetsAndPipeline', $application);
         abort_unless(
-            $webhookConfig->target->application_id === $application->id && $branchMapping->webhook_config_id === $webhookConfig->id,
+            $webhookConfig->belongsToWorkspace($workspace) && $branchMapping->webhook_config_id === $webhookConfig->id,
             404
         );
 

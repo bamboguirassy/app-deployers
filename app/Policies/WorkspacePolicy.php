@@ -21,4 +21,18 @@ class WorkspacePolicy
     {
         return $user->can('servers.manage');
     }
+
+    /**
+     * La page de facturation reste consultable par tous les membres du
+     * workspace ; seule l'action de changement de plan est restreinte.
+     */
+    public function viewBilling(User $user, Workspace $workspace): bool
+    {
+        return $user->roleInWorkspace($workspace) !== null;
+    }
+
+    public function manageBilling(User $user, Workspace $workspace): bool
+    {
+        return $user->can('billing.manage');
+    }
 }

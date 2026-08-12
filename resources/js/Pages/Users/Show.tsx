@@ -32,7 +32,7 @@ export default function Show({
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        patch(route('users.update', [workspace!.slug, user.id]));
+        patch(route('users.update', [workspace!.slug, user.uuid]));
     };
 
     const resendVerification = () =>
@@ -41,7 +41,7 @@ export default function Show({
             content: `Un nouvel email de vérification sera envoyé à ${user.email}.`,
             okText: 'Envoyer',
             cancelText: 'Annuler',
-            onOk: () => router.post(route('users.resend-verification', [workspace!.slug, user.id])),
+            onOk: () => router.post(route('users.resend-verification', [workspace!.slug, user.uuid])),
         });
 
     const sendPasswordReset = () =>
@@ -50,7 +50,7 @@ export default function Show({
             content: `Un email avec un lien de réinitialisation sera envoyé à ${user.email}.`,
             okText: 'Envoyer',
             cancelText: 'Annuler',
-            onOk: () => router.post(route('users.send-password-reset', [workspace!.slug, user.id])),
+            onOk: () => router.post(route('users.send-password-reset', [workspace!.slug, user.uuid])),
         });
 
     const toggleSuspend = () =>
@@ -62,7 +62,7 @@ export default function Show({
             okText: user.suspended_at ? 'Réactiver' : 'Suspendre',
             okType: user.suspended_at ? 'primary' : 'danger',
             cancelText: 'Annuler',
-            onOk: () => router.post(route('users.toggle-suspend', [workspace!.slug, user.id])),
+            onOk: () => router.post(route('users.toggle-suspend', [workspace!.slug, user.uuid])),
         });
 
     const removeFromWorkspace = () =>
@@ -72,7 +72,7 @@ export default function Show({
             okText: 'Retirer',
             okType: 'danger',
             cancelText: 'Annuler',
-            onOk: () => router.delete(route('users.destroy', [workspace!.slug, user.id])),
+            onOk: () => router.delete(route('users.destroy', [workspace!.slug, user.uuid])),
         });
 
     return (

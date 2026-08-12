@@ -28,8 +28,8 @@ class SetInitialPasswordNotification extends Notification implements ShouldQueue
         ]);
 
         return (new MailMessage)
-            ->subject('Votre compte App Deployers a été créé')
-            ->line('Un compte vient d\'être créé pour vous sur App Deployers.')
+            ->subject('Votre compte App Deployer a été créé')
+            ->line('Un compte vient d\'être créé pour vous sur App Deployer.')
             ->action('Définir mon mot de passe', $url)
             ->line('Ce lien expire dans 60 minutes.');
     }

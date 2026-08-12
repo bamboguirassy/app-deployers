@@ -109,7 +109,7 @@ class ServerController extends Controller
     public function update(Request $request, Workspace $workspace, Server $server): RedirectResponse
     {
         $this->authorize('manageServers', $workspace);
-        abort_unless($server->workspace_id === $workspace->id, 404);
+        abort_unless($server->belongsToWorkspace($workspace), 404);
 
         $data = $this->validated($request, $workspace, $server);
 
@@ -148,7 +148,11 @@ class ServerController extends Controller
     public function destroy(Workspace $workspace, Server $server): RedirectResponse
     {
         $this->authorize('manageServers', $workspace);
-        abort_unless($server->workspace_id === $workspace->id, 404);
+        abort_unless($server->belongsToWorkspace($workspace), 404);
+
+        if ($server->targetEnvironments()->exists()) {
+            return back()->with('error', 'Ce serveur est utilisé par au moins un environnement de déploiement et ne peut pas être supprimé.');
+        }
 
         $server->delete();
 
@@ -201,7 +205,7 @@ class ServerController extends Controller
     public function testExisting(Request $request, Workspace $workspace, Server $server): JsonResponse
     {
         $this->authorize('manageServers', $workspace);
-        abort_unless($server->workspace_id === $workspace->id, 404);
+        abort_unless($server->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'host' => ['nullable', 'string', 'max:255'],
@@ -255,7 +259,7 @@ class ServerController extends Controller
     public function browseDirectory(Request $request, Workspace $workspace, Server $server): JsonResponse
     {
         $this->authorize('manageServers', $workspace);
-        abort_unless($server->workspace_id === $workspace->id, 404);
+        abort_unless($server->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'path' => ['nullable', 'string', 'max:1000'],
@@ -281,12 +285,14 @@ class ServerController extends Controller
             'port' => ['nullable', 'integer', 'min:1', 'max:65535'],
             'username' => ['required', 'string', 'max:255'],
             'auth_method' => ['required', 'in:password,ssh_key'],
+            'default_path' => ['nullable', 'string', 'max:500'],
             'password' => ['nullable', 'string'],
             'private_key' => ['nullable', 'string'],
             'passphrase' => ['nullable', 'string'],
         ]);
 
         $data['port'] = $data['port'] ?? 22;
+        $data['default_path'] = ($data['default_path'] ?? '') !== '' ? rtrim($data['default_path'], '/') ?: '/' : '/';
 
         if ($data['auth_method'] === 'password') {
             $data['private_key'] = null;

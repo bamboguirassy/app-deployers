@@ -1,0 +1,228 @@
+@use '../abstracts' as *;
+
+// Coquille du panneau super-admin : structure Ant Design Layout/Sider/Header
+// identique à .app-shell, mais avec une bande d'accent ambrée (--color-admin)
+// pour signaler sans ambiguïté qu'on est en "mode plateforme".
+.admin-shell {
+    height: 100vh;
+    overflow: hidden;
+    background-color: theme('color-bg');
+}
+
+.admin-shell__accent-bar {
+    height: 3px;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, theme('color-admin') 0%, theme('color-admin-soft') 100%);
+}
+
+.admin-shell__sider {
+    display: none !important;
+    position: relative;
+    flex-direction: column;
+    background-color: theme('color-surface') !important;
+    border-right: 1px solid theme('color-border');
+    height: 100vh;
+
+    @include respond-to('lg') {
+        display: flex !important;
+    }
+
+    .ant-layout-sider-children {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+}
+
+.admin-shell__drawer {
+    .ant-drawer-content {
+        background-color: theme('color-surface');
+    }
+
+    @include respond-to('lg') {
+        display: none;
+    }
+}
+
+.admin-shell__brand {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+    height: 64px;
+    padding: 0 space('5');
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+
+    svg {
+        width: 22px;
+        height: 22px;
+        color: theme('color-admin');
+        flex-shrink: 0;
+    }
+
+    span {
+        font-weight: 700;
+        font-size: 14px;
+        color: theme('color-text');
+        white-space: nowrap;
+    }
+}
+
+.admin-shell__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px space('2');
+    border-radius: 999px;
+    background: theme('color-admin-soft');
+    color: theme('color-admin');
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.admin-shell__menu {
+    flex: 1;
+    overflow-y: auto;
+    @include scrollbar-thin;
+    background: transparent !important;
+    padding: space('2');
+
+    .ant-menu-item {
+        border-radius: $radius-md;
+        margin: 2px 0 !important;
+        width: 100% !important;
+    }
+
+    .ant-menu-item-selected {
+        background-color: theme('color-admin-soft') !important;
+        color: theme('color-admin') !important;
+        font-weight: 600;
+    }
+}
+
+.admin-shell__exit {
+    margin: space('3');
+    flex-shrink: 0;
+}
+
+.admin-shell__body {
+    height: calc(100vh - 3px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: theme('color-bg');
+}
+
+.admin-shell__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 space('4');
+    background-color: theme('color-surface') !important;
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+    z-index: z('sticky');
+    gap: space('3');
+
+    @include respond-to('lg') {
+        padding: 0 space('5');
+    }
+}
+
+.admin-shell__hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-md;
+    border: 1px solid theme('color-border');
+    background: transparent;
+    color: theme('color-text');
+    cursor: pointer;
+    flex-shrink: 0;
+
+    @include respond-to('lg') {
+        display: none;
+    }
+}
+
+.admin-shell__breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: space('1');
+    min-width: 0;
+    overflow: hidden;
+}
+
+.admin-shell__breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: space('1');
+    white-space: nowrap;
+
+    a {
+        color: theme('color-text-muted');
+        font-size: 14px;
+
+        &:hover {
+            color: theme('color-admin');
+        }
+    }
+}
+
+.admin-shell__breadcrumb-current {
+    color: theme('color-text');
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.admin-shell__breadcrumb-sep {
+    color: theme('color-text-muted');
+    margin: 0 space('1');
+}
+
+.admin-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: theme('color-text-muted');
+    margin-bottom: space('1');
+}
+
+.admin-comp-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space('3');
+    padding: space('3');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-md;
+    background-color: theme('color-primary-soft');
+}
+
+.admin-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: space('5');
+    margin-top: space('4');
+
+    @include respond-below('md') {
+        grid-template-columns: 1fr;
+    }
+}
+
+.admin-shell__content {
+    flex: 1;
+    overflow-y: auto;
+    margin: space('4');
+    @include scrollbar-thin;
+
+    @include respond-to('lg') {
+        margin: space('5');
+    }
+}

@@ -6,6 +6,15 @@
     background-color: theme('color-bg');
 }
 
+// Le header applicatif est sticky à z('sticky') (1020) : tout Drawer/Modal
+// antd doit rester au-dessus, sinon ses contrôles (bouton fermer compris)
+// se retrouvent visuellement masqués derrière le header (voir _app-shell.scss
+// .app-shell__header).
+.ant-drawer,
+.ant-modal-root {
+    z-index: z('modal');
+}
+
 .app-shell__sider--desktop {
     display: none !important;
     position: relative;
@@ -129,6 +138,32 @@
     white-space: nowrap;
 }
 
+.app-shell__cta {
+    padding: 0 space('4') space('3');
+    flex-shrink: 0;
+}
+
+.app-shell__cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: space('2');
+    width: 100%;
+    padding: space('2') space('3');
+    border-radius: $radius-md;
+    background: theme('color-primary');
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+        opacity: 0.9;
+        color: #fff;
+    }
+}
+
 .app-shell__menu {
     flex: 1;
     overflow-y: auto;
@@ -153,10 +188,14 @@
     display: flex;
     align-items: center;
     gap: space('3');
+    width: calc(100% - #{space('3')} * 2);
     margin: space('3');
     padding: space('2') space('3');
     border: 1px solid theme('color-border');
     border-radius: $radius-md;
+    background: transparent;
+    font: inherit;
+    text-align: left;
     flex-shrink: 0;
     cursor: pointer;
     transition: border-color 0.15s ease;
@@ -335,6 +374,52 @@
     @include respond-to('md') {
         display: inline-flex;
     }
+
+    // Contrairement aux autres icônes de l'entête ("bientôt disponible"),
+    // celle-ci reflète une fonctionnalité active dès le mobile — la garder
+    // masquée en-dessous de md priverait justement les petits écrans de la
+    // visibilité globale qu'elle est censée apporter.
+    &.active-deployments-trigger {
+        display: inline-flex;
+    }
+}
+
+.active-deployments-item {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    min-width: 220px;
+    padding: space('1') 0;
+}
+
+.active-deployments-item__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--running {
+        background-color: theme('color-primary');
+        box-shadow: 0 0 0 3px theme('color-primary-soft');
+    }
+
+    &--pending {
+        background-color: theme('color-text-muted');
+    }
+}
+
+.active-deployments-item__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.active-deployments-item__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: theme('color-text-muted');
 }
 
 .app-shell__user {
@@ -349,6 +434,48 @@
     &:hover {
         background-color: theme('color-bg');
     }
+}
+
+.active-deployment-banner {
+    display: flex;
+    flex-direction: column;
+    gap: space('1');
+    padding: space('2') space('4');
+    background-color: theme('color-primary-soft');
+    border-bottom: 1px solid theme('color-border');
+    flex-shrink: 0;
+}
+
+.active-deployment-banner__row {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    color: inherit;
+
+    &:hover {
+        opacity: 0.85;
+    }
+}
+
+.active-deployment-banner__icon {
+    color: theme('color-primary');
+    flex-shrink: 0;
+}
+
+.active-deployment-banner__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: theme('color-text');
+    white-space: nowrap;
+}
+
+.active-deployment-banner__progress {
+    flex: 1;
+    max-width: 320px;
+    margin: 0;
 }
 
 .app-shell__subheader {
@@ -416,5 +543,183 @@
 
     @include respond-to('lg') {
         margin: space('5');
+    }
+}
+
+.billing-card {
+    @include card-surface;
+    padding: space('5');
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: space('5');
+        flex-wrap: wrap;
+        gap: space('3');
+    }
+
+    &__usage {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: space('5');
+
+        @include respond-below('md') {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+.plans-toolbar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: space('5');
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: space('5');
+    margin-bottom: space('5');
+    align-items: stretch;
+
+    @include respond-below('md') {
+        grid-template-columns: 1fr;
+    }
+}
+
+.plan-card {
+    @include card-surface;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: space('6') space('5') space('5');
+    overflow: hidden;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+
+    &--pro {
+        border-color: theme('color-primary');
+        background: linear-gradient(180deg, theme('color-primary-soft') 0%, theme('color-surface') 140px);
+    }
+
+    &--current {
+        box-shadow: 0 0 0 2px theme('color-primary');
+    }
+
+    &__badge {
+        position: absolute;
+        top: space('4');
+        right: space('4');
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 4px space('3');
+        border-radius: 999px;
+        background: theme('color-primary-soft');
+        color: theme('color-primary');
+
+        &--pro {
+            background: theme('color-primary');
+            color: #fff;
+        }
+    }
+
+    &__ribbon {
+        position: absolute;
+        top: space('4');
+        right: space('4');
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 4px space('3');
+        border-radius: 999px;
+        background: theme('color-primary');
+        color: #fff;
+    }
+
+    &__head {
+        margin-bottom: space('5');
+    }
+
+    &__name {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: theme('color-text-muted');
+    }
+
+    &__price {
+        display: flex;
+        align-items: baseline;
+        gap: space('1');
+        margin-top: space('2');
+    }
+
+    &__price-amount {
+        font-size: 32px;
+        font-weight: 700;
+        color: theme('color-text');
+        line-height: 1.1;
+    }
+
+    &__price-period {
+        font-size: 14px;
+        color: theme('color-text-muted');
+    }
+
+    &__tagline {
+        margin: space('2') 0 0 !important;
+        min-height: 42px;
+    }
+
+    &__features {
+        list-style: none;
+        margin: 0 0 space('5');
+        padding: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: space('3');
+
+        li {
+            display: flex;
+            align-items: flex-start;
+            gap: space('2');
+            font-size: 14px;
+            color: theme('color-text');
+
+            svg {
+                color: theme('color-success');
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+        }
+    }
+
+    &__cta {
+        margin-top: auto;
+    }
+}
+
+.billing-usage-card {
+    @include card-surface;
+    padding: space('5');
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: space('5');
+
+        @include respond-below('md') {
+            grid-template-columns: 1fr;
+        }
     }
 }

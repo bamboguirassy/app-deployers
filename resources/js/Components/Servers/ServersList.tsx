@@ -50,7 +50,7 @@ export default forwardRef<ServersListHandle, {
             okText: 'Supprimer',
             cancelText: 'Annuler',
             onOk: () =>
-                router.delete(route('servers.destroy', [workspaceSlug, server.id]), {
+                router.delete(route('servers.destroy', [workspaceSlug, server.uuid]), {
                     onSuccess: () => search.refresh(),
                 }),
         });
@@ -162,7 +162,7 @@ export default forwardRef<ServersListHandle, {
             ) : (
                 <>
                     <Card className="premium-table-card">
-                        <Table rowKey="id" dataSource={search.items} pagination={false} columns={columns} className="premium-table" />
+                        <Table rowKey="id" dataSource={search.items} pagination={false} columns={columns} className="premium-table" scroll={{ x: 'max-content' }} />
                     </Card>
                     <div ref={search.sentinelRef} style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
                         {search.loading && <Spin size="small" />}

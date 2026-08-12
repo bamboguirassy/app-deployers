@@ -59,10 +59,25 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
 4. On step failure: remaining steps become `skipped` unless `continue_on_failure`. On
    cancel: remaining steps become `annule`. Lock and cancel cache keys are always released
    in a `finally` block.
+5. Command steps broadcast incremental output live (`DeploymentStepOutputAppended`,
+   `.deploiement.sortie`) while running, throttled to at most one broadcast per 400ms/4KB
+   (`RunDeploymentJob::throttledOutputBroadcaster()`) — the final full output still only
+   arrives via `DeploymentStepUpdated` at step completion; a small tail of output between the
+   last throttled flush and completion is only visible there, never lost from the DB record.
+6. Any transition to `echec` (normal failure, unhandled exception, queue-wait timeout via
+   `failed()`, or `deploy:reconcile-stuck`) triggers `App\Listeners\NotifyOnDeploymentFailure`
+   (listens on `DeploymentStatusUpdated`, registered in `AppServiceProvider::boot()`) — emails
+   workspace owners + the triggering user via `DeploymentFailedNotification`.
 
-Cancellation is **cooperative only** — if a worker process dies outright, the lock is not
-released until something else clears it. Keep this in mind before "fixing" perceived stuck
-deployments by just clearing cache keys blindly.
+Cancellation is **cooperative only** — if a worker process dies outright mid-run, the
+`finally` block in `RunDeploymentJob` never executes, so the lock, the concurrency slot, and
+the deployment's `running` status would stay stuck forever. `App\Console\Commands\ReconcileStuckDeployments`
+(`deploy:reconcile-stuck`, scheduled every 5 minutes in `routes/console.php`) is the safety
+net: any deployment still `running` after `config('deploy.stuck_running_after_minutes')`
+(default 60) is force-marked `echec`, its remaining steps `annule`, and its lock/slot
+released. `pending` deployments are deliberately left alone — that state is already bounded
+by `RunDeploymentJob::retryUntil()`/`failed()` (queue-wait timeout). Don't "fix" stuck
+deployments by clearing cache keys by hand — extend this command instead.
 
 ## Permissions
 
@@ -76,26 +91,33 @@ from a single source.
 
 ## Known rough edges (don't be surprised, don't "fix" silently without asking)
 
-- Several controllers hardcode zeroed/fake KPIs on the initial page load (e.g.
-  `ApplicationController@show`'s `membersKpis`/`deploymentsKpis`, `UserController@index`) and
-  only compute real numbers on the async `search` endpoints. This is intentional-but-unfinished,
-  not a bug to "fix" in isolation without checking both code paths.
-- `resources/js/constants/deployments.ts` exports `STATUS_COLORS`, but the actual status pills
-  in `Dashboard.tsx` / `DeploymentsList.tsx` get their color from SCSS modifier classes
-  (`.premium-table__status--*`) that are missing color rules for `pending/running/succes/echec/annule`
-  — the "intended" colored design exists in code but isn't wired to CSS.
-- `Deployments/Show.tsx` and `Users/Show.tsx` each redeclare local copies of status/role
-  label+color maps that already exist in `resources/js/constants/`. Prefer importing the
-  shared constant over adding a third copy.
-- `ApplicationsList.tsx`'s "Statut" column is hardcoded to always show "Active" — not wired to
-  real health data yet.
-- `resources/sass/components/_antd-overrides.scss` references a `color-error` token that does
-  not exist in `_light.scss`/`_dark.scss` (only `color-danger` is defined) — this silently
-  breaks the "Suspendu" status color in `UsersList.tsx`.
+*Last verified 2026-08-11 — several items previously listed here (hardcoded KPIs,
+unwired `STATUS_COLORS`, duplicated status/role label maps, hardcoded "Active" status,
+missing `color-error` token) have since been fixed and were removed from this list. If
+you rediscover one of those, it's a regression, not a known gap — worth flagging.*
+
 - Ant Design theme colors are hardcoded a second time in `resources/js/theme/AppThemeProvider.tsx`'s
-  `PALETTE` object, manually kept in sync (per its own comment) with the SCSS `--color-*`
-  variables. There is no single source of truth — changing one without the other is a common
-  way to introduce a light/dark mismatch.
+  `PALETTE` object (currently just `colorPrimary`/`colorBgBase`/`colorTextBase` per mode),
+  manually kept in sync (per its own comment) with the SCSS `--color-*` variables. There is no
+  single source of truth — changing one without the other is a way to introduce a light/dark
+  mismatch. Small enough now that it hasn't been worth wiring to a single source, but don't grow
+  it without addressing that.
+- `trigger_source: scheduled` exists on `Deployment` and is handled by `DeploymentContextBuilder`,
+  but nothing actually schedules a deployment yet (no cron/UI wired up) — the value is
+  future-proofing, not a working feature.
+- Webhook receiver dedupe (`WebhookReceiverController::handle()`) keys on the provider's
+  delivery-id header when available (`X-GitHub-Delivery`, `X-Gitlab-Event-UUID`,
+  `X-Request-UUID` for Bitbucket) with a 24h TTL — falls back to `branch:commit_sha` when the
+  provider sends none (Bitbucket without a proxy adding that header). This also fixed a latent
+  bug: the method's return type was `Illuminate\Http\Response`, which doesn't cover
+  `response()->json(...)` (`JsonResponse`) — every non-error branch (success, dedupe-ignored,
+  no-mapping) threw a `TypeError` (500) in production. Now typed as
+  `Symfony\Component\HttpFoundation\Response`.
+- No rollback of the *target server's filesystem/service state* on a failed deployment — only
+  `DeploymentController::rollback()` (redeploy the branch/commit of a past `succes` deployment,
+  same mechanism as `retry()`) exists. If a pipeline step partially mutates the server before
+  failing, nothing undoes that automatically; a rollback just runs the pipeline again against
+  the old ref.
 
 ## Conventions to follow
 
@@ -131,7 +153,10 @@ npm run dev          # vite dev server (port 5183, see vite.config.js)
 php artisan serve    # or your own webserver, APP_URL uses :8010 in .env.example
 php artisan horizon   # required for deployments/webhooks to actually run
 php artisan reverb:start  # required for live deployment status updates
+php artisan schedule:work  # required for deploy:reconcile-stuck / billing:expire-grace-periods
 ```
 
-No test suite exists yet for the deployment/application/webhook domain (`tests/` only covers
-Breeze's default Auth/Profile scaffolding) — be cautious about claiming behavior is "tested."
+`tests/Feature/DeploymentServiceTest.php` and `tests/Feature/ReconcileStuckDeploymentsTest.php`
+cover the deployment domain's locking/reconciliation behavior (run with `php artisan test`,
+sqlite in-memory). Most other deployment/application/webhook code paths are still untested —
+be cautious about claiming behavior beyond these two files is "tested."

@@ -144,7 +144,7 @@ export default forwardRef<UsersListHandle, {
             </div>
 
             <Card className="premium-table-card">
-                <Table rowKey="id" dataSource={search.items} pagination={false} columns={columns} className="premium-table" />
+                <Table rowKey="id" dataSource={search.items} pagination={false} columns={columns} className="premium-table" scroll={{ x: 'max-content' }} />
             </Card>
 
             <div ref={search.sentinelRef} style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>

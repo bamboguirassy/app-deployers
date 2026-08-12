@@ -18,7 +18,7 @@ function WebhookUrlReveal({ application, webhook }: { application: Application; 
     const reveal = () => {
         setLoading(true);
         axios
-            .post(route('webhook-configs.reveal-secret', [workspace!.slug, application.slug, webhook.id]))
+            .post(route('webhook-configs.reveal-secret', [workspace!.slug, application.slug, webhook.uuid]))
             .then((res) => setRevealed(res.data))
             .finally(() => setLoading(false));
     };
@@ -30,7 +30,7 @@ function WebhookUrlReveal({ application, webhook }: { application: Application; 
                     URL :
                 </Text>
                 <Text code style={{ fontSize: 12 }}>
-                    {route('webhooks.receive', [webhook.provider, webhook.id])}
+                    {route('webhooks.receive', [webhook.provider, webhook.uuid])}
                 </Text>
                 <Button size="small" type="text" icon={<Eye size={13} />} loading={loading} onClick={reveal}>
                     Afficher le secret
@@ -90,7 +90,7 @@ function BranchMappingForm({
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(
-            route('webhook-branch-mappings.store', [workspace!.slug, application.slug, webhookConfig.id]),
+            route('webhook-branch-mappings.store', [workspace!.slug, application.slug, webhookConfig.uuid]),
             { preserveScroll: true, onSuccess: () => reset() },
         );
     };
@@ -100,11 +100,11 @@ function BranchMappingForm({
     );
 
     return (
-        <form onSubmit={submit} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <form onSubmit={submit} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
             <Select
                 size="small"
                 placeholder="Environnement"
-                style={{ width: 140 }}
+                style={{ width: 140, flex: '1 1 140px' }}
                 value={data.environment_id || undefined}
                 onChange={(value) => setData('environment_id', value)}
                 options={availableEnvironments.map((env) => ({ value: env.id, label: env.name }))}
@@ -114,7 +114,7 @@ function BranchMappingForm({
                 placeholder="branche (ex: main)"
                 value={data.branch}
                 onChange={(e) => setData('branch', e.target.value)}
-                style={{ width: 140 }}
+                style={{ width: 140, flex: '1 1 140px' }}
             />
             <Button size="small" htmlType="submit" disabled={processing || !data.environment_id || !data.branch}>
                 Mapper
@@ -139,7 +139,7 @@ export default function WebhooksPanel({
 
     const activate = (provider: WebhookConfig['provider']) => {
         router.post(
-            route('webhook-configs.store', [workspace!.slug, application.slug, target.id]),
+            route('webhook-configs.store', [workspace!.slug, application.slug, target.uuid]),
             { provider },
             { preserveScroll: true },
         );
@@ -153,7 +153,7 @@ export default function WebhooksPanel({
             okText: 'Supprimer',
             cancelText: 'Annuler',
             onOk: () =>
-                router.delete(route('webhook-configs.destroy', [workspace!.slug, application.slug, webhook.id]), {
+                router.delete(route('webhook-configs.destroy', [workspace!.slug, application.slug, webhook.uuid]), {
                     preserveScroll: true,
                 }),
         });
@@ -222,7 +222,7 @@ export default function WebhooksPanel({
                                             URL :
                                         </Text>
                                         <Text code copyable style={{ fontSize: 12 }}>
-                                            {route('webhooks.receive', [webhook.provider, webhook.id])}
+                                            {route('webhooks.receive', [webhook.provider, webhook.uuid])}
                                         </Text>
                                     </div>
                                 )}
@@ -243,8 +243,8 @@ export default function WebhooksPanel({
                                                             route('webhook-branch-mappings.destroy', [
                                                                 workspace!.slug,
                                                                 application.slug,
-                                                                webhook.id,
-                                                                mapping.id,
+                                                                webhook.uuid,
+                                                                mapping.uuid,
                                                             ]),
                                                             { preserveScroll: true },
                                                         )

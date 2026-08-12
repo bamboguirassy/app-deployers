@@ -37,7 +37,7 @@ class UserController extends Controller
             ->join('users', 'users.id', '=', 'model_has_roles.model_id')
             ->where('model_has_roles.model_type', User::class)
             ->where('model_has_roles.workspace_id', $workspace->id)
-            ->select('users.id', 'users.name', 'users.email', 'users.email_verified_at', 'users.suspended_at', 'roles.name as role');
+            ->select('users.id', 'users.uuid', 'users.name', 'users.email', 'users.email_verified_at', 'users.suspended_at', 'roles.name as role');
     }
 
     public function index(Workspace $workspace): Response

@@ -84,9 +84,25 @@ function ConfigDrawer({
 
     const save = () => {
         if (existing) {
-            patch(route('target-environments.update', [workspace!.slug, application.slug, existing.id]), { preserveScroll: true });
+            patch(route('target-environments.update', [workspace!.slug, application.slug, existing.uuid]), {
+                preserveScroll: true,
+                preserveState: true,
+            });
         } else {
-            post(route('target-environments.store', [workspace!.slug, application.slug, target.id, environment.id]), { preserveScroll: true });
+            post(route('target-environments.store', [workspace!.slug, application.slug, target.uuid, environment.uuid]), {
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }
+    };
+
+    const handleServerChange = (value: number) => {
+        const server = servers.find((s) => s.id === value);
+
+        setData('server_id', value);
+
+        if (!data.deploy_path && server?.default_path) {
+            setData('deploy_path', server.default_path);
         }
     };
 
@@ -99,7 +115,7 @@ function ConfigDrawer({
         <Drawer
             open
             onClose={onClose}
-            width={420}
+            width="min(420px, 92vw)"
             title={
                 <div>
                     <div className="drawer-title-row">
@@ -124,7 +140,7 @@ function ConfigDrawer({
                         size="small"
                         htmlType="button"
                         icon={<Rocket size={14} />}
-                        onClick={() => router.post(route('deployments.store', [workspace!.slug, application.slug, existing.id]))}
+                        onClick={() => router.post(route('deployments.store', [workspace!.slug, application.slug, existing.uuid]))}
                     >
                         Déployer
                     </PrimaryButton>
@@ -153,7 +169,7 @@ function ConfigDrawer({
                         className="w-full"
                         placeholder="Choisir un serveur du workspace"
                         value={data.server_id ?? undefined}
-                        onChange={(value) => setData('server_id', value)}
+                        onChange={handleServerChange}
                         disabled={!canManage}
                         status={errors.server_id ? 'error' : undefined}
                         options={servers.map((s) => ({ value: s.id, label: `${s.name} (${s.host})` }))}
@@ -200,7 +216,7 @@ function ConfigDrawer({
             <DirectoryBrowserModal
                 workspaceSlug={workspace!.slug}
                 server={selectedServer}
-                initialPath={data.deploy_path}
+                initialPath={data.deploy_path || selectedServer?.default_path || '/'}
                 open={browsing}
                 onClose={() => setBrowsing(false)}
                 onSelect={(path) => setData('deploy_path', path)}
@@ -252,7 +268,7 @@ export default function EnvironmentWorkspace({
             okType: 'danger',
             okText: 'Supprimer',
             cancelText: 'Annuler',
-            onOk: () => router.delete(route('environments.destroy', [workspace!.slug, application.slug, environment.id])),
+            onOk: () => router.delete(route('environments.destroy', [workspace!.slug, application.slug, environment.uuid])),
         });
     };
 

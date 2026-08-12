@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\DeploymentStep;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -15,13 +14,17 @@ class DeploymentStepUpdated implements ShouldBroadcastNow
 
     public function __construct(
         public int $applicationId,
+        public int $workspaceId,
         public DeploymentStep $step,
         public ?string $errorExcerpt = null,
     ) {}
 
     public function broadcastOn(): array
     {
-        return [new PrivateChannel("application.{$this->applicationId}")];
+        return [
+            new PrivateChannel("application.{$this->applicationId}"),
+            new PrivateChannel("workspace.{$this->workspaceId}"),
+        ];
     }
 
     public function broadcastAs(): string

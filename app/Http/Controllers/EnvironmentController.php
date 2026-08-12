@@ -32,7 +32,7 @@ class EnvironmentController extends Controller
     public function update(Request $request, Workspace $workspace, Application $application, Environment $environment): RedirectResponse
     {
         $this->authorize('manageEnvironments', $application);
-        abort_unless($environment->application_id === $application->id, 404);
+        abort_unless($environment->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -48,7 +48,7 @@ class EnvironmentController extends Controller
     public function destroy(Workspace $workspace, Application $application, Environment $environment): RedirectResponse
     {
         $this->authorize('manageEnvironments', $application);
-        abort_unless($environment->application_id === $application->id, 404);
+        abort_unless($environment->belongsToWorkspace($workspace), 404);
 
         $environment->delete();
 

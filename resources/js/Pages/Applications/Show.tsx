@@ -1,3 +1,4 @@
+import ApplicationDetailsPanel from '@/Components/Applications/ApplicationDetailsPanel';
 import ApplicationSwitcher from '@/Components/Applications/ApplicationSwitcher';
 import DeploymentsPanel from '@/Components/Applications/DeploymentsPanel';
 import EnvironmentWorkspace from '@/Components/Applications/EnvironmentWorkspace';
@@ -10,8 +11,8 @@ import { ApplicationMember, PageProps } from '@/types';
 import { Application, Deployment, Framework, Server } from '@/types/models';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Avatar, Dropdown } from 'antd';
-import { Boxes, GitBranch, History, Layers, MoreHorizontal, Trash2, Users } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Boxes, GitBranch, History, Layers, MoreHorizontal, Settings, Trash2, Users } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface DeploymentKpis {
     total: number;
@@ -30,12 +31,13 @@ interface MembersKpis {
     viewer: number;
 }
 
-type TabKey = 'targets' | 'environments' | 'members' | 'deployments';
+type TabKey = 'targets' | 'environments' | 'members' | 'deployments' | 'details';
 
 export default function Show({
     application,
     members,
     membersKpis,
+    activeMembers,
     deployments,
     deploymentsKpis,
     frameworks,
@@ -46,6 +48,7 @@ export default function Show({
     application: Application;
     members: ApplicationMember[];
     membersKpis: MembersKpis;
+    activeMembers: { id: number; name: string; email: string }[];
     deployments: { data: Deployment[] };
     deploymentsKpis: DeploymentKpis;
     frameworks: Framework[];
@@ -59,9 +62,24 @@ export default function Show({
     };
 }) {
     const { workspace } = usePage<PageProps>().props;
+    const canCreateApplication = workspace?.role === 'owner' || workspace?.role === 'manager';
     const confirm = useConfirm();
     const logoInputRef = useRef<HTMLInputElement>(null);
-    const [activeTab, setActiveTab] = useState<TabKey>('targets');
+
+    // Permet un lien profond depuis la page d'un déploiement vers
+    // "Targets & Pipeline" avec le bon target déjà sélectionné (?tab=targets&target=123).
+    const initialParams = new URLSearchParams(window.location.search);
+    const initialTabParam = initialParams.get('tab') as TabKey | null;
+    const initialTargetId = initialParams.get('target');
+
+    const [activeTab, setActiveTab] = useState<TabKey>(initialTabParam ?? 'targets');
+
+    useEffect(() => {
+        if (initialTabParam || initialTargetId) {
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const uploadLogo = (file: File) => {
         router.post(
@@ -112,7 +130,12 @@ export default function Show({
                         />
                     </div>
 
-                    <ApplicationSwitcher workspaceSlug={workspace!.slug} current={application} applications={workspaceApplications} />
+                    <ApplicationSwitcher
+                        workspaceSlug={workspace!.slug}
+                        current={application}
+                        applications={workspaceApplications}
+                        canCreate={canCreateApplication}
+                    />
 
                     {can.update && (
                         <input
@@ -130,6 +153,7 @@ export default function Show({
                 { key: 'environments', label: 'Environnements', icon: <Layers size={14} />, onClick: () => setActiveTab('environments') },
                 { key: 'members', label: 'Membres', icon: <Users size={14} />, onClick: () => setActiveTab('members') },
                 { key: 'deployments', label: 'Déploiements', icon: <History size={14} />, onClick: () => setActiveTab('deployments') },
+                { key: 'details', label: 'Détails', icon: <Settings size={14} />, onClick: () => setActiveTab('details') },
             ]}
             activeTab={activeTab}
             actions={
@@ -167,7 +191,13 @@ export default function Show({
             )}
 
             {activeTab === 'targets' && (
-                <TargetWorkspace application={application} frameworks={frameworks} canManage={can.manageTargetsAndPipeline} />
+                <TargetWorkspace
+                    application={application}
+                    frameworks={frameworks}
+                    canManage={can.manageTargetsAndPipeline}
+                    initialTargetId={initialTargetId ?? undefined}
+                    activeMembers={activeMembers}
+                />
             )}
 
             {activeTab === 'environments' && (
@@ -187,6 +217,8 @@ export default function Show({
             {activeTab === 'deployments' && (
                 <DeploymentsPanel application={application} deployments={deployments} kpis={deploymentsKpis} canDeploy={can.deploy} />
             )}
+
+            {activeTab === 'details' && <ApplicationDetailsPanel application={application} canManage={can.update} />}
         </AuthenticatedLayout>
     );
 }

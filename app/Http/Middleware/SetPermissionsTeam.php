@@ -20,6 +20,10 @@ class SetPermissionsTeam
     {
         $workspace = $request->route('workspace');
 
+        if ($workspace instanceof Workspace && $workspace->isSuspended()) {
+            abort(403, 'Ce workspace a été suspendu par un administrateur de la plateforme.');
+        }
+
         app(PermissionRegistrar::class)->setPermissionsTeamId(
             $workspace instanceof Workspace ? $workspace->id : null
         );

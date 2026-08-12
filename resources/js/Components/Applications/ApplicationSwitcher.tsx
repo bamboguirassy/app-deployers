@@ -1,16 +1,18 @@
 import { Application } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { Avatar, Dropdown, type MenuProps } from 'antd';
-import { Boxes, Check, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Boxes, Check, ChevronDown, LayoutGrid, Plus } from 'lucide-react';
 
 export default function ApplicationSwitcher({
     workspaceSlug,
     current,
     applications,
+    canCreate,
 }: {
     workspaceSlug: string;
     current: Application;
     applications: Pick<Application, 'id' | 'name' | 'slug' | 'logo_url'>[];
+    canCreate: boolean;
 }) {
     const items: MenuProps['items'] = [
         ...applications.map((app) => ({
@@ -29,6 +31,15 @@ export default function ApplicationSwitcher({
             icon: <LayoutGrid size={14} />,
             label: <Link href={route('applications.index', workspaceSlug)}>Toutes les applications</Link>,
         },
+        ...(canCreate
+            ? [
+                  {
+                      key: 'create-application',
+                      icon: <Plus size={14} />,
+                      label: <Link href={route('applications.create', workspaceSlug)}>Nouvelle application</Link>,
+                  },
+              ]
+            : []),
     ];
 
     return (

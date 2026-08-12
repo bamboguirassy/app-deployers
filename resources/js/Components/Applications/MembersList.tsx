@@ -68,6 +68,7 @@ export default forwardRef<MembersListHandle, {
                 rowKey="id"
                 dataSource={search.items}
                 pagination={false}
+                scroll={{ x: 'max-content' }}
                 columns={[
                     {
                         title: 'Membre',

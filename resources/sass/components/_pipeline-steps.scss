@@ -8,8 +8,8 @@
 
 .step-row {
     display: grid;
-    grid-template-columns: 24px 28px minmax(120px, 1fr) minmax(160px, 2fr) 70px 44px 32px;
-    min-width: 600px;
+    grid-template-columns: 24px 28px 28px minmax(120px, 1fr) minmax(160px, 2fr) 70px 60px 32px 32px;
+    min-width: 660px;
     align-items: center;
     gap: space('3');
     padding: space('2') space('3');
@@ -34,24 +34,30 @@
     color: theme('color-text-muted');
 }
 
-.step-row--add {
-    background-color: theme('color-bg');
-
-    &:hover {
-        background-color: theme('color-bg');
-    }
-}
-
 .step-row__handle {
     display: flex;
     align-items: center;
     justify-content: center;
     color: theme('color-text-muted');
     cursor: grab;
+}
 
-    &--add {
-        cursor: default;
-        color: theme('color-primary');
+.step-row__type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: $radius-sm;
+
+    &--command {
+        color: theme('color-info');
+        background-color: theme('color-primary-soft');
+    }
+
+    &--email {
+        color: #9254de;
+        background-color: rgba(146, 84, 222, 0.12);
     }
 }
 
@@ -89,30 +95,17 @@
 }
 
 .step-row__continue {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: $radius-sm;
-    border: 1px solid theme('color-border');
-    background: transparent;
+    font-size: 12px;
+    text-align: center;
     color: theme('color-text-muted');
-    cursor: pointer;
-    margin: 0 auto;
-
-    &:hover {
-        border-color: theme('color-primary');
-        color: theme('color-primary');
-    }
 
     &--active {
-        background-color: theme('color-primary-soft');
-        border-color: theme('color-primary');
         color: theme('color-primary');
+        font-weight: 600;
     }
 }
 
+.step-row__edit,
 .step-row__delete {
     display: flex;
     align-items: center;
@@ -124,43 +117,95 @@
     background: transparent;
     color: theme('color-text-muted');
     cursor: pointer;
-
-    &:hover {
-        background-color: theme('color-danger');
-        color: white;
-    }
 }
 
-.step-row__add-btn {
-    grid-column: span 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    justify-self: end;
-    white-space: nowrap;
-    padding: space('1') space('3');
-    border-radius: $radius-sm;
-    border: none;
-    background-color: theme('color-primary');
+.step-row__edit:hover {
+    background-color: theme('color-primary-soft');
+    color: theme('color-primary');
+}
+
+.step-row__delete:hover {
+    background-color: theme('color-danger');
     color: white;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
+}
 
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    &:not(:disabled):hover {
-        background-color: theme('color-primary-hover');
-    }
+.step-list__add {
+    padding: space('3');
 }
 
 @include respond-to('md') {
     .step-row {
-        grid-template-columns: 24px 28px minmax(140px, 1fr) minmax(220px, 2.4fr) 80px 60px 32px;
+        grid-template-columns: 24px 28px 28px minmax(140px, 1fr) minmax(220px, 2.4fr) 80px 60px 32px 32px;
     }
+}
+
+.step-editor__field-label {
+    display: block;
+    margin-bottom: space('1');
+    font-size: 12px;
+    font-weight: 600;
+    color: theme('color-text-muted');
+}
+
+.step-editor__field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: space('1');
+
+    .step-editor__field-label {
+        margin-bottom: 0;
+    }
+}
+
+.step-editor__field-actions {
+    display: flex;
+    gap: space('2');
+}
+
+.step-editor__mono {
+    font-family: $font-family-mono;
+    font-size: 13px;
+}
+
+.step-editor__segment {
+    display: inline-flex;
+    align-items: center;
+    gap: space('2');
+}
+
+.step-editor__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: space('4');
+}
+
+.step-editor__continue-toggle {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    font-size: 13px;
+    color: theme('color-text');
+}
+
+.step-editor__preview {
+    margin-top: space('2');
+}
+
+.step-editor__preview-body {
+    margin-top: space('1');
+    white-space: pre-wrap;
+}
+
+.step-editor__error-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.step-variable-hint {
+    font-size: 11px;
+    color: theme('color-text-muted');
 }
 
 .webhook-list {

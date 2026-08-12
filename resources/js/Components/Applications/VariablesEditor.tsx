@@ -24,7 +24,7 @@ function VariableRow({
 
     const patch = (data: Partial<{ value: string; is_secret: boolean }>) => {
         router.patch(
-            route('environment-variables.update', [workspace!.slug, application.slug, variable.id]),
+            route('environment-variables.update', [workspace!.slug, application.slug, variable.uuid]),
             { key: variable.key, value, is_secret: variable.is_secret, ...data },
             persistOptions,
         );
@@ -62,7 +62,7 @@ function VariableRow({
                         aria-label="Supprimer la variable"
                         onClick={() =>
                             router.delete(
-                                route('environment-variables.destroy', [workspace!.slug, application.slug, variable.id]),
+                                route('environment-variables.destroy', [workspace!.slug, application.slug, variable.uuid]),
                                 persistOptions,
                             )
                         }
@@ -88,7 +88,7 @@ function AddVariableRow({ application, targetEnvironment }: { application: Appli
         e.preventDefault();
         if (!data.key.trim() || !data.value.trim() || processing) return;
 
-        post(route('environment-variables.store', [workspace!.slug, application.slug, targetEnvironment.id]), {
+        post(route('environment-variables.store', [workspace!.slug, application.slug, targetEnvironment.uuid]), {
             ...persistOptions,
             onSuccess: () => {
                 reset();

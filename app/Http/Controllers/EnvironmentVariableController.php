@@ -15,7 +15,7 @@ class EnvironmentVariableController extends Controller
     public function store(Request $request, Workspace $workspace, Application $application, TargetEnvironment $targetEnvironment): RedirectResponse
     {
         $this->authorize('manageEnvironments', $application);
-        abort_unless($targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($targetEnvironment->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'key' => ['required', 'string', 'max:255', 'regex:/^[A-Z0-9_]+$/'],
@@ -33,7 +33,7 @@ class EnvironmentVariableController extends Controller
     public function update(Request $request, Workspace $workspace, Application $application, EnvironmentVariable $environmentVariable): RedirectResponse
     {
         $this->authorize('manageEnvironments', $application);
-        abort_unless($environmentVariable->targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($environmentVariable->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'key' => ['required', 'string', 'max:255', 'regex:/^[A-Z0-9_]+$/'],
@@ -51,7 +51,7 @@ class EnvironmentVariableController extends Controller
     public function destroy(Workspace $workspace, Application $application, EnvironmentVariable $environmentVariable): RedirectResponse
     {
         $this->authorize('manageEnvironments', $application);
-        abort_unless($environmentVariable->targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($environmentVariable->belongsToWorkspace($workspace), 404);
 
         $environmentVariable->delete();
 

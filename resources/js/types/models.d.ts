@@ -1,15 +1,34 @@
-export interface PipelineStep {
+export type StepType = 'command' | 'email';
+
+export interface CommandStepConfig {
+    command: string;
+}
+
+export interface EmailStepConfig {
+    to: string[];
+    subject: string;
+    body: string;
+}
+
+export type StepConfigFor<T extends StepType> = T extends 'command' ? CommandStepConfig : EmailStepConfig;
+
+interface PipelineStepBase {
     id: number;
+    uuid: string;
     target_id: number;
     label: string;
-    command: string;
     order: number;
     timeout_seconds: number | null;
     continue_on_failure: boolean;
 }
 
+export type PipelineStep =
+    | (PipelineStepBase & { type: 'command'; config: CommandStepConfig })
+    | (PipelineStepBase & { type: 'email'; config: EmailStepConfig });
+
 export interface EnvironmentVariable {
     id: number;
+    uuid: string;
     target_environment_id: number;
     key: string;
     value: string;
@@ -18,6 +37,7 @@ export interface EnvironmentVariable {
 
 export interface TargetEnvironmentLink {
     id: number;
+    uuid: string;
     target_id: number;
     environment_id: number;
     server_id: number | null;
@@ -30,6 +50,7 @@ export interface TargetEnvironmentLink {
 
 export interface WebhookBranchMapping {
     id: number;
+    uuid: string;
     webhook_config_id: number;
     environment_id: number;
     branch: string;
@@ -37,6 +58,7 @@ export interface WebhookBranchMapping {
 
 export interface WebhookConfig {
     id: number;
+    uuid: string;
     target_id: number;
     provider: 'github' | 'gitlab' | 'bitbucket';
     enabled: boolean;
@@ -45,12 +67,14 @@ export interface WebhookConfig {
 
 export interface Server {
     id: number;
+    uuid: string;
     workspace_id: number;
     name: string;
     host: string;
     port: number;
     username: string;
     auth_method: 'password' | 'ssh_key';
+    default_path: string;
     created_at: string;
 }
 
@@ -64,6 +88,7 @@ export interface Framework {
 
 export interface Target {
     id: number;
+    uuid: string;
     application_id: number;
     framework_id: number | null;
     name: string;
@@ -78,6 +103,7 @@ export interface Target {
 
 export interface Environment {
     id: number;
+    uuid: string;
     application_id: number;
     name: string;
     slug: string;
@@ -107,7 +133,8 @@ export interface DeploymentStep {
     deployment_id: number;
     pipeline_step_id: number | null;
     label_snapshot: string;
-    command_snapshot: string;
+    type: StepType;
+    config_snapshot: CommandStepConfig | EmailStepConfig;
     order: number;
     status: DeploymentStepStatus;
     exit_code: number | null;
@@ -131,5 +158,5 @@ export interface Deployment {
     created_at: string;
     steps: DeploymentStep[];
     target_environment: TargetEnvironmentLink & { target: Target };
-    triggered_by: { id: number; name: string } | null;
+    triggered_by: { id: number; uuid: string; name: string } | null;
 }

@@ -34,7 +34,7 @@ class ApplicationMemberController extends Controller
             })
             ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
             ->where('application_user.application_id', $application->id)
-            ->select('users.id', 'users.name', 'users.email', 'roles.name as role');
+            ->select('users.id', 'users.uuid', 'users.name', 'users.email', 'roles.name as role');
     }
 
     public function search(Request $request, Workspace $workspace, Application $application): JsonResponse

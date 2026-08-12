@@ -47,7 +47,7 @@ export default function MembersPanel({
             okType: 'danger',
             cancelText: 'Annuler',
             onOk: () =>
-                router.delete(route('members.destroy', [workspace!.slug, application.slug, member.id]), {
+                router.delete(route('members.destroy', [workspace!.slug, application.slug, member.uuid]), {
                     onSuccess: () => listRef.current?.refresh(),
                 }),
         });

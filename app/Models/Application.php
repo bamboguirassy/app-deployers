@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToWorkspace;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Support\Str;
 
 class Application extends Model
 {
+    use BelongsToWorkspace;
+
     protected $fillable = ['workspace_id', 'name', 'slug', 'description', 'created_by', 'logo_path'];
 
     protected $appends = ['logo_url'];
@@ -67,5 +70,10 @@ class Application extends Model
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function resolveWorkspaceId(): ?int
+    {
+        return $this->workspace_id;
     }
 }

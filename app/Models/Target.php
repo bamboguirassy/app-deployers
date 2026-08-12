@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToWorkspace;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,13 +10,21 @@ use Illuminate\Support\Str;
 
 class Target extends Model
 {
+    use BelongsToWorkspace;
+
     protected $fillable = ['application_id', 'framework_id', 'name', 'slug', 'order'];
 
     protected static function booted(): void
     {
         static::creating(function (Target $target) {
+            $target->uuid ??= (string) Str::uuid();
             $target->slug ??= Str::slug($target->name);
         });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
     }
 
     public function application(): BelongsTo
@@ -41,5 +50,10 @@ class Target extends Model
     public function webhookConfigs(): HasMany
     {
         return $this->hasMany(WebhookConfig::class);
+    }
+
+    public function resolveWorkspaceId(): ?int
+    {
+        return $this->application->workspace_id;
     }
 }

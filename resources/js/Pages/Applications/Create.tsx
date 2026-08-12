@@ -5,14 +5,14 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { Avatar, Card, Input, Typography } from 'antd';
+import { Alert, Avatar, Card, Input, Typography } from 'antd';
 import { Boxes } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
 
 const { Title, Paragraph } = Typography;
 
 export default function Create() {
-    const { workspace } = usePage<PageProps>().props;
+    const { workspace, flash } = usePage<PageProps>().props;
     const [preview, setPreview] = useState<string | null>(null);
     const logoInputRef = useRef<HTMLInputElement>(null);
     const { data, setData, post, processing, errors } = useForm<{
@@ -42,6 +42,15 @@ export default function Create() {
                     Vous pourrez ensuite définir ses targets (tiers), son
                     pipeline de déploiement et ses environnements.
                 </Paragraph>
+
+                {flash?.error && (
+                    <Alert
+                        type="error"
+                        message={flash.error}
+                        showIcon
+                        style={{ marginBottom: 16 }}
+                    />
+                )}
 
                 <form onSubmit={submit} className="form-stack">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

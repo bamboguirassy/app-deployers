@@ -69,7 +69,7 @@ export default function Index({
                 searchUrl={route('users.search', workspace!.slug)}
                 initialItems={users.data}
                 initialKpis={kpis}
-                getRowHref={(user) => route('users.show', [workspace!.slug, user.id])}
+                getRowHref={(user) => route('users.show', [workspace!.slug, user.uuid])}
             />
 
             <Modal

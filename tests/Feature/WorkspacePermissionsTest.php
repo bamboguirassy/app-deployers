@@ -126,7 +126,7 @@ class WorkspacePermissionsTest extends TestCase
         $this->assignRole($owner, $workspace, 'owner');
 
         $response = $this->actingAs($owner)
-            ->patch(route('users.update', [$workspace->slug, $owner->id]), ['role' => 'viewer']);
+            ->patch(route('users.update', [$workspace->slug, $owner->uuid]), ['role' => 'viewer']);
 
         $response->assertStatus(422);
         $this->assertSame('owner', $owner->roleInWorkspace($workspace));
@@ -141,12 +141,12 @@ class WorkspacePermissionsTest extends TestCase
         $this->assignRole($owner2, $workspace, 'owner');
 
         // Deux owners : en retirer un est sans risque, il en reste un.
-        $this->actingAs($owner2)->delete(route('users.destroy', [$workspace->slug, $owner1->id]))->assertRedirect();
+        $this->actingAs($owner2)->delete(route('users.destroy', [$workspace->slug, $owner1->uuid]))->assertRedirect();
         $this->assertNull($owner1->fresh()->roleInWorkspace($workspace));
 
         // Owner2 est maintenant seul owner : il ne peut pas se retirer lui-même
         // (protection dédiée, indépendante du compteur d'owners).
-        $this->actingAs($owner2)->delete(route('users.destroy', [$workspace->slug, $owner2->id]))->assertForbidden();
+        $this->actingAs($owner2)->delete(route('users.destroy', [$workspace->slug, $owner2->uuid]))->assertForbidden();
         $this->assertSame('owner', $owner2->fresh()->roleInWorkspace($workspace));
     }
 

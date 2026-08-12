@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Plan;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,11 @@ class WorkspaceController extends Controller
 
             app(PermissionRegistrar::class)->setPermissionsTeamId($workspace->id);
             auth()->user()->assignRole('owner');
+
+            $workspace->subscription()->create([
+                'plan_id' => Plan::free()->id,
+                'status' => 'active',
+            ]);
 
             return $workspace;
         });

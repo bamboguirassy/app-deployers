@@ -7,18 +7,25 @@ use App\Models\Application;
 use App\Models\Deployment;
 use App\Models\Framework;
 use App\Models\Workspace;
+use App\Services\ApplicationQuotaExceededException;
+use App\Services\QuotaGuard;
 use App\Support\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ApplicationController extends Controller
 {
     use FiltersLists;
+
+    public function __construct(private QuotaGuard $quotaGuard)
+    {
+    }
 
     public function index(Workspace $workspace): Response
     {
@@ -108,6 +115,12 @@ class ApplicationController extends Controller
     {
         $this->authorize('create', Application::class);
 
+        try {
+            $this->quotaGuard->assertCanCreateApplication($workspace);
+        } catch (ApplicationQuotaExceededException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
         $data = $request->validate([
             'name' => [
                 'required', 'string', 'max:255',
@@ -115,6 +128,8 @@ class ApplicationController extends Controller
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'logo' => ['nullable', 'image', 'max:2048'],
+        ], [
+            'name.unique' => 'Une application porte déjà ce nom dans ce workspace.',
         ]);
 
         $application = DB::transaction(function () use ($data, $request, $workspace) {
@@ -143,7 +158,7 @@ class ApplicationController extends Controller
 
     public function update(Request $request, Workspace $workspace, Application $application): RedirectResponse
     {
-        abort_unless($application->workspace_id === $workspace->id, 404);
+        abort_unless($application->belongsToWorkspace($workspace), 404);
         $this->authorize('update', $application);
 
         $data = $request->validate([
@@ -153,6 +168,8 @@ class ApplicationController extends Controller
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'logo' => ['nullable', 'image', 'max:2048'],
+        ], [
+            'name.unique' => 'Une application porte déjà ce nom dans ce workspace.',
         ]);
 
         unset($data['logo']);
@@ -174,7 +191,7 @@ class ApplicationController extends Controller
 
     public function show(Workspace $workspace, Application $application): Response
     {
-        abort_unless($application->workspace_id === $workspace->id, 404);
+        abort_unless($application->belongsToWorkspace($workspace), 404);
         $this->authorize('view', $application);
 
         $application->load([
@@ -185,9 +202,10 @@ class ApplicationController extends Controller
         $user = auth()->user();
         $members = $application->users()
             ->orderBy('users.name')
-            ->get(['users.id', 'users.name', 'users.email'])
+            ->get(['users.id', 'users.uuid', 'users.name', 'users.email'])
             ->map(fn ($member) => [
                 'id' => $member->id,
+                'uuid' => $member->uuid,
                 'name' => $member->name,
                 'email' => $member->email,
                 'role' => $member->roleInWorkspace($workspace),
@@ -213,9 +231,18 @@ class ApplicationController extends Controller
         $deploymentsEchec = (clone $deploymentsKpisQuery)->where('status', 'echec')->count();
         $deploymentsFinished = $deploymentsSucces + $deploymentsEchec;
 
+        // Utilisé pour peupler le sélecteur de destinataires d'un step "email" —
+        // volontairement restreint aux membres actifs (non suspendus) ayant accès
+        // à cette application, plutôt qu'à tout le workspace.
+        $activeMembers = $application->users()
+            ->whereNull('users.suspended_at')
+            ->orderBy('users.name')
+            ->get(['users.id', 'users.name', 'users.email']);
+
         return Inertia::render('Applications/Show', [
             'application' => $application,
             'members' => $members,
+            'activeMembers' => $activeMembers,
             'membersKpis' => $membersKpis,
             'deployments' => ['data' => $deployments->items()],
             'deploymentsKpis' => [
@@ -227,7 +254,7 @@ class ApplicationController extends Controller
                 'avg_duration_ms' => (int) (clone $deploymentsKpisQuery)->whereNotNull('duration_ms')->avg('duration_ms'),
             ],
             'frameworks' => Framework::orderBy('order')->get(['id', 'name', 'slug', 'category', 'logo_url']),
-            'servers' => $workspace->servers()->orderBy('name')->get(['id', 'name', 'host', 'port', 'username', 'auth_method']),
+            'servers' => $workspace->servers()->orderBy('name')->get(['id', 'uuid', 'name', 'host', 'port', 'username', 'auth_method', 'default_path']),
             'workspaceApplications' => $workspace->visibleApplicationsFor($user)
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug', 'logo_path']),
@@ -242,7 +269,7 @@ class ApplicationController extends Controller
 
     public function destroy(Workspace $workspace, Application $application): RedirectResponse
     {
-        abort_unless($application->workspace_id === $workspace->id, 404);
+        abort_unless($application->belongsToWorkspace($workspace), 404);
         $this->authorize('delete', $application);
 
         $application->delete();

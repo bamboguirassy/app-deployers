@@ -11,14 +11,31 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'suspended_at'])]
+#[Fillable(['name', 'email', 'password', 'suspended_at', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasRoles;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            $user->uuid ??= (string) Str::uuid();
+        });
+    }
+
+    /**
+     * Un UUID plutôt que l'id auto-incrémenté dans les routes (ex: fiche
+     * membre du workspace) évite d'exposer/deviner le nombre total d'utilisateurs.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -31,6 +48,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'suspended_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 
@@ -82,5 +100,15 @@ class User extends Authenticatable
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    /**
+     * Concept séparé du système de rôles Spatie scopé par workspace : un
+     * super-admin a accès au panneau plateforme (/admin), indépendamment de
+     * tout rôle sur un workspace donné.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
     }
 }

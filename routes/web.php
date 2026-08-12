@@ -1,11 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDeploymentController;
+use App\Http\Controllers\Admin\AdminPlanController;
+use App\Http\Controllers\Admin\AdminSubscriptionController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationMemberController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeploymentController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\EnvironmentVariableController;
+use App\Http\Controllers\PaddleWebhookController;
 use App\Http\Controllers\PipelineStepController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
@@ -16,10 +24,15 @@ use App\Http\Controllers\WebhookConfigController;
 use App\Http\Controllers\WebhookReceiverController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
-    return redirect()->route(auth()->check() ? 'home' : 'login');
-});
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
+
+    return Inertia::render('Welcome');
+})->name('welcome');
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [WorkspaceController::class, 'redirectToDefault'])->name('home');
@@ -37,6 +50,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/applications/search', [ApplicationController::class, 'search'])->name('applications.search');
         Route::get('/applications/create', [ApplicationController::class, 'create'])->name('applications.create');
         Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
+
+        Route::get('/billing', [BillingController::class, 'show'])->name('billing.show');
+        Route::post('/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
 
         Route::get('/deployments', [DeploymentController::class, 'indexAll'])->name('deployments.all');
         Route::post('/deployments/search', [DeploymentController::class, 'searchAll'])->name('deployments.all.search');
@@ -96,7 +112,10 @@ Route::middleware('auth')->group(function () {
             Route::post('/deployments/search', [DeploymentController::class, 'search'])->name('deployments.search');
             Route::get('/deployments/{deployment}', [DeploymentController::class, 'show'])->name('deployments.show');
             Route::post('/target-environments/{targetEnvironment}/deploy', [DeploymentController::class, 'store'])->name('deployments.store');
+            Route::post('/environments/{environment}/deploy', [DeploymentController::class, 'storeForEnvironment'])->name('deployments.store-environment');
             Route::post('/deployments/{deployment}/cancel', [DeploymentController::class, 'cancel'])->name('deployments.cancel');
+            Route::post('/deployments/{deployment}/retry', [DeploymentController::class, 'retry'])->name('deployments.retry');
+            Route::post('/deployments/{deployment}/rollback', [DeploymentController::class, 'rollback'])->name('deployments.rollback');
 
             Route::post('/members/search', [ApplicationMemberController::class, 'search'])->name('members.search');
             Route::post('/members', [ApplicationMemberController::class, 'store'])->name('members.store');
@@ -105,9 +124,55 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Panneau super-admin plateforme — totalement séparé des routes w/{workspace},
+// protégé par le middleware `super_admin` (indépendant des rôles Spatie par workspace).
+Route::middleware(['auth', 'verified', 'super_admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/workspaces', [AdminWorkspaceController::class, 'index'])->name('workspaces.index');
+    Route::post('/workspaces/search', [AdminWorkspaceController::class, 'search'])->name('workspaces.search');
+    Route::get('/workspaces/{workspace}', [AdminWorkspaceController::class, 'show'])->name('workspaces.show');
+    Route::post('/workspaces/{workspace}/suspend', [AdminWorkspaceController::class, 'suspend'])->name('workspaces.suspend');
+    Route::post('/workspaces/{workspace}/reactivate', [AdminWorkspaceController::class, 'reactivate'])->name('workspaces.reactivate');
+    Route::patch('/workspaces/{workspace}/subscription', [AdminSubscriptionController::class, 'update'])->name('workspaces.subscription.update');
+    Route::post('/workspaces/{workspace}/subscription/grant-free', [AdminSubscriptionController::class, 'grantFree'])->name('workspaces.subscription.grant-free');
+    Route::post('/workspaces/{workspace}/subscription/revoke-free', [AdminSubscriptionController::class, 'revokeFree'])->name('workspaces.subscription.revoke-free');
+
+    Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
+    Route::patch('/plans/{plan}', [AdminPlanController::class, 'update'])->name('plans.update');
+
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::post('/users/search', [AdminUserController::class, 'search'])->name('users.search');
+    Route::post('/users/{user}/promote', [AdminUserController::class, 'promote'])->name('users.promote');
+    Route::post('/users/{user}/demote', [AdminUserController::class, 'demote'])->name('users.demote');
+
+    // Monitoring cross-workspace des déploiements — lecture seule uniquement,
+    // voir AdminDeploymentController pour le raisonnement sur l'isolation vis-à-vis
+    // de l'ability `deploy` (mutation) d'ApplicationPolicy.
+    Route::get('/deployments', [AdminDeploymentController::class, 'index'])->name('deployments.index');
+    Route::post('/deployments/search', [AdminDeploymentController::class, 'search'])->name('deployments.search');
+    Route::get('/deployments/{deployment:uuid}', [AdminDeploymentController::class, 'show'])->name('deployments.show');
+});
+
 // Webhooks entrants — publics, authentifiés par signature/token, jamais par session.
 Route::post('/webhooks/{provider}/{webhookConfig}', [WebhookReceiverController::class, 'handle'])
     ->middleware('throttle:webhooks')
     ->name('webhooks.receive');
+
+Route::post('/webhooks/paddle', [PaddleWebhookController::class, 'handle'])
+    ->middleware('throttle:webhooks')
+    ->name('webhooks.paddle');
+
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        ['loc' => route('welcome'), 'priority' => '1.0'],
+        ['loc' => route('login'), 'priority' => '0.3'],
+        ['loc' => route('register'), 'priority' => '0.5'],
+    ];
+
+    return response()
+        ->view('sitemap', ['urls' => $urls])
+        ->header('Content-Type', 'application/xml');
+})->name('sitemap');
 
 require __DIR__.'/auth.php';

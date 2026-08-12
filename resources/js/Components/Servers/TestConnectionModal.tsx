@@ -30,7 +30,7 @@ export default function TestConnectionModal({
         setResult(null);
 
         axios
-            .post(route('servers.test-existing', [workspaceSlug, server.id]))
+            .post(route('servers.test-existing', [workspaceSlug, server.uuid]))
             .then((res) => setResult(res.data))
             .catch((err) =>
                 setResult(err.response?.data ?? { success: false, message: 'Erreur inattendue lors du test.', latency_ms: null }),

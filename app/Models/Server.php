@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToWorkspace;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,8 @@ use Illuminate\Support\Str;
 
 class Server extends Model
 {
+    use BelongsToWorkspace;
+
     protected $fillable = [
         'workspace_id',
         'name',
@@ -16,6 +19,7 @@ class Server extends Model
         'port',
         'username',
         'auth_method',
+        'default_path',
         'password',
         'private_key',
         'passphrase',
@@ -45,6 +49,11 @@ class Server extends Model
         });
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
     public function usesPassword(): bool
     {
         return $this->auth_method === 'password';
@@ -68,5 +77,10 @@ class Server extends Model
     public function targetEnvironments(): HasMany
     {
         return $this->hasMany(TargetEnvironment::class);
+    }
+
+    public function resolveWorkspaceId(): ?int
+    {
+        return $this->workspace_id;
     }
 }

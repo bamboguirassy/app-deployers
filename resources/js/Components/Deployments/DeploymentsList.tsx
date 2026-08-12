@@ -4,8 +4,10 @@ import { SourceIcon, StatusDotsIcon } from '@/Components/Deployments/DeploymentI
 import StatusTag from '@/Components/StatusTag';
 import { DeploymentKpis, formatDuration, SOURCE_LABELS, SOURCE_OPTIONS, STATUS_OPTIONS } from '@/constants/deployments';
 import { useListSearch } from '@/hooks/useListSearch';
+import { PageProps } from '@/types';
 import { Deployment } from '@/types/models';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { useEcho } from '@laravel/echo-react';
 import { Avatar, Card, Empty, Spin, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ArrowRight, Boxes, CheckCircle2, Clock, Filter, Hourglass, TrendingUp, XCircle } from 'lucide-react';
@@ -27,12 +29,25 @@ export default forwardRef<DeploymentsListHandle, {
     { searchUrl, initialItems, initialKpis, showApplicationColumn = false, getRowHref, actions, emptyAction },
     ref,
 ) {
+    const { workspace } = usePage<PageProps>().props;
     const search = useListSearch<Deployment, DeploymentKpis>(searchUrl, initialItems, initialKpis, {
         sort: 'created_at',
         direction: 'desc',
     });
 
     useImperativeHandle(ref, () => ({ refresh: search.refresh }), [search.refresh]);
+
+    // Un déploiement qui change de statut (pending -&gt; running -&gt; succes/echec)
+    // ne se reflétait auparavant qu'après un rechargement manuel de la page —
+    // on rafraîchit la première page dès qu'un événement du workspace arrive,
+    // plutôt que de patcher item par item (la liste est paginée/triée, un
+    // simple refresh reste correct dans tous les cas).
+    useEcho(
+        workspace ? `workspace.${workspace.id}` : '',
+        '.deploiement.statut',
+        () => search.refresh(),
+        [workspace?.id],
+    );
 
     const columns: ColumnsType<Deployment> = [
         ...(showApplicationColumn
@@ -174,6 +189,8 @@ export default forwardRef<DeploymentsListHandle, {
                             rowKey="id"
                             dataSource={search.items}
                             pagination={false}
+                            sticky
+                            scroll={{ y: 560, x: 'max-content' }}
                             onRow={(record) => ({
                                 onClick: () => router.visit(getRowHref(record)),
                                 onKeyDown: (e: KeyboardEvent) => {

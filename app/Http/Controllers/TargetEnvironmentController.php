@@ -18,7 +18,7 @@ class TargetEnvironmentController extends Controller
     {
         $this->authorize('manageEnvironments', $application);
         abort_unless(
-            $target->application_id === $application->id && $environment->application_id === $application->id,
+            $target->belongsToWorkspace($workspace) && $environment->belongsToWorkspace($workspace),
             404
         );
 
@@ -38,7 +38,7 @@ class TargetEnvironmentController extends Controller
     public function update(Request $request, Workspace $workspace, Application $application, TargetEnvironment $targetEnvironment): RedirectResponse
     {
         $this->authorize('manageEnvironments', $application);
-        abort_unless($targetEnvironment->target->application_id === $application->id, 404);
+        abort_unless($targetEnvironment->belongsToWorkspace($workspace), 404);
 
         $data = $this->validated($request, $workspace);
 

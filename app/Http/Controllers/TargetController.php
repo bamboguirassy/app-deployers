@@ -33,7 +33,7 @@ class TargetController extends Controller
     public function update(Request $request, Workspace $workspace, Application $application, Target $target): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -50,7 +50,7 @@ class TargetController extends Controller
     public function destroy(Workspace $workspace, Application $application, Target $target): RedirectResponse
     {
         $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($target->application_id === $application->id, 404);
+        abort_unless($target->belongsToWorkspace($workspace), 404);
 
         $target->delete();
 

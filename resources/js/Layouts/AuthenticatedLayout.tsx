@@ -1,15 +1,17 @@
+import ActiveDeploymentBanner from '@/Components/ActiveDeploymentBanner';
+import ActiveDeploymentsBell from '@/Components/ActiveDeploymentsBell';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Avatar, Drawer, Dropdown, Input, Layout, Menu, Tooltip, type MenuProps } from 'antd';
+import { Avatar, Drawer, Dropdown, Input, Layout, Menu, message, Tooltip, type MenuProps } from 'antd';
 import {
-    Bell,
     Boxes,
     Check,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
+    CreditCard,
     HelpCircle,
     History,
     LayoutDashboard,
@@ -18,6 +20,7 @@ import {
     Plus,
     Search,
     Server as ServerIcon,
+    ShieldCheck,
     User as UserIcon,
     Users,
 } from 'lucide-react';
@@ -56,7 +59,7 @@ export default function Authenticated({
     appSwitcher?: ReactNode;
     actions?: ReactNode;
 }>) {
-    const { auth, workspace, workspaces } = usePage<PageProps>().props;
+    const { auth, workspace, workspaces, flash } = usePage<PageProps>().props;
     const user = auth.user;
     const [mobileOpen, setMobileOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1');
@@ -65,40 +68,57 @@ export default function Authenticated({
         localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? '1' : '0');
     }, [collapsed]);
 
+    useEffect(() => {
+        if (flash?.status) message.success(flash.status);
+    }, [flash?.status]);
+
     const wsSlug = workspace?.slug;
     const canManageServers = workspace?.role === 'owner' || workspace?.role === 'manager';
+    const canCreateApplication = workspace?.role === 'owner' || workspace?.role === 'manager';
 
-    const menuItems: MenuProps['items'] = [
-        {
-            key: 'dashboard',
-            icon: <LayoutDashboard size={16} />,
-            label: <Link href={route('dashboard', wsSlug)}>Dashboard</Link>,
-        },
-        {
-            key: 'deployments',
-            icon: <History size={16} />,
-            label: <Link href={route('deployments.all', wsSlug)}>Déploiements</Link>,
-        },
-        {
-            key: 'applications',
-            icon: <Boxes size={16} />,
-            label: <Link href={route('applications.index', wsSlug)}>Applications</Link>,
-        },
-        ...(canManageServers
-            ? [
-                  {
-                      key: 'servers',
-                      icon: <ServerIcon size={16} />,
-                      label: <Link href={route('servers.index', wsSlug)}>Serveurs</Link>,
-                  },
-              ]
-            : []),
-        {
-            key: 'users',
-            icon: <Users size={16} />,
-            label: <Link href={route('users.index', wsSlug)}>Utilisateurs</Link>,
-        },
-    ];
+    // Certaines pages (ex: /profile) ne sont rattachées à aucun workspace : les
+    // routes qui en dépendent ne doivent jamais être construites dans ce cas,
+    // sinon Ziggy lève une erreur ("paramètre workspace requis") qui casse tout
+    // le rendu de la sidebar.
+    const menuItems: MenuProps['items'] = wsSlug
+        ? [
+              {
+                  key: 'dashboard',
+                  icon: <LayoutDashboard size={16} />,
+                  label: <Link href={route('dashboard', wsSlug)}>Dashboard</Link>,
+              },
+              {
+                  key: 'deployments',
+                  icon: <History size={16} />,
+                  label: <Link href={route('deployments.all', wsSlug)}>Déploiements</Link>,
+              },
+              {
+                  key: 'applications',
+                  icon: <Boxes size={16} />,
+                  label: <Link href={route('applications.index', wsSlug)}>Applications</Link>,
+              },
+              ...(canManageServers
+                  ? [
+                        {
+                            key: 'servers',
+                            icon: <ServerIcon size={16} />,
+                            label: <Link href={route('servers.index', wsSlug)}>Serveurs</Link>,
+                        },
+                    ]
+                  : []),
+              {
+                  key: 'users',
+                  icon: <Users size={16} />,
+                  label: <Link href={route('users.index', wsSlug)}>Utilisateurs</Link>,
+              },
+          ]
+        : [
+              {
+                  key: 'home',
+                  icon: <LayoutDashboard size={16} />,
+                  label: <Link href={route('home')}>Retour au workspace</Link>,
+              },
+          ];
 
     const workspaceMenuItems: MenuProps['items'] = [
         ...workspaces.map((ws) => ({
@@ -126,12 +146,41 @@ export default function Authenticated({
                 ? 'dashboard'
                 : '';
 
+    const accountMenuItems: MenuProps['items'] = wsSlug
+        ? [
+              ...(workspace?.plan
+                  ? [
+                        {
+                            key: 'plan',
+                            disabled: true,
+                            label: <span className="app-shell__account-plan-label">Plan actuel : {workspace.plan.name}</span>,
+                        },
+                        { type: 'divider' as const },
+                    ]
+                  : []),
+              {
+                  key: 'billing',
+                  icon: <CreditCard size={14} />,
+                  label: <Link href={route('billing.show', wsSlug)}>Facturation</Link>,
+              },
+          ]
+        : [];
+
     const userMenuItems: MenuProps['items'] = [
         {
             key: 'profile',
             icon: <UserIcon size={14} />,
             label: <Link href={route('profile.edit')}>Profil</Link>,
         },
+        ...(user.is_super_admin
+            ? [
+                  {
+                      key: 'admin',
+                      icon: <ShieldCheck size={14} />,
+                      label: <Link href={route('admin.dashboard')}>Administration</Link>,
+                  },
+              ]
+            : []),
         {
             key: 'logout',
             icon: <LogOut size={14} />,
@@ -150,7 +199,7 @@ export default function Authenticated({
                 <Link href="/">
                     <ApplicationLogo />
                 </Link>
-                {(!isDesktop || !collapsed) && <span>App Deployers</span>}
+                {(!isDesktop || !collapsed) && <span>App Deployer</span>}
 
                 {isDesktop && (
                     <button
@@ -177,6 +226,14 @@ export default function Authenticated({
 
             {appSwitcher && (!isDesktop || !collapsed) && <div className="app-shell__app-switcher">{appSwitcher}</div>}
 
+            {wsSlug && canCreateApplication && (!isDesktop || !collapsed) && (
+                <div className="app-shell__cta">
+                    <Link href={route('applications.create', wsSlug)} className="app-shell__cta-btn">
+                        <Plus size={14} /> Nouvelle application
+                    </Link>
+                </div>
+            )}
+
             <Menu
                 mode="inline"
                 inlineCollapsed={isDesktop && collapsed}
@@ -187,18 +244,25 @@ export default function Authenticated({
                 onClick={() => setMobileOpen(false)}
             />
 
-            <div className="app-shell__account">
-                <Avatar size={32}>{user.name.charAt(0).toUpperCase()}</Avatar>
-                {(!isDesktop || !collapsed) && (
-                    <>
-                        <div className="app-shell__account-info">
-                            <strong>{user.name}</strong>
-                            <small>App Deployers</small>
-                        </div>
-                        <ChevronDown size={14} className="app-shell__account-chevron" />
-                    </>
-                )}
-            </div>
+            <Dropdown
+                menu={{ items: accountMenuItems }}
+                trigger={accountMenuItems.length > 0 ? ['click'] : []}
+                placement="topLeft"
+                getPopupContainer={() => document.body}
+            >
+                <button type="button" className="app-shell__account" aria-label="Compte">
+                    <Avatar size={32}>{user.name.charAt(0).toUpperCase()}</Avatar>
+                    {(!isDesktop || !collapsed) && (
+                        <>
+                            <div className="app-shell__account-info">
+                                <strong>{user.name}</strong>
+                                <small>{workspace?.plan ? workspace.plan.name : 'App Deployer'}</small>
+                            </div>
+                            <ChevronDown size={14} className="app-shell__account-chevron" />
+                        </>
+                    )}
+                </button>
+            </Dropdown>
         </>
     );
 
@@ -267,11 +331,7 @@ export default function Authenticated({
                             />
                         </Tooltip>
 
-                        <Tooltip title="Notifications (bientôt disponible)">
-                            <button type="button" className="app-shell__icon-btn" aria-label="Notifications (bientôt disponible)" disabled>
-                                <Bell size={18} />
-                            </button>
-                        </Tooltip>
+                        <ActiveDeploymentsBell />
 
                         <Tooltip title="Aide (bientôt disponible)">
                             <button type="button" className="app-shell__icon-btn" aria-label="Aide (bientôt disponible)" disabled>
@@ -288,6 +348,8 @@ export default function Authenticated({
                         </Dropdown>
                     </div>
                 </Header>
+
+                <ActiveDeploymentBanner />
 
                 {(tabs && tabs.length > 0) || actions ? (
                     <div className="app-shell__subheader">

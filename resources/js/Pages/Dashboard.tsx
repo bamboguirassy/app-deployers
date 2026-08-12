@@ -311,6 +311,7 @@ export default function Dashboard({
                                 pagination={false}
                                 className="premium-table"
                                 size="small"
+                                scroll={{ x: 'max-content' }}
                                 onRow={(record) => ({
                                     onClick: () => router.visit(route('applications.show', [workspace!.slug, record.slug])),
                                     onKeyDown: (e) => e.key === 'Enter' && router.visit(route('applications.show', [workspace!.slug, record.slug])),
@@ -342,6 +343,7 @@ export default function Dashboard({
                                 pagination={false}
                                 className="premium-table"
                                 size="small"
+                                scroll={{ x: 'max-content' }}
                                 onRow={(record) => {
                                     const href = route('deployments.show', [
                                         workspace!.slug,

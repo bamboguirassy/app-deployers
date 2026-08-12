@@ -2,11 +2,12 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import DirectoryBrowserModal from '@/Components/Servers/DirectoryBrowserModal';
 import { Server } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { Alert, Input, InputNumber, Modal, Radio } from 'antd';
-import { KeyRound, Lock, PlugZap } from 'lucide-react';
+import { FolderOpen, KeyRound, Lock, PlugZap } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
 interface TestResult {
@@ -34,6 +35,7 @@ export default function ServerFormModal({
         port: server?.port ?? 22,
         username: server?.username ?? '',
         auth_method: server?.auth_method ?? ('ssh_key' as 'ssh_key' | 'password'),
+        default_path: server?.default_path ?? '/',
         password: '',
         private_key: '',
         passphrase: '',
@@ -41,6 +43,7 @@ export default function ServerFormModal({
 
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<TestResult | null>(null);
+    const [browsingDefaultPath, setBrowsingDefaultPath] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -52,6 +55,7 @@ export default function ServerFormModal({
                 port: server?.port ?? 22,
                 username: server?.username ?? '',
                 auth_method: server?.auth_method ?? 'ssh_key',
+                default_path: server?.default_path ?? '/',
                 password: '',
                 private_key: '',
                 passphrase: '',
@@ -81,7 +85,7 @@ export default function ServerFormModal({
         };
 
         const request = isEditing
-            ? axios.post(route('servers.test-existing', [workspaceSlug, server.id]), payload)
+            ? axios.post(route('servers.test-existing', [workspaceSlug, server.uuid]), payload)
             : axios.post(route('servers.test-connection', workspaceSlug), payload);
 
         request
@@ -101,7 +105,7 @@ export default function ServerFormModal({
         };
 
         if (isEditing) {
-            patch(route('servers.update', [workspaceSlug, server.id]), options);
+            patch(route('servers.update', [workspaceSlug, server.uuid]), options);
         } else {
             post(route('servers.store', workspaceSlug), options);
         }
@@ -119,7 +123,7 @@ export default function ServerFormModal({
             onCancel={onClose}
             footer={null}
             destroyOnClose
-            width={520}
+            width="min(520px, 92vw)"
         >
             <form onSubmit={submit} className="form-stack">
                 <div>
@@ -168,6 +172,27 @@ export default function ServerFormModal({
                         onChange={(e) => setData('username', e.target.value)}
                     />
                     <InputError message={errors.username} />
+                </div>
+
+                <div>
+                    <InputLabel htmlFor="server-default-path" value="Répertoire racine par défaut" />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <Input
+                            id="server-default-path"
+                            placeholder="/"
+                            value={data.default_path}
+                            onChange={(e) => setData('default_path', e.target.value)}
+                        />
+                        {isEditing && (
+                            <SecondaryButton htmlType="button" icon={<FolderOpen size={14} />} onClick={() => setBrowsingDefaultPath(true)}>
+                                Parcourir
+                            </SecondaryButton>
+                        )}
+                    </div>
+                    <InputError message={errors.default_path} />
+                    <p className="section-hint" style={{ marginTop: 4 }}>
+                        Point de départ proposé lors du choix du chemin de déploiement pour ce serveur.
+                    </p>
                 </div>
 
                 <div>
@@ -272,6 +297,17 @@ export default function ServerFormModal({
                     <PrimaryButton disabled={processing}>{isEditing ? 'Enregistrer' : 'Ajouter le serveur'}</PrimaryButton>
                 </div>
             </form>
+
+            {isEditing && (
+                <DirectoryBrowserModal
+                    workspaceSlug={workspaceSlug}
+                    server={server ?? null}
+                    initialPath={data.default_path}
+                    open={browsingDefaultPath}
+                    onClose={() => setBrowsingDefaultPath(false)}
+                    onSelect={(path) => setData('default_path', path)}
+                />
+            )}
         </Modal>
     );
 }

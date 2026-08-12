@@ -18,7 +18,7 @@ export default function CreateTargetModal({
     frameworks: Framework[];
     open: boolean;
     onClose: () => void;
-    onCreated: (targetId: number) => void;
+    onCreated: (targetId: string) => void;
 }) {
     const { workspace } = usePage<PageProps>().props;
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -33,7 +33,7 @@ export default function CreateTargetModal({
                 reset();
                 onClose();
                 const created = (page.props.application as Application).targets.at(-1);
-                if (created) onCreated(created.id);
+                if (created) onCreated(created.uuid);
             },
         });
     };

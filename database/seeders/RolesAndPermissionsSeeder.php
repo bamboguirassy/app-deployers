@@ -11,6 +11,7 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public const PERMISSIONS = [
         'workspace.manage',
+        'billing.manage',
         'applications.create',
         'applications.manage',
         'servers.manage',

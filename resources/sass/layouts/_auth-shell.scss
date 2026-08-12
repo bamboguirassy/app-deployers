@@ -44,6 +44,59 @@
     max-width: 420px;
     padding: space('6') space('5');
     @include card-surface;
+
+    &--wide {
+        max-width: 480px;
+    }
+}
+
+.auth-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: space('2');
+    margin-bottom: space('5');
+}
+
+.auth-steps__item {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    font-size: 13px;
+    font-weight: 600;
+    color: theme('color-text-muted');
+
+    .auth-steps__dot {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid theme('color-border-strong');
+        font-size: 12px;
+    }
+
+    &.is-active {
+        color: theme('color-primary');
+
+        .auth-steps__dot {
+            border-color: theme('color-primary');
+            background-color: theme('color-primary-soft');
+        }
+    }
+
+    &.is-done .auth-steps__dot {
+        border-color: theme('color-primary');
+        background-color: theme('color-primary');
+        color: #fff;
+    }
+}
+
+.auth-steps__sep {
+    width: 28px;
+    height: 1px;
+    background-color: theme('color-border-strong');
 }
 
 .auth-brand {
