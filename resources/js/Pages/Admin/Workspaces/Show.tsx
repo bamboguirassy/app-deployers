@@ -10,9 +10,10 @@ import {
     SubscriptionHistoryEntry,
 } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Avatar, Button, Card, Descriptions, Empty, Select, Table, Tabs, Tag, Timeline, Typography } from 'antd';
+import { Avatar, Button, Card, Descriptions, Empty, Input, Modal, Select, Table, Tabs, Tag, Timeline, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { Building2, ShieldAlert, ShieldCheck, Users } from 'lucide-react';
+import { AlertTriangle, Boxes, Building2, Rocket, Server as ServerIcon, ShieldAlert, ShieldCheck, Trash2, Users } from 'lucide-react';
+import { useState } from 'react';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -42,6 +43,8 @@ export default function Show({
     applications,
     subscriptionHistory,
     plans,
+    serversCount,
+    deploymentsCount,
 }: {
     workspace: AdminWorkspace;
     members: AdminWorkspaceMember[];
@@ -49,8 +52,26 @@ export default function Show({
     applications: AdminApplicationStats[];
     subscriptionHistory: SubscriptionHistoryEntry[];
     plans: Plan[];
+    serversCount: number;
+    deploymentsCount: number;
 }) {
     const confirm = useConfirm();
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleting, setDeleting] = useState(false);
+
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setDeleteConfirmText('');
+    };
+
+    const deleteWorkspace = () => {
+        setDeleting(true);
+        router.delete(route('admin.workspaces.destroy', workspace.slug), {
+            onSuccess: closeDeleteModal,
+            onFinish: () => setDeleting(false),
+        });
+    };
     const { data, setData, patch, processing } = useForm({
         plan_id: workspace.subscription?.plan_id ?? undefined,
         status: workspace.subscription?.status ?? undefined,
@@ -244,13 +265,18 @@ export default function Show({
                     </div>
                 </div>
 
-                <Button
-                    danger={!workspace.suspended_at}
-                    icon={workspace.suspended_at ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-                    onClick={toggleSuspend}
-                >
-                    {workspace.suspended_at ? 'Réactiver le workspace' : 'Suspendre le workspace'}
-                </Button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <Button
+                        danger={!workspace.suspended_at}
+                        icon={workspace.suspended_at ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+                        onClick={toggleSuspend}
+                    >
+                        {workspace.suspended_at ? 'Réactiver le workspace' : 'Suspendre le workspace'}
+                    </Button>
+                    <Button danger icon={<Trash2 size={14} />} onClick={() => setDeleteModalOpen(true)}>
+                        Supprimer le workspace
+                    </Button>
+                </div>
             </div>
 
             <div className="admin-dashboard-grid">
@@ -438,6 +464,70 @@ export default function Show({
                     ]}
                 />
             </Card>
+
+            <Modal
+                open={deleteModalOpen}
+                onCancel={closeDeleteModal}
+                title={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-danger)' }}>
+                        <AlertTriangle size={16} /> Supprimer définitivement &quot;{workspace.name}&quot;
+                    </span>
+                }
+                footer={
+                    <div className="form-actions form-actions--end">
+                        <Button onClick={closeDeleteModal}>Annuler</Button>
+                        <Button
+                            danger
+                            type="primary"
+                            loading={deleting}
+                            disabled={deleteConfirmText !== workspace.slug}
+                            onClick={deleteWorkspace}
+                        >
+                            Supprimer définitivement
+                        </Button>
+                    </div>
+                }
+            >
+                <Paragraph>
+                    Cette action est <strong>irréversible</strong>. Tout ce qui suit sera supprimé immédiatement et
+                    définitivement, sans aucun moyen de récupération :
+                </Paragraph>
+
+                <Descriptions column={1} size="small" bordered style={{ marginBottom: 16 }}>
+                    <Descriptions.Item label={<span><Users size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Membres</span>}>
+                        {members.length} membre{members.length > 1 ? 's' : ''}
+                        {owners.length > 0 && ` (dont ${owners.length} owner${owners.length > 1 ? 's' : ''})`}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={<span><Boxes size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Applications</span>}>
+                        {applications.length} application{applications.length > 1 ? 's' : ''}, avec tous leurs targets,
+                        environnements, pipelines et variables d&apos;environnement
+                    </Descriptions.Item>
+                    <Descriptions.Item label={<span><ServerIcon size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Serveurs</span>}>
+                        {serversCount} serveur{serversCount > 1 ? 's' : ''} enregistré{serversCount > 1 ? 's' : ''} (identifiants
+                        SSH inclus)
+                    </Descriptions.Item>
+                    <Descriptions.Item label={<span><Rocket size={13} style={{ verticalAlign: -2, marginRight: 6 }} />Déploiements</span>}>
+                        {deploymentsCount} déploiement{deploymentsCount > 1 ? 's' : ''} et tout leur historique/logs
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Abonnement">
+                        {workspace.subscription
+                            ? `Plan ${workspace.subscription.plan?.name ?? 'Free'} — sera annulé (aucune interaction avec Paddle nécessaire côté facturation déjà en cours)`
+                            : 'Aucun abonnement actif'}
+                    </Descriptions.Item>
+                </Descriptions>
+
+                <Paragraph>
+                    Pour confirmer, tapez le slug du workspace (<Text code>{workspace.slug}</Text>) ci-dessous :
+                </Paragraph>
+                <Input
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder={workspace.slug}
+                    onPressEnter={() => {
+                        if (deleteConfirmText === workspace.slug) deleteWorkspace();
+                    }}
+                />
+            </Modal>
         </AdminLayout>
     );
 }

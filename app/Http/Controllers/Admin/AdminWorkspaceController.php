@@ -146,6 +146,10 @@ class AdminWorkspaceController extends Controller
             'applications' => $this->applicationsWithDeploymentStats($workspace, $applications, $appIds),
             'subscriptionHistory' => $workspace->subscriptionHistory()->with(['plan:id,name', 'changedBy:id,name'])->limit(50)->get(),
             'plans' => Plan::orderBy('name')->get(['id', 'slug', 'name']),
+            'serversCount' => $workspace->servers()->count(),
+            'deploymentsCount' => Deployment::query()
+                ->whereHas('targetEnvironment.target.application', fn ($q) => $q->where('workspace_id', $workspace->id))
+                ->count(),
         ]);
     }
 
@@ -245,5 +249,50 @@ class AdminWorkspaceController extends Controller
         PlatformAuditLogger::log('workspace.reactivate', $workspace);
 
         return back()->with('status', "Le workspace {$workspace->name} a été réactivé.");
+    }
+
+    /**
+     * Supprime définitivement un workspace et tout ce qu'il contient.
+     * Les FK `cascadeOnDelete` couvrent applications, servers, subscriptions,
+     * targets, environments, deployments, webhooks, etc. — mais pas
+     * model_has_roles/model_has_permissions (pivot Spatie "team" sans FK,
+     * voir la migration de renommage application_id -> workspace_id), qu'on
+     * doit donc purger nous-mêmes avant de supprimer la ligne workspace.
+     * Le log d'audit est écrit avant la suppression : subject_id doit encore
+     * référencer une ligne existante pour rester interprétable.
+     */
+    public function destroy(Workspace $workspace): RedirectResponse
+    {
+        $this->authorize('platform-admin.manageWorkspaces');
+
+        $name = $workspace->name;
+
+        PlatformAuditLogger::log('workspace.delete', $workspace, [
+            'applications_count' => $workspace->applications()->count(),
+            'servers_count' => $workspace->servers()->count(),
+            'members_count' => $workspace->members()->count(),
+            'deployments_count' => Deployment::query()
+                ->whereHas('targetEnvironment.target.application', fn ($q) => $q->where('workspace_id', $workspace->id))
+                ->count(),
+        ]);
+
+        DB::table('model_has_roles')->where('workspace_id', $workspace->id)->delete();
+        DB::table('model_has_permissions')->where('workspace_id', $workspace->id)->delete();
+
+        // Ordre explicite plutôt que de compter sur l'ordre (non garanti) dans
+        // lequel la BD résout deux chaînes de cascade concurrentes issues du
+        // même DELETE workspace : applications (cascadeOnDelete jusqu'à
+        // target_environments) et servers (cascadeOnDelete direct). Or
+        // target_environments.server_id est en restrictOnDelete (délibéré,
+        // voir 2026_08_09_120631_change_server_id_delete_rule...) — si la BD
+        // tente de supprimer un serveur avant que les target_environments qui
+        // le référencent aient disparu, la contrainte bloque tout. Supprimer
+        // les applications d'abord (et donc leurs target_environments) lève
+        // ce blocage avant de toucher aux serveurs.
+        $workspace->applications()->delete();
+        $workspace->servers()->delete();
+        $workspace->delete();
+
+        return redirect()->route('admin.workspaces.index')->with('status', "Le workspace \"{$name}\" a été supprimé définitivement.");
     }
 }

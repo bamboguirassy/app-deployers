@@ -142,6 +142,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('admin')->name('a
     Route::get('/workspaces/{workspace}', [AdminWorkspaceController::class, 'show'])->name('workspaces.show');
     Route::post('/workspaces/{workspace}/suspend', [AdminWorkspaceController::class, 'suspend'])->name('workspaces.suspend');
     Route::post('/workspaces/{workspace}/reactivate', [AdminWorkspaceController::class, 'reactivate'])->name('workspaces.reactivate');
+    Route::delete('/workspaces/{workspace}', [AdminWorkspaceController::class, 'destroy'])->name('workspaces.destroy');
     Route::patch('/workspaces/{workspace}/subscription', [AdminSubscriptionController::class, 'update'])->name('workspaces.subscription.update');
     Route::post('/workspaces/{workspace}/subscription/grant-free', [AdminSubscriptionController::class, 'grantFree'])->name('workspaces.subscription.grant-free');
     Route::post('/workspaces/{workspace}/subscription/revoke-free', [AdminSubscriptionController::class, 'revokeFree'])->name('workspaces.subscription.revoke-free');

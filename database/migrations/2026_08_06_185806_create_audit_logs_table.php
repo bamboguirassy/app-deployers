@@ -10,7 +10,15 @@ return new class extends Migration
     {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('application_id')->constrained()->cascadeOnDelete();
+            // Nullable dès la création : les entrées du panneau super-admin
+            // (voir App\Support\PlatformAuditLogger) ne sont rattachées à
+            // aucune application. Une migration plus tardive rendait cette
+            // colonne nullable après coup via ALTER COLUMN — mais SQLite ne
+            // supporte pas ALTER COLUMN et gardait la contrainte NOT NULL
+            // envers et contre tout, cassant PlatformAuditLogger sous les
+            // tests (voir tests/Feature/Admin/AdminWorkspaceDestroyTest.php).
+            // Nullable de base évite ce problème sur tous les drivers.
+            $table->foreignId('application_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('action');
             $table->string('subject_type');
