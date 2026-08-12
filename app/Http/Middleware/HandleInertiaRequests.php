@@ -5,7 +5,9 @@ namespace App\Http\Middleware;
 use App\Models\Deployment;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Middleware;
+use Throwable;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -57,10 +59,25 @@ class HandleInertiaRequests extends Middleware
             // État initial du badge "déploiements en cours" (sidebar) — tenu à
             // jour ensuite en direct via le channel privé workspace.{id} (voir
             // DeploymentStatusUpdated). Évalué à la volée : jamais mis en cache,
-            // toujours l'état réel au moment du rendu de la page.
-            'activeDeployments' => fn () => $workspace instanceof Workspace
-                ? $this->activeDeployments($workspace)
-                : ['count' => 0, 'items' => []],
+            // toujours l'état réel au moment du rendu de la page. Try/catch
+            // délibéré : c'est une feature secondaire (bannière), elle ne doit
+            // jamais faire planter une page entière si sa requête échoue.
+            'activeDeployments' => function () use ($workspace) {
+                if (! $workspace instanceof Workspace) {
+                    return ['count' => 0, 'items' => []];
+                }
+
+                try {
+                    return $this->activeDeployments($workspace);
+                } catch (Throwable $e) {
+                    Log::error('activeDeployments (Inertia shared prop) a échoué', [
+                        'workspace_id' => $workspace->id,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return ['count' => 0, 'items' => []];
+                }
+            },
         ];
     }
 
