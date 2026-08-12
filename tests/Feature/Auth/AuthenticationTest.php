@@ -30,6 +30,22 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('home', absolute: false));
     }
 
+    /**
+     * Régression : le middleware "guest" par défaut redirige un utilisateur
+     * déjà connecté vers route('dashboard'), qui exige un paramètre
+     * {workspace} — sans le fix de RedirectIfAuthenticated::redirectUsing()
+     * dans AppServiceProvider, ceci lève une UrlGenerationException (500)
+     * au lieu d'une simple redirection.
+     */
+    public function test_an_authenticated_user_visiting_login_is_redirected_without_error(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/login');
+
+        $response->assertRedirect(route('home', absolute: false));
+    }
+
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();

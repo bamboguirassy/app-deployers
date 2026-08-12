@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\DeploymentStatusUpdated;
 use App\Listeners\NotifyOnDeploymentFailure;
 use App\Policies\PlatformAdminPolicy;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -28,6 +29,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Le middleware "guest" par défaut (routes/auth.php : /login, /register...)
+        // redirige tout utilisateur déjà connecté vers route('dashboard') — mais
+        // cette route exige un paramètre {workspace} (w/{workspace}/dashboard),
+        // ce que le comportement par défaut de Laravel ne sait pas fournir. Ça
+        // levait une UrlGenerationException (500) à chaque fois qu'un utilisateur
+        // connecté visitait /login. route('home') existe précisément pour ce cas
+        // (WorkspaceController::redirectToDefault choisit un workspace par défaut).
+        RedirectIfAuthenticated::redirectUsing(fn () => route('home'));
 
         Event::listen(DeploymentStatusUpdated::class, NotifyOnDeploymentFailure::class);
 
