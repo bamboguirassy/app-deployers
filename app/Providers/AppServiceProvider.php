@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Events\DeploymentStatusUpdated;
 use App\Listeners\NotifyOnDeploymentFailure;
 use App\Policies\PlatformAdminPolicy;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
@@ -40,6 +42,13 @@ class AppServiceProvider extends ServiceProvider
         RedirectIfAuthenticated::redirectUsing(fn () => route('home'));
 
         Event::listen(DeploymentStatusUpdated::class, NotifyOnDeploymentFailure::class);
+
+        // Pas d'app/Providers/EventServiceProvider dans ce squelette Laravel 11+ :
+        // le mapping Registered -> SendEmailVerificationNotification que Laravel
+        // enregistre normalement via EventServiceProvider::configureEmailVerification()
+        // doit être câblé explicitement, sinon aucun email de vérification ne part
+        // à l'inscription malgré `User implements MustVerifyEmail`.
+        Event::listen(Registered::class, SendEmailVerificationNotification::class);
 
         // Webhooks entrants : limite par (IP, config de webhook) pour encaisser les
         // retries légitimes des providers tout en freinant le brute-force de secret.

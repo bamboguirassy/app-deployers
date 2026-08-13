@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Support Address
+    |--------------------------------------------------------------------------
+    |
+    | Displayed in the footer of every outgoing email (resources/views/vendor/mail)
+    | as a human contact, distinct from the technical "from" address above.
+    |
+    */
+
+    'support_address' => env('MAIL_SUPPORT_ADDRESS', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+
 ];

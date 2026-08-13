@@ -123,6 +123,16 @@ you rediscover one of those, it's a regression, not a known gap — worth flaggi
 
 - **Keep French status/domain vocabulary** (`succes`, `echec`, `annule`, `deploiement.statut`,
   etc.) — this is deliberate, not a translation gap.
+- **`APP_LOCALE=fr`** (`.env.example`), fallback `en`. All custom-written copy (notifications,
+  React pages, flash messages) is hardcoded French inline — there is no i18n framework/translation
+  workflow. The only actual translation files are `lang/fr.json` (literal-string overrides for
+  Laravel's own built-in notification text — `VerifyEmail`, `ResetPassword`, the markdown mail
+  layout's "Whoops!"/"Hello!"/"Regards,") and `lang/fr/auth.php` + `lang/fr/passwords.php`
+  (dotted-key overrides for the framework's login/password-reset flash messages). These exist only
+  to translate **framework-owned** strings — don't add new keys here for your own copy, just write
+  the French text directly like everywhere else in the app. If you add a new built-in Laravel
+  auth/notification feature, check whether it surfaces English strings that need a same-pattern
+  override.
 - UI kit is **Ant Design** for interactive components (Table, Modal, Tag, Select, Drawer,
   Tooltip, Timeline, Progress...) layered with Tailwind utility classes and a custom SCSS
   design-token system (`resources/sass/abstracts/_variables.scss`,
@@ -143,6 +153,54 @@ you rediscover one of those, it's a regression, not a known gap — worth flaggi
   (`hooks/useInfiniteScroll.ts`, `hooks/useListSearch.ts`) → row click navigates via Inertia
   `router.visit`. Look at `Components/Applications/ApplicationsList.tsx` or
   `Components/Deployments/DeploymentsList.tsx` before building a new one from scratch.
+
+### Email templates
+
+All outgoing mail is built with Laravel's default `Illuminate\Notifications\Messages\MailMessage`
+fluent API (`->line()`, `->action()`, `->error()`/`->success()`) — there is **no** custom
+`App\Mail` class or bespoke Blade view per notification, and new notifications should follow that
+same pattern rather than hand-rolling a view. `MailMessage` has **no** `->table()` method — the
+themed table look (`table.blade.php`, `.table` CSS class) only renders from an actual Markdown
+pipe-table string. Plain `->line($table)` does **not** work for this: `SimpleMessage::formatLine()`
+splits on newlines, trims, and rejoins every line with a single space, which silently flattens a
+multi-line table string into unparseable garbage. You must bypass that by wrapping the string in
+`new \Illuminate\Support\HtmlString($table)` — `formatLine()` special-cases `Htmlable` and passes
+it through untouched (see `DeploymentFailedNotification::toMail()` for the full pattern, including
+escaping each cell with `e()` and backslash-escaping literal `|` characters before building the
+table, since the `HtmlString` wrapper skips Blade's automatic escaping).
+The visual theme lives entirely in the published, customized views under
+`resources/views/vendor/mail/` and `resources/views/vendor/notifications/email.blade.php` — do
+not re-publish over these or revert them to Laravel's stock defaults.
+
+- **Branding is in the theme, not in each notification.** `resources/views/vendor/mail/html/themes/default.css`
+  mirrors the app's SCSS tokens (`--color-primary` → `#4f46e5`, `--color-danger` → `#dc2626`,
+  `--color-success` → `#16a34a`, `--color-text` → `#1a1f27`, `--color-text-muted` → `#6b7280`,
+  `--color-border` → `#e3e6ea`). If those SCSS tokens change, update this CSS file to match — it
+  is a second hand-kept copy, same caveat as the `AppThemeProvider.tsx` `PALETTE` object mentioned
+  above.
+- **Status color is driven by `MailMessage::level()`**, not by anything a notification's view has
+  to set manually: `->error()` → red accent bar + red button, `->success()` → green, default/`->line()`-only
+  → indigo. This flows through `resources/views/vendor/notifications/email.blade.php` (passes
+  `:level="$level"` into `<x-mail::message>`) → `message.blade.php` → `header.blade.php` (renders
+  the 3px accent bar). Don't add a separate "status" parameter to a notification — call `->error()`
+  / `->success()` and the theme handles the rest.
+- **The header renders the real logo** (`public/logos/logo.svg`) next to a text wordmark
+  (`header.blade.php`) — the wordmark is there so the mail still reads correctly in clients that
+  block remote images by default (Outlook, some Gmail configurations). Don't replace the wordmark
+  with an image-only header.
+- **The footer's contact line** (`footer.blade.php`) reads `config('mail.support_address')`
+  (`MAIL_SUPPORT_ADDRESS` env var, falls back to `MAIL_FROM_ADDRESS`) — a human contact, kept
+  deliberately separate from the technical "from" address. Don't hardcode an email address in a
+  Blade view.
+- **Technical, tabular facts** (branch, commit, exit code, target/environment pair, etc.) should
+  be built as a Markdown pipe-table string and passed to `->line()` (see above) rather than folded
+  into prose — they need to be scannable, not read as a sentence. `DeploymentFailedNotification`
+  follows this pattern; reuse it for any *new* notification that carries more than one technical
+  fact.
+- Adding a new notification type only requires a `toMail()` method built from these primitives —
+  no new view, no new CSS. If a notification ever needs something the `MailMessage` API can't
+  express (e.g. an embedded chart), that's a signal to discuss a dedicated Blade/Markdown view
+  before building one, not to bolt raw HTML into a `->line()`.
 
 ## Commands
 

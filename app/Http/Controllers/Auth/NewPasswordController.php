@@ -49,6 +49,11 @@ class NewPasswordController extends Controller
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
+                    // Cliquer un lien signé envoyé à cette adresse (reset "mot de
+                    // passe oublié" ou définition du mot de passe initial après une
+                    // invitation) prouve la possession de la boîte mail — pas besoin
+                    // de repasser par un email de vérification distinct.
+                    'email_verified_at' => $user->email_verified_at ?? now(),
                 ])->save();
 
                 event(new PasswordReset($user));
