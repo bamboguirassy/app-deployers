@@ -5,7 +5,7 @@ import { PageProps } from '@/types';
 import { Application, Deployment } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { Modal, Select, Tooltip } from 'antd';
-import { Rocket } from 'lucide-react';
+import { Activity, Rocket } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 export default function DeploymentsPanel({
@@ -43,37 +43,32 @@ export default function DeploymentsPanel({
     };
 
     return (
-        <div>
+        <div className="application-deployments-panel application-resource-panel">
+            <div className="application-resource-header application-resource-header--deployments">
+                <div>
+                    <h3>Déploiements</h3>
+                    <span>Suivi des pipelines, statuts et performances</span>
+                </div>
+                <div className="application-resource-header__actions">
+                    <Activity size={18} aria-hidden="true" />
+                    {canDeploy && (
+                        <Tooltip title={options.length === 0 ? "Configurez d'abord un couple target/environnement dans l'onglet Environnements" : undefined}>
+                            <span>
+                                <PrimaryButton size="small" icon={<Rocket size={14} />} onClick={() => setTriggering(true)} disabled={options.length === 0}>
+                                    Nouveau déploiement
+                                </PrimaryButton>
+                            </span>
+                        </Tooltip>
+                    )}
+                </div>
+            </div>
             <DeploymentsList
                 ref={listRef}
                 searchUrl={route('deployments.search', [workspace!.slug, application.slug])}
                 initialItems={deployments.data}
                 initialKpis={kpis}
                 getRowHref={(deployment) => route('deployments.show', [workspace!.slug, application.slug, deployment.uuid])}
-                actions={
-                    canDeploy && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                            <Tooltip
-                                title={
-                                    options.length === 0
-                                        ? "Configurez d'abord un couple target/environnement dans l'onglet Environnements"
-                                        : undefined
-                                }
-                            >
-                                <span>
-                                    <PrimaryButton
-                                        size="small"
-                                        icon={<Rocket size={14} />}
-                                        onClick={() => setTriggering(true)}
-                                        disabled={options.length === 0}
-                                    >
-                                        Nouveau déploiement
-                                    </PrimaryButton>
-                                </span>
-                            </Tooltip>
-                        </div>
-                    )
-                }
+                actions={null}
             />
 
             <Modal

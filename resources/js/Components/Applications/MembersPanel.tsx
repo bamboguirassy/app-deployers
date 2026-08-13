@@ -9,7 +9,7 @@ import { Application } from '@/types/models';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { Modal, Tag } from 'antd';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
 
 export default function MembersPanel({
@@ -54,14 +54,21 @@ export default function MembersPanel({
     };
 
     return (
-        <div>
+        <div className="application-members-panel application-resource-panel">
+            <div className="application-resource-header">
+                <div>
+                    <h3>Membres</h3>
+                    <span>Accès à l’application et responsabilités de l’équipe</span>
+                </div>
+                <div className="application-resource-header__actions">
+                    <ShieldCheck size={18} aria-hidden="true" />
             {canManage && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
                     <PrimaryButton size="small" onClick={() => setInviting(true)} icon={<Plus size={14} />}>
                         Donner accès à un membre
                     </PrimaryButton>
-                </div>
             )}
+                </div>
+            </div>
 
             <MembersList
                 ref={listRef}

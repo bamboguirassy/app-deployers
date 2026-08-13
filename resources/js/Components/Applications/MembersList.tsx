@@ -26,7 +26,7 @@ export default forwardRef<MembersListHandle, {
     useImperativeHandle(ref, () => ({ refresh: search.refresh }), [search.refresh]);
 
     return (
-        <div>
+        <div className="workspace-members-list">
             <KpiCollapse
                 items={[
                     { key: 'total', title: 'Total', value: search.kpis.total, icon: <UsersIcon size={14} /> },
@@ -37,7 +37,8 @@ export default forwardRef<MembersListHandle, {
                 ]}
             />
 
-            <ListToolbar
+            <div className="premium-list-toolbar application-list-controls">
+              <ListToolbar
                 search={search.search}
                 onSearchChange={search.setSearch}
                 searchPlaceholder="Rechercher par nom ou email..."
@@ -62,13 +63,15 @@ export default forwardRef<MembersListHandle, {
                 onDirectionToggle={() => search.setDirection(search.direction === 'asc' ? 'desc' : 'asc')}
                 onReset={search.resetFilters}
                 hasActiveFilters={search.hasActiveFilters}
-            />
+              />
+            </div>
 
             <Table
                 rowKey="id"
                 dataSource={search.items}
                 pagination={false}
                 scroll={{ x: 'max-content' }}
+                className="premium-table application-members-table"
                 columns={[
                     {
                         title: 'Membre',
