@@ -138,6 +138,14 @@ class RunDeploymentJob implements ShouldQueue
                 'deployment_id' => $deployment->id,
                 'error' => $e->getMessage(),
             ]);
+
+            foreach ($deployment->steps as $step) {
+                if (in_array($step->status, ['pending', 'running'], true)) {
+                    $step->update(['status' => 'skipped']);
+                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                }
+            }
+
             $deployment->update(['status' => 'echec']);
         } finally {
             $deployment->refresh();

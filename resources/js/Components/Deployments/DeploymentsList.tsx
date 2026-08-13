@@ -4,11 +4,12 @@ import { SourceIcon, StatusDotsIcon } from '@/Components/Deployments/DeploymentI
 import StatusTag from '@/Components/StatusTag';
 import { DeploymentKpis, formatDuration, SOURCE_LABELS, SOURCE_OPTIONS, STATUS_OPTIONS } from '@/constants/deployments';
 import { useListSearch } from '@/hooks/useListSearch';
+import { timeAgo } from '@/lib/time';
 import { PageProps } from '@/types';
 import { Deployment } from '@/types/models';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { Avatar, Card, Empty, Spin, Table } from 'antd';
+import { Avatar, Card, Empty, Spin, Table, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ArrowRight, Boxes, CheckCircle2, Clock, Filter, Hourglass, TrendingUp, XCircle } from 'lucide-react';
 import { KeyboardEvent, ReactNode, forwardRef, useImperativeHandle } from 'react';
@@ -96,6 +97,16 @@ export default forwardRef<DeploymentsListHandle, {
                     <SourceIcon source={source} />
                     {SOURCE_LABELS[source] ?? source}
                 </span>
+            ),
+        },
+        {
+            title: 'Date',
+            dataIndex: 'created_at',
+            key: 'created_at',
+            render: (createdAt: string) => (
+                <Tooltip title={new Date(createdAt).toLocaleString('fr-FR')}>
+                    <span>{timeAgo(createdAt)}</span>
+                </Tooltip>
             ),
         },
         {
