@@ -675,6 +675,14 @@
         color: theme('color-text-muted');
     }
 
+    &__price-note {
+        display: block;
+        margin-top: space('1');
+        font-size: 12px;
+        font-weight: 600;
+        color: theme('color-success');
+    }
+
     &__tagline {
         margin: space('2') 0 0 !important;
         min-height: 42px;

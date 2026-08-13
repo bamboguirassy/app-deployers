@@ -1,9 +1,11 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import ThemeToggle from '@/Components/ThemeToggle';
+import { PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_MONTHLY_EQUIVALENT_EUR, PRO_YEARLY_PRICE_EUR, PRO_YEARLY_SAVINGS_EUR } from '@/constants/pricing';
 import { Head, Link } from '@inertiajs/react';
-import { Button } from 'antd';
+import { Button, Segmented } from 'antd';
 import {
     ArrowRight,
+    Check,
     GitBranch,
     KeyRound,
     LayoutDashboard,
@@ -11,8 +13,26 @@ import {
     Radio,
     ScrollText,
     ShieldCheck,
+    Sparkles,
     Users,
 } from 'lucide-react';
+import { useState } from 'react';
+
+const FREE_FEATURES = [
+    '1 application, pour valider votre premier pipeline',
+    '1 déploiement à la fois',
+    'Webhooks GitHub, GitLab, Bitbucket',
+    'Historique de déploiement complet',
+    'Logs en direct',
+];
+
+const PRO_FEATURES = [
+    'Applications illimitées',
+    "Jusqu'à 5 déploiements simultanés",
+    'Tout ce qui est inclus dans Free',
+    "Rollback en un clic vers n'importe quelle version",
+    'Support prioritaire par email',
+];
 const FEATURES = [
     {
         icon: LayoutDashboard,
@@ -77,6 +97,8 @@ const STEPS = [
 ];
 
 export default function Welcome() {
+    const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
+
     return (
         <div className="landing">
             <Head>
@@ -130,6 +152,7 @@ export default function Welcome() {
                     <nav className="landing-nav__links">
                         <a href="#fonctionnalites">Fonctionnalités</a>
                         <a href="#comment-ca-marche">Comment ça marche</a>
+                        <a href="#tarifs">Tarifs</a>
                         <a href="#securite">Sécurité</a>
                     </nav>
 
@@ -278,6 +301,105 @@ export default function Welcome() {
                             </ul>
                         </div>
                     </div>
+                </section>
+
+                <section id="tarifs" className="landing-section landing-section--muted">
+                    <div className="landing-section__header">
+                        <h2>Un tarif simple, sans surprise</h2>
+                        <p>Commencez gratuitement. Passez à Pro quand votre équipe grandit — annulez à tout moment.</p>
+                    </div>
+
+                    <div className="plans-toolbar">
+                        <Segmented
+                            value={interval}
+                            onChange={(value) => setInterval(value as 'monthly' | 'yearly')}
+                            options={[
+                                { label: 'Mensuel', value: 'monthly' },
+                                { label: `Annuel — économisez ${PRO_YEARLY_SAVINGS_EUR}€`, value: 'yearly' },
+                            ]}
+                            size="large"
+                        />
+                    </div>
+
+                    <div className="plans-grid">
+                        <div className="plan-card">
+                            <div className="plan-card__head">
+                                <span className="plan-card__name">Free</span>
+                                <div className="plan-card__price">
+                                    <span className="plan-card__price-amount">0€</span>
+                                    <span className="plan-card__price-period">/ mois</span>
+                                </div>
+                                <p className="plan-card__tagline">
+                                    Pour découvrir la plateforme et déployer votre premier projet, sans engagement.
+                                </p>
+                            </div>
+
+                            <ul className="plan-card__features">
+                                {FREE_FEATURES.map((feature) => (
+                                    <li key={feature}>
+                                        <Check size={16} />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="plan-card__cta">
+                                <Link href={route('register')}>
+                                    <Button size="large" block>
+                                        Commencer gratuitement
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+
+                        <div className="plan-card plan-card--pro">
+                            <div className="plan-card__ribbon">
+                                <Sparkles size={13} /> Le plus populaire
+                            </div>
+
+                            <div className="plan-card__head">
+                                <span className="plan-card__name">Pro</span>
+                                <div className="plan-card__price">
+                                    <span className="plan-card__price-amount">
+                                        {interval === 'monthly' ? PRO_MONTHLY_PRICE_EUR : PRO_YEARLY_MONTHLY_EQUIVALENT_EUR}€
+                                    </span>
+                                    <span className="plan-card__price-period">
+                                        / mois{interval === 'yearly' ? ', facturé annuellement' : ''}
+                                    </span>
+                                </div>
+                                {interval === 'yearly' && (
+                                    <span className="plan-card__price-note">
+                                        {PRO_YEARLY_PRICE_EUR}€ facturés une fois par an au lieu de {PRO_MONTHLY_PRICE_EUR * 12}€
+                                    </span>
+                                )}
+                                <p className="plan-card__tagline">
+                                    Pour les équipes qui déploient en production, sans limite ni compromis.
+                                </p>
+                            </div>
+
+                            <ul className="plan-card__features">
+                                {PRO_FEATURES.map((feature) => (
+                                    <li key={feature}>
+                                        <Check size={16} />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="plan-card__cta">
+                                <Link href={route('register')}>
+                                    <Button type="primary" size="large" block icon={<ArrowRight size={16} />} iconPlacement="end">
+                                        Essayer Pro
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="landing-pricing-note">
+                        Les prix sont hors taxes. Paiement sécurisé par Paddle, notre revendeur officiel — voir notre{' '}
+                        <Link href={route('legal.refunds')}>politique de remboursement</Link>.
+                    </p>
                 </section>
 
                 <section className="landing-cta">

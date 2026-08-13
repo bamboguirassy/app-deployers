@@ -471,6 +471,17 @@
     }
 }
 
+.landing-pricing-note {
+    text-align: center;
+    margin: 0;
+    font-size: 13px;
+    color: theme('color-text-muted');
+
+    a {
+        color: theme('color-primary');
+    }
+}
+
 .landing-footer {
     border-top: 1px solid theme('color-border');
     padding: space('6') space('5');

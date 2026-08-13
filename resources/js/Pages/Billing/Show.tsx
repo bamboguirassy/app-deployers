@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_MONTHLY_EQUIVALENT_EUR, PRO_YEARLY_PRICE_EUR, PRO_YEARLY_SAVINGS_EUR } from '@/constants/pricing';
 import { PageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Alert, Button, Segmented, Tooltip, Typography, message } from 'antd';
@@ -239,10 +240,18 @@ export default function Show({
                     <div className="plan-card__head">
                         <Text className="plan-card__name">{proPlan?.name ?? 'Pro'}</Text>
                         <div className="plan-card__price">
-                            <span className="plan-card__price-amount">Tarif {interval === 'monthly' ? 'mensuel' : 'annuel'}</span>
+                            <span className="plan-card__price-amount">
+                                {interval === 'monthly' ? PRO_MONTHLY_PRICE_EUR : PRO_YEARLY_MONTHLY_EQUIVALENT_EUR}€
+                            </span>
+                            <span className="plan-card__price-period">/ mois{interval === 'yearly' ? ', facturé annuellement' : ''}</span>
                         </div>
+                        {interval === 'yearly' && (
+                            <Text className="plan-card__price-note">
+                                {PRO_YEARLY_PRICE_EUR}€ facturés une fois par an — économisez {PRO_YEARLY_SAVINGS_EUR}€ vs mensuel
+                            </Text>
+                        )}
                         <Paragraph type="secondary" className="plan-card__tagline">
-                            Pour les équipes qui déploient en production, sans limite. Le montant exact est affiché au moment du paiement.
+                            Pour les équipes qui déploient en production, sans limite.
                         </Paragraph>
                     </div>
 
