@@ -471,13 +471,18 @@
 .application-resource-panel .premium-list-toolbar .ant-select-selector,
 .application-resource-panel .premium-list-toolbar .ant-btn { min-height: 34px; border-radius: 0 !important; }
 .application-resource-panel .premium-table-card,
-.application-resource-panel .ant-table-wrapper,
-.application-resource-panel .ant-card,
-.application-resource-panel .ant-table-container,
-.application-resource-panel .ant-table-content,
-.application-resource-panel .ant-table { border-radius: 0 !important; }
-.application-resource-panel .premium-table-card,
-.application-resource-panel .ant-table-wrapper { border: 1px solid theme('color-border'); }
+.application-resource-panel .ant-table-wrapper {
+    border: 1px solid theme('color-border');
+    border-radius: 0 !important;
+}
+.application-resource-panel .premium-table-card .ant-table,
+.application-resource-panel .ant-table-wrapper .ant-table,
+.application-resource-panel .premium-table-card .ant-table-container,
+.application-resource-panel .ant-table-wrapper .ant-table-container,
+.application-resource-panel .premium-table-card .ant-table-content,
+.application-resource-panel .ant-table-wrapper .ant-table-content {
+    border-radius: 0 !important;
+}
 .application-resource-panel .premium-table .ant-table-tbody > tr > td { padding-top: 13px; padding-bottom: 13px; }
 .application-members-table { border: 1px solid theme('color-border'); }
 
@@ -507,7 +512,17 @@
 .application-members-panel .premium-list-toolbar,
 .application-deployments-panel .premium-list-toolbar { border-radius: 0; }
 .application-members-panel .ant-table-wrapper,
-.application-deployments-panel .premium-table-card { border-radius: 0; }
+.application-deployments-panel .premium-table-card {
+    border-radius: 0;
+}
+.application-members-panel .ant-table-wrapper .ant-table,
+.application-members-panel .ant-table-wrapper .ant-table-container,
+.application-members-panel .ant-table-wrapper .ant-table-content,
+.application-deployments-panel .premium-table-card .ant-table,
+.application-deployments-panel .premium-table-card .ant-table-container,
+.application-deployments-panel .premium-table-card .ant-table-content {
+    border-radius: 0 !important;
+}
 
 @media (max-width: 720px) {
     .application-resource-header { align-items: flex-start; }
