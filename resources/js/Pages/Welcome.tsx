@@ -2,7 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_MONTHLY_EQUIVALENT_EUR, PRO_YEARLY_PRICE_EUR, PRO_YEARLY_SAVINGS_EUR } from '@/constants/pricing';
 import { Head, Link } from '@inertiajs/react';
-import { Button, Segmented } from 'antd';
+import { Button, Drawer, Segmented } from 'antd';
 import {
     ArrowRight,
     Check,
@@ -10,6 +10,7 @@ import {
     KeyRound,
     LayoutDashboard,
     Lock,
+    Menu,
     Radio,
     ScrollText,
     ShieldCheck,
@@ -17,6 +18,13 @@ import {
     Users,
 } from 'lucide-react';
 import { useState } from 'react';
+
+const NAV_LINKS = [
+    { href: '#fonctionnalites', label: 'Fonctionnalités' },
+    { href: '#comment-ca-marche', label: 'Comment ça marche' },
+    { href: '#tarifs', label: 'Tarifs' },
+    { href: '#securite', label: 'Sécurité' },
+];
 
 const FREE_FEATURES = [
     '1 application, pour valider votre premier pipeline',
@@ -98,6 +106,7 @@ const STEPS = [
 
 export default function Welcome() {
     const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
     return (
         <div className="landing">
@@ -150,10 +159,11 @@ export default function Welcome() {
                     </Link>
 
                     <nav className="landing-nav__links">
-                        <a href="#fonctionnalites">Fonctionnalités</a>
-                        <a href="#comment-ca-marche">Comment ça marche</a>
-                        <a href="#tarifs">Tarifs</a>
-                        <a href="#securite">Sécurité</a>
+                        {NAV_LINKS.map(({ href, label }) => (
+                            <a href={href} key={href}>
+                                {label}
+                            </a>
+                        ))}
                     </nav>
 
                     <div className="landing-nav__actions">
@@ -167,8 +177,51 @@ export default function Welcome() {
                             </Button>
                         </Link>
                     </div>
+
+                    <button
+                        type="button"
+                        className="landing-nav__burger"
+                        aria-label="Ouvrir le menu"
+                        onClick={() => setMobileNavOpen(true)}
+                    >
+                        <Menu size={22} />
+                    </button>
                 </div>
             </header>
+
+            <Drawer
+                open={mobileNavOpen}
+                onClose={() => setMobileNavOpen(false)}
+                placement="right"
+                title={
+                    <span className="landing-brand">
+                        <ApplicationLogo />
+                        <span>App Deployer</span>
+                    </span>
+                }
+                className="landing-mobile-drawer"
+                width="min(85vw, 320px)"
+            >
+                <nav className="landing-mobile-nav">
+                    {NAV_LINKS.map(({ href, label }) => (
+                        <a href={href} key={href} onClick={() => setMobileNavOpen(false)}>
+                            {label}
+                        </a>
+                    ))}
+                </nav>
+
+                <div className="landing-mobile-nav__actions">
+                    <ThemeToggle />
+                    <Link href={route('login')} className="form-link" onClick={() => setMobileNavOpen(false)}>
+                        Se connecter
+                    </Link>
+                    <Link href={route('register')} onClick={() => setMobileNavOpen(false)}>
+                        <Button type="primary" size="large" block>
+                            Commencer gratuitement
+                        </Button>
+                    </Link>
+                </div>
+            </Drawer>
 
             <main>
                 <section className="landing-hero">
