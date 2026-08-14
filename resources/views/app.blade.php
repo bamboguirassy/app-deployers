@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'Laravel') }} — Supervisez vos déploiements en direct</title>
 
         {{-- Default SEO meta — the app is auth-walled, so pages are noindex unless a
              page (e.g. the public Welcome landing) explicitly overrides via its own <Head>. --}}
@@ -16,14 +16,14 @@
         <!-- Open Graph / Twitter (overridable per-page via Inertia <Head>) -->
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="{{ config('app.name', 'Laravel') }}">
-        <meta property="og:title" inertia content="{{ config('app.name', 'Laravel') }}">
+        <meta property="og:title" inertia content="{{ config('app.name', 'Laravel') }} — Supervisez vos déploiements en direct">
         <meta property="og:description" inertia content="Orchestrez vos pipelines de déploiement, vos environnements et vos équipes depuis une seule plateforme.">
         <meta property="og:url" inertia content="{{ url()->current() }}">
         <meta property="og:image" inertia content="{{ asset('logos/og-image.png') }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" inertia content="{{ config('app.name', 'Laravel') }}">
+        <meta name="twitter:title" inertia content="{{ config('app.name', 'Laravel') }} — Supervisez vos déploiements en direct">
         <meta name="twitter:description" inertia content="Orchestrez vos pipelines de déploiement, vos environnements et vos équipes depuis une seule plateforme.">
         <meta name="twitter:image" inertia content="{{ asset('logos/og-image.png') }}">
 
