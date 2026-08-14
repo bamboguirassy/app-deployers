@@ -22,6 +22,7 @@ use Laravel\Octane\Listeners\FlushUploadedFiles;
 use Laravel\Octane\Listeners\ReportException;
 use Laravel\Octane\Listeners\StopWorkerIfNecessary;
 use Laravel\Octane\Octane;
+use Spatie\Permission\PermissionRegistrar;
 
 return [
 
@@ -135,7 +136,13 @@ return [
     ],
 
     'flush' => [
-        //
+        // Le PermissionRegistrar de Spatie garde en mémoire (propriétés
+        // d'instance) les rôles/permissions résolus pour la team courante ;
+        // sans ce flush, un worker Octane réutiliserait ce cache d'une
+        // requête à l'autre malgré le changement de team_id fait par
+        // SetPermissionsTeam middleware, avec un risque de fuite
+        // d'autorisations entre applications (tenants).
+        PermissionRegistrar::class,
     ],
 
     /*

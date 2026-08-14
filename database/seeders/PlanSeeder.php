@@ -11,14 +11,14 @@ class PlanSeeder extends Seeder
         [
             'slug' => 'free',
             'name' => 'Free',
-            'max_applications' => 1,
+            'max_applications' => 2,
             'max_concurrent_deployments' => 1,
         ],
         [
             'slug' => 'pro',
             'name' => 'Pro',
             'max_applications' => null,
-            'max_concurrent_deployments' => 5,
+            'max_concurrent_deployments' => 3,
         ],
     ];
 
