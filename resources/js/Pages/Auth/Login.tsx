@@ -30,13 +30,13 @@ export default function Login({
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Se connecter" />
 
             {status && <div className="form-status">{status}</div>}
 
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Adresse email" />
 
                     <TextInput
                         id="email"
@@ -53,7 +53,7 @@ export default function Login({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value="Mot de passe" />
 
                     <TextInput
                         id="password"

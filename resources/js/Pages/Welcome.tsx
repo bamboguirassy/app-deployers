@@ -299,7 +299,7 @@ export default function Welcome() {
                         <h2>Tout ce qu'il faut pour déployer sereinement</h2>
                         <p>
                             De la définition du pipeline jusqu'à l'audit final, App
-                            Deployers couvre tout le cycle de vie de vos déploiements.
+                            Deployer couvre tout le cycle de vie de vos déploiements.
                         </p>
                     </div>
 

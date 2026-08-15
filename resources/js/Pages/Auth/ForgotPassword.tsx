@@ -18,7 +18,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
     return (
         <GuestLayout>
-            <Head title="Forgot Password" />
+            <Head title="Mot de passe oublié" />
 
             <p className="field-label" style={{ marginBottom: 16 }}>
                 Mot de passe oublié ? Indiquez votre email et nous vous

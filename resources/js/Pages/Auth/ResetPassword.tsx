@@ -30,11 +30,11 @@ export default function ResetPassword({
 
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title="Réinitialiser le mot de passe" />
 
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Adresse email" />
 
                     <TextInput
                         id="email"

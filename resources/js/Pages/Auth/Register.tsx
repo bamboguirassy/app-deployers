@@ -97,7 +97,7 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="email" value="Email" />
+                        <InputLabel htmlFor="email" value="Adresse email" />
 
                         <TextInput
                             id="email"

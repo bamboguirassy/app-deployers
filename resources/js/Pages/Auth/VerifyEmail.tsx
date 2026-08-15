@@ -14,7 +14,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
 
     return (
         <GuestLayout>
-            <Head title="Email Verification" />
+            <Head title="Vérification de l'email" />
 
             <p className="field-label" style={{ marginBottom: 16 }}>
                 Merci de votre inscription ! Avant de commencer, merci de

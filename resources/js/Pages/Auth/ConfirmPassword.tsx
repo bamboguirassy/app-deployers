@@ -21,7 +21,7 @@ export default function ConfirmPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Confirm Password" />
+            <Head title="Confirmer le mot de passe" />
 
             <p className="field-label" style={{ marginBottom: 16 }}>
                 Zone sécurisée : confirmez votre mot de passe pour continuer.
