@@ -9,6 +9,15 @@ export default function Securite() {
             title="Sécurité — Connexions SSH chiffrées et audit complet"
             description="Comment App Deployer sécurise vos déploiements : connexions SSH chiffrées et éphémères, variables d'environnement chiffrées, contrôle d'accès par rôle et journal d'audit complet."
             breadcrumbs={[{ label: 'Sécurité' }]}
+            locale="fr"
+            altLocaleHref="/security"
+            headChildren={
+                <>
+                    <link rel="alternate" hrefLang="en" href="/security" />
+                    <link rel="alternate" hrefLang="fr" href="/securite" />
+                    <link rel="alternate" hrefLang="x-default" href="/security" />
+                </>
+            }
         >
             <div className="landing-page-header">
                 <h1>Nous hébergeons la plateforme, vous gardez vos serveurs</h1>

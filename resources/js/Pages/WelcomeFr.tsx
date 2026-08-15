@@ -12,41 +12,41 @@ import {
 const TEASERS = [
     {
         icon: GitBranch,
-        title: 'Features',
+        title: 'Fonctionnalités',
         description:
-            'Custom pipelines, encrypted SSH connections, Git webhooks, live tracking, team roles and an audit trail.',
-        href: '/features',
+            "Pipelines sur mesure, connexions SSH chiffrées, webhooks Git, suivi en direct, rôles par équipe et journal d'audit.",
+        href: '/fonctionnalites',
     },
     {
         icon: Radio,
-        title: 'How it works',
+        title: 'Comment ça marche',
         description:
-            'From sign-up to your first supervised deployment: three steps, no heavy setup.',
-        href: '/how-it-works',
+            "De l'inscription à votre premier déploiement supervisé : trois étapes, sans configuration lourde.",
+        href: '/comment-ca-marche',
     },
     {
         icon: ShieldCheck,
-        title: 'Security',
+        title: 'Sécurité',
         description:
-            'Your servers stay yours: encrypted, ephemeral SSH connections and secrets isolated per environment.',
-        href: '/security',
+            "Vos serveurs restent les vôtres : connexions SSH chiffrées et éphémères, secrets isolés par environnement.",
+        href: '/securite',
     },
     {
         icon: Sparkles,
-        title: 'Pricing',
+        title: 'Tarifs',
         description:
-            'Start for free, upgrade to Pro as your team grows — no commitment.',
-        href: '/pricing',
+            'Commencez gratuitement, passez à Pro quand votre équipe grandit — sans engagement.',
+        href: '/tarifs',
     },
 ];
 
-export default function Welcome() {
+export default function WelcomeFr() {
     return (
         <MarketingLayout
-            title="App Deployer — Deployment supervision and automation"
-            description="App Deployer orchestrates your deployment pipelines, environments (Production, Staging…) and teams from a single platform, with live tracking, Git webhooks and encrypted SSH connections."
-            locale="en"
-            altLocaleHref="/fr"
+            title="App Deployer — Supervision et automatisation de vos déploiements"
+            description="App Deployer orchestre vos pipelines de déploiement, vos environnements (Prod, Staging…) et vos équipes depuis une seule plateforme, avec suivi en direct, webhooks Git et connexions SSH chiffrées."
+            locale="fr"
+            altLocaleHref="/"
             headChildren={
                 <>
                     <link rel="alternate" hrefLang="en" href="/" />
@@ -60,7 +60,7 @@ export default function Welcome() {
                             applicationCategory: 'DeveloperApplication',
                             operatingSystem: 'Web',
                             description:
-                                'App Deployer orchestrates your deployment pipelines, environments and teams from a single platform.',
+                                "App Deployer orchestre vos pipelines de déploiement, vos environnements et vos équipes depuis une seule plateforme.",
                             offers: {
                                 '@type': 'Offer',
                                 price: '0',
@@ -73,35 +73,35 @@ export default function Welcome() {
         >
             <section className="landing-hero">
                 <div className="landing-hero__copy">
-                    <span className="landing-badge">Hosted platform · Your servers, your control</span>
+                    <span className="landing-badge">Plateforme hébergée · Vos serveurs, votre contrôle</span>
                     <h1>
-                        Deploy your applications
+                        Déployez vos applications
                         <br />
-                        with confidence.
+                        en toute confiance.
                     </h1>
                     <p>
-                        App Deployer orchestrates your deployment pipelines,
-                        environments and teams from one place — with live
-                        tracking and simplified rollback.
+                        App Deployer orchestre vos pipelines de déploiement, vos
+                        environnements et vos équipes depuis un seul endroit —
+                        avec suivi en direct et rollback simplifié.
                     </p>
                     <div className="landing-hero__actions">
                         <Link href={route('register')}>
                             <Button type="primary" size="large">
-                                Create my workspace
+                                Créer mon workspace
                                 <ArrowRight size={16} />
                             </Button>
                         </Link>
-                        <Link href="/features">
+                        <Link href="/fonctionnalites">
                             <Button size="large" type="default">
-                                Discover the features
+                                Découvrir les fonctionnalités
                             </Button>
                         </Link>
                     </div>
                     <ul className="landing-hero__chips">
-                        <li>Multi-environment</li>
-                        <li>Git webhooks</li>
-                        <li>Fast rollback</li>
-                        <li>Live logs</li>
+                        <li>Multi-environnements</li>
+                        <li>Webhooks Git</li>
+                        <li>Rollback rapide</li>
+                        <li>Logs en direct</li>
                     </ul>
                 </div>
 
@@ -116,22 +116,22 @@ export default function Welcome() {
                             <div className="mock-row mock-row--succes">
                                 <span className="mock-dot" />
                                 <span>build</span>
-                                <span className="mock-tag">success</span>
+                                <span className="mock-tag">succès</span>
                             </div>
                             <div className="mock-row mock-row--succes">
                                 <span className="mock-dot" />
                                 <span>migrate</span>
-                                <span className="mock-tag">success</span>
+                                <span className="mock-tag">succès</span>
                             </div>
                             <div className="mock-row mock-row--running">
                                 <span className="mock-dot" />
                                 <span>restart-service</span>
-                                <span className="mock-tag">running</span>
+                                <span className="mock-tag">en cours</span>
                             </div>
                             <div className="mock-row mock-row--pending">
                                 <span className="mock-dot" />
                                 <span>smoke-test</span>
-                                <span className="mock-tag">pending</span>
+                                <span className="mock-tag">en attente</span>
                             </div>
                             <div className="mock-progress">
                                 <div className="mock-progress__bar" />
@@ -143,11 +143,10 @@ export default function Welcome() {
 
             <section className="landing-section">
                 <div className="landing-section__header">
-                    <h2>Everything you need to deploy with peace of mind</h2>
+                    <h2>Tout ce qu'il faut pour déployer sereinement</h2>
                     <p>
-                        From defining the pipeline to the final audit trail,
-                        App Deployer covers the whole lifecycle of your
-                        deployments.
+                        De la définition du pipeline jusqu'à l'audit final, App
+                        Deployer couvre tout le cycle de vie de vos déploiements.
                     </p>
                 </div>
 
@@ -160,7 +159,7 @@ export default function Welcome() {
                             <h3>{title}</h3>
                             <p>{description}</p>
                             <span className="landing-teaser-card__link">
-                                Learn more <ArrowRight size={14} />
+                                En savoir plus <ArrowRight size={14} />
                             </span>
                         </Link>
                     ))}
@@ -168,11 +167,11 @@ export default function Welcome() {
             </section>
 
             <section className="landing-cta">
-                <h2>Ready to orchestrate your deployments?</h2>
-                <p>Create your account and your workspace in under two minutes.</p>
+                <h2>Prêt à orchestrer vos déploiements ?</h2>
+                <p>Créez votre compte et votre workspace en moins de deux minutes.</p>
                 <Link href={route('register')}>
                     <Button type="primary" size="large">
-                        Start for free
+                        Commencer gratuitement
                         <ArrowRight size={16} />
                     </Button>
                 </Link>

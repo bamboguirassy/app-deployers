@@ -13,8 +13,10 @@
         // tag via its own <Head>.
         $currentRoute = Route::currentRouteName();
         $ownsFullSeoMeta = in_array($currentRoute, [
-            'welcome', 'legal.terms', 'legal.privacy', 'legal.refunds',
+            'welcome', 'welcome.fr', 'legal.terms', 'legal.privacy', 'legal.refunds',
+            'legal.terms.en', 'legal.privacy.en', 'legal.refunds.en',
             'marketing.features', 'marketing.how-it-works', 'marketing.pricing', 'marketing.security',
+            'marketing.features.en', 'marketing.how-it-works.en', 'marketing.pricing.en', 'marketing.security.en',
         ]);
         $ownsTitleOnly = in_array($currentRoute, ['login', 'register']);
     @endphp

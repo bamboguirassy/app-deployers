@@ -4,8 +4,28 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { PageProps } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+
+const COPY = {
+    en: {
+        title: 'Log in',
+        email: 'Email address',
+        password: 'Password',
+        rememberMe: 'Remember me',
+        forgotPassword: 'Forgot your password?',
+        submit: 'Log in',
+    },
+    fr: {
+        title: 'Se connecter',
+        email: 'Adresse email',
+        password: 'Mot de passe',
+        rememberMe: 'Se souvenir de moi',
+        forgotPassword: 'Mot de passe oublié ?',
+        submit: 'Se connecter',
+    },
+};
 
 export default function Login({
     status,
@@ -14,6 +34,9 @@ export default function Login({
     status?: string;
     canResetPassword: boolean;
 }) {
+    const { locale } = usePage<PageProps>().props;
+    const t = COPY[locale] ?? COPY.en;
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -30,13 +53,13 @@ export default function Login({
 
     return (
         <GuestLayout>
-            <Head title="Se connecter" />
+            <Head title={t.title} />
 
             {status && <div className="form-status">{status}</div>}
 
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor="email" value="Adresse email" />
+                    <InputLabel htmlFor="email" value={t.email} />
 
                     <TextInput
                         id="email"
@@ -53,7 +76,7 @@ export default function Login({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value="Mot de passe" />
+                    <InputLabel htmlFor="password" value={t.password} />
 
                     <TextInput
                         id="password"
@@ -73,7 +96,7 @@ export default function Login({
                     checked={data.remember}
                     onChange={(e) => setData('remember', e.target.checked)}
                 >
-                    Se souvenir de moi
+                    {t.rememberMe}
                 </Checkbox>
 
                 <div className="form-actions">
@@ -82,12 +105,12 @@ export default function Login({
                             href={route('password.request')}
                             className="form-link"
                         >
-                            Mot de passe oublié ?
+                            {t.forgotPassword}
                         </Link>
                     )}
 
                     <PrimaryButton disabled={processing}>
-                        Se connecter
+                        {t.submit}
                     </PrimaryButton>
                 </div>
             </form>

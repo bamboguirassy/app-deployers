@@ -1,5 +1,5 @@
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { FREE_FEATURES, PRO_FEATURES } from '@/constants/marketing';
+import { FREE_FEATURES, PRO_FEATURES } from '@/constants/marketing.en';
 import {
     PRO_MONTHLY_PRICE_EUR,
     PRO_YEARLY_MONTHLY_EQUIVALENT_EUR,
@@ -13,82 +13,81 @@ import { useState } from 'react';
 
 const FAQ = [
     {
-        question: 'Puis-je changer de plan à tout moment ?',
-        answer: "Oui. Vous pouvez passer de Free à Pro (ou inversement) depuis la page de facturation de votre workspace, sans interruption de service.",
+        question: 'Can I change plans at any time?',
+        answer: 'Yes. You can switch from Free to Pro (or back) from your workspace billing page, with no service interruption.',
     },
     {
-        question: "Comment fonctionne la facturation annuelle ?",
-        answer: `L'offre annuelle facture ${PRO_YEARLY_PRICE_EUR}€ une fois par an au lieu de ${PRO_MONTHLY_PRICE_EUR}€/mois, soit ${PRO_YEARLY_SAVINGS_EUR}€ d'économie sur l'année par rapport à la facturation mensuelle.`,
+        question: 'How does annual billing work?',
+        answer: `The annual plan bills ${PRO_YEARLY_PRICE_EUR}€ once a year instead of ${PRO_MONTHLY_PRICE_EUR}€/month, saving ${PRO_YEARLY_SAVINGS_EUR}€ a year compared to monthly billing.`,
     },
     {
-        question: 'Puis-je annuler à tout moment ?',
-        answer: "Oui, sans engagement. L'abonnement reste actif jusqu'à la fin de la période déjà payée — voir notre politique de remboursement pour le détail.",
+        question: 'Can I cancel at any time?',
+        answer: "Yes, with no commitment. Your subscription stays active until the end of the period already paid for — see our refund policy for details.",
     },
     {
-        question: 'Qui gère le paiement ?',
-        answer: "Paddle.com Market Limited, notre revendeur officiel (Merchant of Record), gère l'ensemble du paiement et de la facturation en notre nom.",
+        question: 'Who handles payment?',
+        answer: 'Paddle.com Market Limited, our official reseller (Merchant of Record), handles all payment and billing on our behalf.',
     },
 ];
 
-export default function Tarifs() {
+export default function Pricing() {
     const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
 
     return (
         <MarketingLayout
-            title="Tarifs — Free et Pro"
-            description="Les tarifs App Deployer : commencez gratuitement avec le plan Free, passez à Pro pour des applications illimitées et jusqu'à 5 déploiements simultanés. Sans engagement."
-            breadcrumbs={[{ label: 'Tarifs' }]}
-            locale="fr"
-            altLocaleHref="/pricing"
+            title="Pricing — Free and Pro"
+            description="App Deployer pricing: start for free with the Free plan, upgrade to Pro for unlimited applications and up to 5 concurrent deployments. No commitment."
+            breadcrumbs={[{ label: 'Pricing' }]}
+            locale="en"
+            altLocaleHref="/tarifs"
             headChildren={
                 <>
                     <link rel="alternate" hrefLang="en" href="/pricing" />
                     <link rel="alternate" hrefLang="fr" href="/tarifs" />
                     <link rel="alternate" hrefLang="x-default" href="/pricing" />
                     <script type="application/ld+json">
-                    {JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@graph': [
-                            {
-                                '@type': 'Product',
-                                name: 'App Deployer',
-                                description:
-                                    "Plateforme d'orchestration de déploiements applicatifs.",
-                                offers: [
-                                    {
-                                        '@type': 'Offer',
-                                        name: 'Free',
-                                        price: '0',
-                                        priceCurrency: 'EUR',
-                                    },
-                                    {
-                                        '@type': 'Offer',
-                                        name: 'Pro',
-                                        price: String(PRO_MONTHLY_PRICE_EUR),
-                                        priceCurrency: 'EUR',
-                                    },
-                                ],
-                            },
-                            {
-                                '@type': 'FAQPage',
-                                mainEntity: FAQ.map(({ question, answer }) => ({
-                                    '@type': 'Question',
-                                    name: question,
-                                    acceptedAnswer: {
-                                        '@type': 'Answer',
-                                        text: answer,
-                                    },
-                                })),
-                            },
-                        ],
-                    })}
+                        {JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@graph': [
+                                {
+                                    '@type': 'Product',
+                                    name: 'App Deployer',
+                                    description: 'Deployment orchestration platform.',
+                                    offers: [
+                                        {
+                                            '@type': 'Offer',
+                                            name: 'Free',
+                                            price: '0',
+                                            priceCurrency: 'EUR',
+                                        },
+                                        {
+                                            '@type': 'Offer',
+                                            name: 'Pro',
+                                            price: String(PRO_MONTHLY_PRICE_EUR),
+                                            priceCurrency: 'EUR',
+                                        },
+                                    ],
+                                },
+                                {
+                                    '@type': 'FAQPage',
+                                    mainEntity: FAQ.map(({ question, answer }) => ({
+                                        '@type': 'Question',
+                                        name: question,
+                                        acceptedAnswer: {
+                                            '@type': 'Answer',
+                                            text: answer,
+                                        },
+                                    })),
+                                },
+                            ],
+                        })}
                     </script>
                 </>
             }
         >
             <div className="landing-page-header">
-                <h1>Un tarif simple, sans surprise</h1>
-                <p>Commencez gratuitement. Passez à Pro quand votre équipe grandit — annulez à tout moment.</p>
+                <h1>Simple pricing, no surprises</h1>
+                <p>Start for free. Upgrade to Pro as your team grows — cancel any time.</p>
             </div>
 
             <section className="landing-section">
@@ -97,8 +96,8 @@ export default function Tarifs() {
                         value={interval}
                         onChange={(value) => setInterval(value as 'monthly' | 'yearly')}
                         options={[
-                            { label: 'Mensuel', value: 'monthly' },
-                            { label: `Annuel — économisez ${PRO_YEARLY_SAVINGS_EUR}€`, value: 'yearly' },
+                            { label: 'Monthly', value: 'monthly' },
+                            { label: `Yearly — save ${PRO_YEARLY_SAVINGS_EUR}€`, value: 'yearly' },
                         ]}
                         size="large"
                     />
@@ -110,10 +109,10 @@ export default function Tarifs() {
                             <span className="plan-card__name">Free</span>
                             <div className="plan-card__price">
                                 <span className="plan-card__price-amount">0€</span>
-                                <span className="plan-card__price-period">/ mois</span>
+                                <span className="plan-card__price-period">/ month</span>
                             </div>
                             <p className="plan-card__tagline">
-                                Pour découvrir la plateforme et déployer votre premier projet, sans engagement.
+                                To try the platform and deploy your first project, no commitment.
                             </p>
                         </div>
 
@@ -129,7 +128,7 @@ export default function Tarifs() {
                         <div className="plan-card__cta">
                             <Link href={route('register')}>
                                 <Button size="large" block>
-                                    Commencer gratuitement
+                                    Start for free
                                 </Button>
                             </Link>
                         </div>
@@ -137,7 +136,7 @@ export default function Tarifs() {
 
                     <div className="plan-card plan-card--pro">
                         <div className="plan-card__ribbon">
-                            <Sparkles size={13} /> Le plus populaire
+                            <Sparkles size={13} /> Most popular
                         </div>
 
                         <div className="plan-card__head">
@@ -147,16 +146,16 @@ export default function Tarifs() {
                                     {interval === 'monthly' ? PRO_MONTHLY_PRICE_EUR : PRO_YEARLY_MONTHLY_EQUIVALENT_EUR}€
                                 </span>
                                 <span className="plan-card__price-period">
-                                    / mois{interval === 'yearly' ? ', facturé annuellement' : ''}
+                                    / month{interval === 'yearly' ? ', billed annually' : ''}
                                 </span>
                             </div>
                             {interval === 'yearly' && (
                                 <span className="plan-card__price-note">
-                                    {PRO_YEARLY_PRICE_EUR}€ facturés une fois par an au lieu de {PRO_MONTHLY_PRICE_EUR * 12}€
+                                    {PRO_YEARLY_PRICE_EUR}€ billed once a year instead of {PRO_MONTHLY_PRICE_EUR * 12}€
                                 </span>
                             )}
                             <p className="plan-card__tagline">
-                                Pour les équipes qui déploient en production, sans limite ni compromis.
+                                For teams deploying to production, with no limits or compromises.
                             </p>
                         </div>
 
@@ -172,7 +171,7 @@ export default function Tarifs() {
                         <div className="plan-card__cta">
                             <Link href={route('register')}>
                                 <Button type="primary" size="large" block icon={<ArrowRight size={16} />} iconPlacement="end">
-                                    Essayer Pro
+                                    Try Pro
                                 </Button>
                             </Link>
                         </div>
@@ -180,13 +179,13 @@ export default function Tarifs() {
                 </div>
 
                 <p className="landing-pricing-note">
-                    Les prix sont hors taxes. Paiement sécurisé par Paddle, notre revendeur officiel — voir notre{' '}
-                    <Link href={route('legal.refunds')}>politique de remboursement</Link>.
+                    Prices exclude tax. Secure payment by Paddle, our official reseller — see our{' '}
+                    <Link href={route('legal.refunds.en')}>refund policy</Link>.
                 </p>
             </section>
 
             <section className="legal-content" style={{ maxWidth: 720, padding: '0 20px 64px' }}>
-                <h2>Questions fréquentes</h2>
+                <h2>Frequently asked questions</h2>
                 {FAQ.map(({ question, answer }) => (
                     <div key={question}>
                         <h3>{question}</h3>

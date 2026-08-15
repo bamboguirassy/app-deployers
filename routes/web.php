@@ -26,6 +26,8 @@ use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Anglais : locale par défaut, URLs sans préfixe. Ce sont les URLs
+// "nouvelles" créées pour l'i18n — voir CLAUDE.md, section i18n.
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('home');
@@ -38,17 +40,49 @@ Route::get('/', function () {
 // (Checkout > Website approval) : conditions d'utilisation, confidentialité,
 // remboursement. Volontairement hors du groupe 'auth' — accessibles sans
 // connexion, y compris par les robots de vérification de Paddle.
+//
+// IMPORTANT (i18n) : ces URLs (/terms, /privacy, /refunds) sont déjà indexées
+// par Google et servent aujourd'hui du contenu FRANÇAIS malgré leurs noms de
+// route à consonance anglaise — ne jamais remplacer leur contenu par de
+// l'anglais, ni les déplacer. Les versions anglaises vivent à des chemins
+// distincts (legal.*.en) pour ne prendre aucun risque sur ce référencement
+// déjà acquis, symétriquement aux pages marketing ci-dessous.
 Route::get('/terms', fn () => Inertia::render('Legal/Terms'))->name('legal.terms');
 Route::get('/privacy', fn () => Inertia::render('Legal/Privacy'))->name('legal.privacy');
 Route::get('/refunds', fn () => Inertia::render('Legal/Refunds'))->name('legal.refunds');
+Route::get('/legal/terms-of-service', fn () => Inertia::render('Legal/TermsEn'))->name('legal.terms.en');
+Route::get('/legal/privacy-policy', fn () => Inertia::render('Legal/PrivacyEn'))->name('legal.privacy.en');
+Route::get('/legal/refund-policy', fn () => Inertia::render('Legal/RefundsEn'))->name('legal.refunds.en');
 
 // Pages marketing dédiées (SEO) — anciennement des sections ancrées de
-// Welcome.tsx, éclatées en pages indexables à part entière. Voir
-// CLAUDE.md, section "Pages marketing dédiées (SEO)".
+// Welcome.tsx, éclatées en pages indexables à part entière. Voir CLAUDE.md,
+// section "Pages marketing dédiées (SEO)".
+//
+// IMPORTANT (i18n) : ces URLs françaises sont déjà indexées — contenu et
+// slugs volontairement inchangés. Les nouvelles pages anglaises (défaut)
+// vivent à des chemins distincts, en anglais, ci-dessous.
 Route::get('/fonctionnalites', fn () => Inertia::render('Marketing/Fonctionnalites'))->name('marketing.features');
 Route::get('/comment-ca-marche', fn () => Inertia::render('Marketing/CommentCaMarche'))->name('marketing.how-it-works');
 Route::get('/tarifs', fn () => Inertia::render('Marketing/Tarifs'))->name('marketing.pricing');
 Route::get('/securite', fn () => Inertia::render('Marketing/Securite'))->name('marketing.security');
+
+Route::get('/features', fn () => Inertia::render('Marketing/Features'))->name('marketing.features.en');
+Route::get('/how-it-works', fn () => Inertia::render('Marketing/HowItWorks'))->name('marketing.how-it-works.en');
+Route::get('/pricing', fn () => Inertia::render('Marketing/Pricing'))->name('marketing.pricing.en');
+Route::get('/security', fn () => Inertia::render('Marketing/Security'))->name('marketing.security.en');
+
+// Accueil français : contenu identique à l'ancien '/' (avant l'introduction
+// de l'i18n), déplacé ici tel quel. C'est la seule URL déjà indexée dont le
+// contenu servi à '/' change (français → anglais) : '/' ne peut pas porter
+// deux contenus, donc c'est un compromis assumé et limité à cette seule page
+// — toutes les autres URLs françaises restent strictement inchangées.
+Route::get('/fr', function () {
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
+
+    return Inertia::render('WelcomeFr');
+})->name('welcome.fr');
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [WorkspaceController::class, 'redirectToDefault'])->name('home');
@@ -184,16 +218,32 @@ Route::get('/sitemap.xml', function () {
     // Login/Register sont volontairement absents : ce sont des pages
     // d'authentification sans contenu à indexer (voir robots.txt, qui les
     // laisse sous le Disallow: / général).
-    $urls = [
-        ['loc' => route('welcome'), 'lastmod' => '2026-08-15', 'changefreq' => 'weekly', 'priority' => '1.0'],
-        ['loc' => route('marketing.pricing'), 'lastmod' => '2026-08-15', 'changefreq' => 'weekly', 'priority' => '0.9'],
-        ['loc' => route('marketing.features'), 'lastmod' => '2026-08-15', 'changefreq' => 'monthly', 'priority' => '0.8'],
-        ['loc' => route('marketing.security'), 'lastmod' => '2026-08-15', 'changefreq' => 'monthly', 'priority' => '0.7'],
-        ['loc' => route('marketing.how-it-works'), 'lastmod' => '2026-08-15', 'changefreq' => 'monthly', 'priority' => '0.6'],
-        ['loc' => route('legal.terms'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
-        ['loc' => route('legal.privacy'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
-        ['loc' => route('legal.refunds'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
+    //
+    // i18n : chaque paire EN/FR porte des hreflang alternates réciproques
+    // (+ x-default vers la version anglaise), voir CLAUDE.md section i18n.
+    $pairs = [
+        ['en' => 'welcome', 'fr' => 'welcome.fr', 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['en' => 'marketing.pricing.en', 'fr' => 'marketing.pricing', 'changefreq' => 'weekly', 'priority' => '0.9'],
+        ['en' => 'marketing.features.en', 'fr' => 'marketing.features', 'changefreq' => 'monthly', 'priority' => '0.8'],
+        ['en' => 'marketing.security.en', 'fr' => 'marketing.security', 'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['en' => 'marketing.how-it-works.en', 'fr' => 'marketing.how-it-works', 'changefreq' => 'monthly', 'priority' => '0.6'],
+        ['en' => 'legal.terms.en', 'fr' => 'legal.terms', 'changefreq' => 'monthly', 'priority' => '0.3'],
+        ['en' => 'legal.privacy.en', 'fr' => 'legal.privacy', 'changefreq' => 'monthly', 'priority' => '0.3'],
+        ['en' => 'legal.refunds.en', 'fr' => 'legal.refunds', 'changefreq' => 'monthly', 'priority' => '0.3'],
     ];
+
+    $urls = [];
+
+    foreach ($pairs as $pair) {
+        $alternates = [
+            'en' => route($pair['en']),
+            'fr' => route($pair['fr']),
+            'x-default' => route($pair['en']),
+        ];
+
+        $urls[] = ['loc' => $alternates['en'], 'lastmod' => '2026-08-15', 'changefreq' => $pair['changefreq'], 'priority' => $pair['priority'], 'alternates' => $alternates];
+        $urls[] = ['loc' => $alternates['fr'], 'lastmod' => '2026-08-15', 'changefreq' => $pair['changefreq'], 'priority' => $pair['priority'], 'alternates' => $alternates];
+    }
 
     return response()
         ->view('sitemap', ['urls' => $urls])

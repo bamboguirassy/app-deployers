@@ -1,0 +1,19 @@
+{
+    "nav": {
+        "login": "Log in",
+        "getStarted": "Start for free",
+        "openMenu": "Open menu",
+        "home": "Home",
+        "breadcrumb": "Breadcrumb"
+    },
+    "footer": {
+        "allRightsReserved": "All rights reserved.",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "refunds": "Refund Policy"
+    },
+    "languageSwitch": {
+        "viewInFrench": "Voir en français",
+        "viewInEnglish": "View in English"
+    }
+}

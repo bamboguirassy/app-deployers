@@ -8,6 +8,7 @@ import ReactDOMServer from 'react-dom/server';
 import { route } from 'ziggy-js';
 import { Ziggy } from './ziggy';
 import { AppThemeProvider } from './theme/AppThemeProvider';
+import { initI18n, SupportedLocale } from './lib/i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -25,6 +26,12 @@ createServer((page) => {
     // pages appelant `route(...)` pendant le rendu ne plantent pas le worker Node.
     // @ts-expect-error route() is expected as an untyped global by pages
     global.route = (name, params, absolute) => route(name, params, absolute, Ziggy);
+
+    // La locale doit venir de la prop Inertia partagée par cette requête
+    // précise (middleware SetLocale côté PHP), jamais d'une détection
+    // navigateur : le HTML pré-rendu ici doit matcher exactement ce que le
+    // client réhydrate avec la même prop.
+    initI18n((page.props.locale as SupportedLocale) ?? 'en');
 
     return createInertiaApp({
         page,

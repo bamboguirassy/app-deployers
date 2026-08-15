@@ -148,6 +148,7 @@ export interface ActiveDeploymentEntry {
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
+    locale: 'en' | 'fr';
     auth: {
         user: User;
     };

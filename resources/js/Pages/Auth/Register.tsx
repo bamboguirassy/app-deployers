@@ -3,12 +3,64 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { PageProps } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Button } from 'antd';
 import { Check } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
+const COPY = {
+    en: {
+        title: 'Create your account',
+        stepAccount: 'Your account',
+        stepWorkspace: 'Your workspace',
+        name: 'Name',
+        email: 'Email address',
+        password: 'Password',
+        confirmPassword: 'Confirm password',
+        alreadyRegistered: 'Already registered?',
+        continue: 'Continue',
+        workspaceIntro:
+            "A workspace groups your applications, servers and team members. You'll be able to create more later.",
+        workspaceName: 'Workspace name',
+        workspaceNamePlaceholder: 'e.g. My company',
+        back: 'Back',
+        createWorkspace: 'Create my workspace',
+        errors: {
+            name: 'Name is required.',
+            email: 'Email is required.',
+            passwordLength: 'Password must be at least 8 characters.',
+            passwordConfirmation: "Confirmation doesn't match.",
+        },
+    },
+    fr: {
+        title: 'Créer votre compte',
+        stepAccount: 'Votre compte',
+        stepWorkspace: 'Votre workspace',
+        name: 'Nom',
+        email: 'Adresse email',
+        password: 'Mot de passe',
+        confirmPassword: 'Confirmer le mot de passe',
+        alreadyRegistered: 'Déjà inscrit ?',
+        continue: 'Continuer',
+        workspaceIntro:
+            "Un workspace regroupe vos applications, vos serveurs et les membres de votre équipe. Vous pourrez en créer d'autres ensuite.",
+        workspaceName: 'Nom du workspace',
+        workspaceNamePlaceholder: 'ex : Mon entreprise',
+        back: 'Retour',
+        createWorkspace: 'Créer mon workspace',
+        errors: {
+            name: 'Le nom est requis.',
+            email: "L'email est requis.",
+            passwordLength: 'Le mot de passe doit contenir au moins 8 caractères.',
+            passwordConfirmation: 'La confirmation ne correspond pas.',
+        },
+    },
+};
+
 export default function Register() {
+    const { locale } = usePage<PageProps>().props;
+    const t = COPY[locale] ?? COPY.en;
     const [step, setStep] = useState<1 | 2>(1);
 
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
@@ -24,22 +76,22 @@ export default function Register() {
         clearErrors();
 
         if (!data.name.trim()) {
-            setError('name', 'Le nom est requis.');
+            setError('name', t.errors.name);
             return;
         }
 
         if (!data.email.trim()) {
-            setError('email', "L'email est requis.");
+            setError('email', t.errors.email);
             return;
         }
 
         if (data.password.length < 8) {
-            setError('password', 'Le mot de passe doit contenir au moins 8 caractères.');
+            setError('password', t.errors.passwordLength);
             return;
         }
 
         if (data.password !== data.password_confirmation) {
-            setError('password_confirmation', 'La confirmation ne correspond pas.');
+            setError('password_confirmation', t.errors.passwordConfirmation);
             return;
         }
 
@@ -61,26 +113,26 @@ export default function Register() {
 
     return (
         <GuestLayout wide>
-            <Head title="Créer votre compte" />
+            <Head title={t.title} />
 
             <div className="auth-steps">
                 <div className={`auth-steps__item ${step === 1 ? 'is-active' : 'is-done'}`}>
                     <span className="auth-steps__dot">
                         {step === 1 ? '1' : <Check size={13} />}
                     </span>
-                    Votre compte
+                    {t.stepAccount}
                 </div>
                 <span className="auth-steps__sep" />
                 <div className={`auth-steps__item ${step === 2 ? 'is-active' : ''}`}>
                     <span className="auth-steps__dot">2</span>
-                    Votre workspace
+                    {t.stepWorkspace}
                 </div>
             </div>
 
             {step === 1 && (
                 <form onSubmit={goToWorkspaceStep} className="form-stack">
                     <div>
-                        <InputLabel htmlFor="name" value="Nom" />
+                        <InputLabel htmlFor="name" value={t.name} />
 
                         <TextInput
                             id="name"
@@ -97,7 +149,7 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="email" value="Adresse email" />
+                        <InputLabel htmlFor="email" value={t.email} />
 
                         <TextInput
                             id="email"
@@ -114,7 +166,7 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="password" value="Mot de passe" />
+                        <InputLabel htmlFor="password" value={t.password} />
 
                         <TextInput
                             id="password"
@@ -133,7 +185,7 @@ export default function Register() {
                     <div>
                         <InputLabel
                             htmlFor="password_confirmation"
-                            value="Confirmer le mot de passe"
+                            value={t.confirmPassword}
                         />
 
                         <TextInput
@@ -154,10 +206,10 @@ export default function Register() {
 
                     <div className="form-actions">
                         <Link href={route('login')} className="form-link">
-                            Déjà inscrit ?
+                            {t.alreadyRegistered}
                         </Link>
 
-                        <PrimaryButton>Continuer</PrimaryButton>
+                        <PrimaryButton>{t.continue}</PrimaryButton>
                     </div>
                 </form>
             )}
@@ -165,20 +217,18 @@ export default function Register() {
             {step === 2 && (
                 <form onSubmit={submit} className="form-stack">
                     <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-muted)' }}>
-                        Un workspace regroupe vos applications, vos serveurs et les
-                        membres de votre équipe. Vous pourrez en créer d&apos;autres
-                        ensuite.
+                        {t.workspaceIntro}
                     </p>
 
                     <div>
-                        <InputLabel htmlFor="workspace_name" value="Nom du workspace" />
+                        <InputLabel htmlFor="workspace_name" value={t.workspaceName} />
 
                         <TextInput
                             id="workspace_name"
                             name="workspace_name"
                             value={data.workspace_name}
                             className="w-full"
-                            placeholder="ex : Mon entreprise"
+                            placeholder={t.workspaceNamePlaceholder}
                             isFocused
                             onChange={(e) => setData('workspace_name', e.target.value)}
                             required
@@ -189,11 +239,11 @@ export default function Register() {
 
                     <div className="form-actions">
                         <Button type="text" onClick={() => setStep(1)}>
-                            Retour
+                            {t.back}
                         </Button>
 
                         <PrimaryButton disabled={processing}>
-                            Créer mon workspace
+                            {t.createWorkspace}
                         </PrimaryButton>
                     </div>
                 </form>

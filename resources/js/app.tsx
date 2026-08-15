@@ -7,6 +7,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { configureEcho } from '@laravel/echo-react';
 import { AppThemeProvider } from './theme/AppThemeProvider';
+import { initI18n, SupportedLocale } from './lib/i18n';
 
 configureEcho({
     broadcaster: 'reverb',
@@ -22,6 +23,9 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.tsx'),
         ),
     setup({ el, App, props }) {
+        const locale = (props.initialPage.props.locale as SupportedLocale) ?? 'en';
+        initI18n(locale);
+
         const root = createRoot(el);
 
         root.render(

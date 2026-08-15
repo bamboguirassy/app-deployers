@@ -102,9 +102,10 @@ export default function Terms() {
 
             <h2>9. Droit applicable</h2>
             <p>
-                Les présentes Conditions sont régies par le droit sénégalais. Tout litige relève de
-                la compétence exclusive des tribunaux de Dakar, au Sénégal, sous réserve des
-                dispositions impératives applicables aux consommateurs.
+                Les présentes Conditions sont régies par le droit applicable au siège social de
+                l'Éditeur. Tout litige relève de la compétence exclusive des tribunaux du ressort
+                du siège social de l'Éditeur, sous réserve des dispositions impératives applicables
+                aux consommateurs dans leur pays de résidence.
             </p>
 
             <h2>10. Contact</h2>

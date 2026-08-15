@@ -1,0 +1,19 @@
+{
+    "nav": {
+        "login": "Se connecter",
+        "getStarted": "Commencer gratuitement",
+        "openMenu": "Ouvrir le menu",
+        "home": "Accueil",
+        "breadcrumb": "Fil d'Ariane"
+    },
+    "footer": {
+        "allRightsReserved": "Tous droits réservés.",
+        "terms": "Conditions d'utilisation",
+        "privacy": "Politique de confidentialité",
+        "refunds": "Politique de remboursement"
+    },
+    "languageSwitch": {
+        "viewInFrench": "Voir en français",
+        "viewInEnglish": "View in English"
+    }
+}

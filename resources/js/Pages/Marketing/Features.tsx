@@ -1,17 +1,17 @@
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { FEATURES } from '@/constants/marketing';
+import { FEATURES } from '@/constants/marketing.en';
 import { Link } from '@inertiajs/react';
 import { Button } from 'antd';
 import { ArrowRight } from 'lucide-react';
 
-export default function Fonctionnalites() {
+export default function Features() {
     return (
         <MarketingLayout
-            title="Fonctionnalités — Pipelines, SSH, webhooks et suivi en direct"
-            description="Découvrez les fonctionnalités d'App Deployer : pipelines de déploiement sur mesure, connexions SSH chiffrées, variables secrètes, webhooks GitHub/GitLab/Bitbucket, suivi en direct et rôles par équipe."
-            breadcrumbs={[{ label: 'Fonctionnalités' }]}
-            locale="fr"
-            altLocaleHref="/features"
+            title="Features — Pipelines, SSH, webhooks and live tracking"
+            description="Explore App Deployer's features: custom deployment pipelines, encrypted SSH connections, secret variables, GitHub/GitLab/Bitbucket webhooks, live tracking and team roles."
+            breadcrumbs={[{ label: 'Features' }]}
+            locale="en"
+            altLocaleHref="/fonctionnalites"
             headChildren={
                 <>
                     <link rel="alternate" hrefLang="en" href="/features" />
@@ -21,11 +21,11 @@ export default function Fonctionnalites() {
             }
         >
             <div className="landing-page-header">
-                <h1>Tout ce qu'il faut pour déployer sereinement</h1>
+                <h1>Everything you need to deploy with peace of mind</h1>
                 <p>
-                    App Deployer orchestre l'intégralité du cycle de vie de vos déploiements : de la définition du
-                    pipeline jusqu'au journal d'audit, en passant par la connexion sécurisée à vos serveurs et le
-                    suivi en temps réel de chaque exécution.
+                    App Deployer orchestrates the entire lifecycle of your deployments: from defining the
+                    pipeline to the audit trail, through securely connecting to your servers and tracking
+                    every run in real time.
                 </p>
             </div>
 
@@ -45,7 +45,7 @@ export default function Fonctionnalites() {
                 <div className="landing-page-cta">
                     <Link href={route('register')}>
                         <Button type="primary" size="large">
-                            Créer mon workspace
+                            Create my workspace
                             <ArrowRight size={16} />
                         </Button>
                     </Link>

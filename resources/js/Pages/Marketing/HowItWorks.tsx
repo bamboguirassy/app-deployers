@@ -1,17 +1,17 @@
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { STEPS } from '@/constants/marketing';
+import { STEPS } from '@/constants/marketing.en';
 import { Link } from '@inertiajs/react';
 import { Button } from 'antd';
 import { ArrowRight } from 'lucide-react';
 
-export default function CommentCaMarche() {
+export default function HowItWorks() {
     return (
         <MarketingLayout
-            title="Comment ça marche — De l'inscription au déploiement"
-            description="Comment fonctionne App Deployer : créez votre workspace, configurez vos serveurs et vos pipelines, puis déployez manuellement ou via webhook avec un suivi en temps réel."
-            breadcrumbs={[{ label: 'Comment ça marche' }]}
-            locale="fr"
-            altLocaleHref="/how-it-works"
+            title="How it works — From sign-up to deployment"
+            description="How App Deployer works: create your workspace, configure your servers and pipelines, then deploy manually or via webhook with real-time tracking."
+            breadcrumbs={[{ label: 'How it works' }]}
+            locale="en"
+            altLocaleHref="/comment-ca-marche"
             headChildren={
                 <>
                     <link rel="alternate" hrefLang="en" href="/how-it-works" />
@@ -21,9 +21,9 @@ export default function CommentCaMarche() {
                         {JSON.stringify({
                             '@context': 'https://schema.org',
                             '@type': 'HowTo',
-                            name: 'Comment déployer avec App Deployer',
+                            name: 'How to deploy with App Deployer',
                             description:
-                                "Les trois étapes pour passer de l'inscription à votre premier déploiement supervisé.",
+                                'The three steps from sign-up to your first supervised deployment.',
                             step: STEPS.map(({ title, detail }) => ({
                                 '@type': 'HowToStep',
                                 name: title,
@@ -35,8 +35,8 @@ export default function CommentCaMarche() {
             }
         >
             <div className="landing-page-header">
-                <h1>Opérationnel en trois étapes</h1>
-                <p>Aucune configuration lourde : votre premier déploiement peut avoir lieu aujourd'hui.</p>
+                <h1>Up and running in three steps</h1>
+                <p>No heavy setup: your first deployment can happen today.</p>
             </div>
 
             <section className="landing-section">
@@ -53,7 +53,7 @@ export default function CommentCaMarche() {
                 <div className="landing-page-cta">
                     <Link href={route('register')}>
                         <Button type="primary" size="large">
-                            Créer mon workspace
+                            Create my workspace
                             <ArrowRight size={16} />
                         </Button>
                     </Link>

@@ -13,7 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // SetLocale doit s'exécuter après EncryptCookies (sinon le cookie
+        // `locale` entrant est encore chiffré et jamais reconnu) mais avant
+        // HandleInertiaRequests (qui partage app()->getLocale() en prop) —
+        // append place le middleware après le groupe 'web' par défaut de
+        // Laravel (qui inclut déjà EncryptCookies), dans l'ordre déclaré ici.
         $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
