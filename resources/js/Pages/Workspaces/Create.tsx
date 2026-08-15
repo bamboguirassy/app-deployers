@@ -32,7 +32,7 @@ export default function Create() {
                     <TextInput
                         id="name"
                         className="w-full"
-                        placeholder="ex : Mon entreprise au Sénégal"
+                        placeholder="ex : Mon entreprise"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         isFocused

@@ -178,7 +178,7 @@ export default function Register() {
                             name="workspace_name"
                             value={data.workspace_name}
                             className="w-full"
-                            placeholder="ex : Mon entreprise au Sénégal"
+                            placeholder="ex : Mon entreprise"
                             isFocused
                             onChange={(e) => setData('workspace_name', e.target.value)}
                             required
