@@ -102,7 +102,7 @@ export default forwardRef<ApplicationsListHandle, {
             width: 150,
             render: (_value, application) =>
                 application.last_deployment_status ? (
-                    <Tooltip title={application.last_deployment_at ? timeAgo(application.last_deployment_at) : undefined}>
+                    <Tooltip title={application.last_deployment_at ? timeAgo(application.last_deployment_at, t) : undefined}>
                         <span>
                             <StatusTag status={application.last_deployment_status} size={13} />
                         </span>

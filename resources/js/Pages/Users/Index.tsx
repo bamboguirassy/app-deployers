@@ -4,7 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import UsersList, { UserKpis, UsersListHandle } from '@/Components/Users/UsersList';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ROLE_OPTIONS } from '@/constants/members';
+import { getRoleOptions } from '@/constants/members';
 import { PageProps, User } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Modal, Select, Typography } from 'antd';
@@ -107,7 +107,7 @@ export default function Index({
                     </div>
                     <div>
                         <InputLabel value={t('index.modal.roleLabel')} />
-                        <Select className="w-full" value={data.role} onChange={(value) => setData('role', value)} options={ROLE_OPTIONS} />
+                        <Select className="w-full" value={data.role} onChange={(value) => setData('role', value)} options={getRoleOptions(t)} />
                         <InputError message={errors.role} />
                     </div>
                     <Text type="secondary" style={{ fontSize: 12 }}>

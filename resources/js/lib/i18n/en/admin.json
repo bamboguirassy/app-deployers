@@ -326,5 +326,10 @@
         "admin": "Super-admin",
         "webhook": "Paddle (webhook)",
         "system": "System"
+    },
+    "subscriptionStatuses": {
+        "active": "Active",
+        "past_due": "Past due",
+        "canceled": "Canceled"
     }
 }

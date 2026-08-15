@@ -326,5 +326,10 @@
         "admin": "Super-admin",
         "webhook": "Paddle (webhook)",
         "system": "Système"
+    },
+    "subscriptionStatuses": {
+        "active": "Actif",
+        "past_due": "Paiement en retard",
+        "canceled": "Annulé"
     }
 }

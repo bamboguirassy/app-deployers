@@ -1,7 +1,7 @@
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ROLE_COLORS, ROLE_OPTIONS } from '@/constants/members';
+import { ROLE_COLORS, getRoleLabel, getRoleOptions } from '@/constants/members';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { ActivityLogEntry, ApplicationAccess, PageProps, User } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
@@ -93,7 +93,7 @@ export default function Show({
                 </Title>
                 <Text type="secondary">{user.email}</Text>
                 <Tag color={ROLE_COLORS[role]} style={{ marginLeft: 8 }}>
-                    {role}
+                    {getRoleLabel(t, role)}
                 </Tag>
                 {user.suspended_at && (
                     <Tag color="red" style={{ marginLeft: 8 }}>
@@ -106,7 +106,7 @@ export default function Show({
                 {canManage && !isSelf && (
                     <Card title={t('show.roleCard.title')}>
                         <form onSubmit={submit} className="form-stack" style={{ maxWidth: 360 }}>
-                            <Select value={data.role} onChange={(value) => setData('role', value)} options={ROLE_OPTIONS} />
+                            <Select value={data.role} onChange={(value) => setData('role', value)} options={getRoleOptions(t)} />
                             <div className="form-actions" style={{ justifyContent: 'flex-start' }}>
                                 <PrimaryButton disabled={processing || data.role === role}>{t('show.roleCard.save')}</PrimaryButton>
                             </div>

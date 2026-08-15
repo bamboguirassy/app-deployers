@@ -1,4 +1,17 @@
 {
+    "tagline": "Deployment supervision and automation",
+    "roles": {
+        "owner": "Owner",
+        "manager": "Manager",
+        "deployer": "Deployer",
+        "viewer": "Viewer"
+    },
+    "roleDescriptions": {
+        "owner": "Owner — full access",
+        "manager": "Manager — pipeline, environments, deployments",
+        "deployer": "Deployer — triggers deployments",
+        "viewer": "Viewer — read-only"
+    },
     "nav": {
         "login": "Log in",
         "getStarted": "Start for free",
@@ -35,5 +48,14 @@
     "activeDeployments": {
         "title": "Active deployments",
         "empty": "No active deployments"
+    },
+    "time": {
+        "justNow": "just now",
+        "minutesAgo_one": "{{count}} min ago",
+        "minutesAgo_other": "{{count}} min ago",
+        "hoursAgo_one": "{{count}}h ago",
+        "hoursAgo_other": "{{count}}h ago",
+        "daysAgo_one": "{{count}}d ago",
+        "daysAgo_other": "{{count}}d ago"
     }
 }

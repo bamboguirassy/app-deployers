@@ -1,4 +1,17 @@
 {
+    "tagline": "Supervision et automatisation de vos déploiements",
+    "roles": {
+        "owner": "Owner",
+        "manager": "Manager",
+        "deployer": "Deployer",
+        "viewer": "Viewer"
+    },
+    "roleDescriptions": {
+        "owner": "Owner — tous les droits",
+        "manager": "Manager — pipeline, environnements, déploiements",
+        "deployer": "Deployer — déclenche des déploiements",
+        "viewer": "Viewer — lecture seule"
+    },
     "nav": {
         "login": "Se connecter",
         "getStarted": "Commencer gratuitement",
@@ -35,5 +48,14 @@
     "activeDeployments": {
         "title": "Déploiements en cours",
         "empty": "Aucun déploiement en cours"
+    },
+    "time": {
+        "justNow": "à l’instant",
+        "minutesAgo_one": "il y a {{count}} min",
+        "minutesAgo_other": "il y a {{count}} min",
+        "hoursAgo_one": "il y a {{count}} h",
+        "hoursAgo_other": "il y a {{count}} h",
+        "daysAgo_one": "il y a {{count}} j",
+        "daysAgo_other": "il y a {{count}} j"
     }
 }

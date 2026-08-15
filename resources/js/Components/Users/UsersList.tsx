@@ -1,6 +1,6 @@
 import KpiCollapse from '@/Components/KpiCollapse';
 import ListToolbar from '@/Components/ListToolbar';
-import { ROLE_COLORS, ROLE_OPTIONS } from '@/constants/members';
+import { ROLE_COLORS, getRoleLabel, getRoleOptions } from '@/constants/members';
 import { useListSearch } from '@/hooks/useListSearch';
 import { User } from '@/types';
 import { router } from '@inertiajs/react';
@@ -71,7 +71,7 @@ export default forwardRef<UsersListHandle, {
         {
             title: t('list.columns.role'),
             key: 'role',
-            render: (_value, user) => (user.role ? <Tag color={ROLE_COLORS[user.role]}>{user.role}</Tag> : '—'),
+            render: (_value, user) => (user.role ? <Tag color={ROLE_COLORS[user.role]}>{getRoleLabel(t, user.role)}</Tag> : '—'),
         },
         {
             title: t('list.columns.applications'),
@@ -130,7 +130,7 @@ export default forwardRef<UsersListHandle, {
                     search={search.search}
                     onSearchChange={search.setSearch}
                     searchPlaceholder={t('list.searchPlaceholder')}
-                    filters={[{ key: 'status', placeholder: t('list.rolePlaceholder'), options: ROLE_OPTIONS, icon: <ShieldCheck size={14} /> }]}
+                    filters={[{ key: 'status', placeholder: t('list.rolePlaceholder'), options: getRoleOptions(t), icon: <ShieldCheck size={14} /> }]}
                     filterValues={search.filters}
                     onFilterChange={search.setFilter}
                     sortOptions={[

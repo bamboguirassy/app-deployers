@@ -120,7 +120,7 @@ export default function Dashboard({
                 application.last_deployment_status ? (
                     <span className="last-deployment-cell">
                         <StatusTag status={application.last_deployment_status} size={13} />
-                        {application.last_deployment_at && <small>{timeAgo(application.last_deployment_at)}</small>}
+                        {application.last_deployment_at && <small>{timeAgo(application.last_deployment_at, t)}</small>}
                     </span>
                 ) : (
                     <span className="section-hint">{t('page.applicationsTable.none')}</span>
@@ -187,7 +187,7 @@ export default function Dashboard({
             title: t('page.deploymentsTable.columns.when'),
             key: 'created_at',
             align: 'right',
-            render: (_value, d) => <span className="section-hint">{timeAgo(d.created_at)}</span>,
+            render: (_value, d) => <span className="section-hint">{timeAgo(d.created_at, t)}</span>,
         },
         {
             title: '',

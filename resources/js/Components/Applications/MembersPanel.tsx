@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import MembersList, { MembersListHandle } from '@/Components/Applications/MembersList';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { MembersKpis, ROLE_COLORS } from '@/constants/members';
+import { MembersKpis, ROLE_COLORS, getRoleLabel } from '@/constants/members';
 import { ApplicationMember, PageProps } from '@/types';
 import { Application } from '@/types/models';
 import { useConfirm } from '@/theme/ConfirmContext';
@@ -77,7 +77,7 @@ export default function MembersPanel({
                 searchUrl={route('members.search', [workspace!.slug, application.slug])}
                 initialItems={members}
                 initialKpis={kpis}
-                renderRole={(member) => (member.role ? <Tag color={ROLE_COLORS[member.role]}>{member.role}</Tag> : '—')}
+                renderRole={(member) => (member.role ? <Tag color={ROLE_COLORS[member.role]}>{getRoleLabel(t, member.role)}</Tag> : '—')}
                 renderActions={
                     canManage
                         ? (member) => (

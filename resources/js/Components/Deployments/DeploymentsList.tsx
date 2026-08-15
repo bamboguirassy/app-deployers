@@ -108,7 +108,7 @@ export default forwardRef<DeploymentsListHandle, {
             key: 'created_at',
             render: (createdAt: string) => (
                 <Tooltip title={new Date(createdAt).toLocaleString(dateLocale(i18n.language))}>
-                    <span>{timeAgo(createdAt)}</span>
+                    <span>{timeAgo(createdAt, t)}</span>
                 </Tooltip>
             ),
         },

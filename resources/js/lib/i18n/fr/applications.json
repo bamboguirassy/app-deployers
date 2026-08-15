@@ -95,7 +95,7 @@
     },
     "environmentWorkspace": {
         "notConfigured": "Non configuré",
-        "configured": "Configured",
+        "configured": "Configuré",
         "noServer": "Aucun serveur",
         "varsUnit": "vars",
         "heading": "Matrice des environnements",
@@ -123,8 +123,8 @@
         "create": "Créer",
         "drawer": {
             "customStack": "Stack personnalisée",
-            "cancel": "Cancel",
-            "save": "Save changes",
+            "cancel": "Annuler",
+            "save": "Enregistrer les modifications",
             "generalSectionTitle": "Général",
             "serverLabel": "Serveur",
             "serverPlaceholder": "Choisir un serveur du workspace",
@@ -186,7 +186,7 @@
             "stepColumn": "Étape",
             "detailColumn": "Détail",
             "timeoutColumn": "Timeout",
-            "continueColumn": "Continue"
+            "continueColumn": "Continuer"
         },
         "row": {
             "commandTooltip": "Commande shell",
@@ -228,7 +228,7 @@
     },
     "runDeployButton": {
         "configureFirstTooltip": "Configurez d'abord un couple target/environnement dans l'onglet Environnements",
-        "runDeploy": "Run deploy"
+        "runDeploy": "Lancer un déploiement"
     },
     "targetWorkspace": {
         "modalTitle": "Modifier le target",
@@ -266,7 +266,7 @@
         "secretToPaste": "Secret à coller dans {{provider}} :",
         "noMappingConfigured": "Aucun mapping configuré",
         "notConfigured": "Non configuré",
-        "active": "Active",
+        "active": "Actif",
         "available": "Disponible",
         "activate": "Activer",
         "deleteTitle": "Supprimer",

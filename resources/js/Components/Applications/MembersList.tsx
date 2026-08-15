@@ -1,6 +1,6 @@
 import KpiCollapse from '@/Components/KpiCollapse';
 import ListToolbar from '@/Components/ListToolbar';
-import { MembersKpis, ROLE_OPTIONS } from '@/constants/members';
+import { MembersKpis, ROLE_VALUES, getRoleLabel } from '@/constants/members';
 import { useListSearch } from '@/hooks/useListSearch';
 import { ApplicationMember } from '@/types';
 import { Avatar, Space, Spin, Table } from 'antd';
@@ -48,7 +48,7 @@ export default forwardRef<MembersListHandle, {
                     {
                         key: 'role',
                         placeholder: t('membersList.roleFilterPlaceholder'),
-                        options: ROLE_OPTIONS.map((r) => ({ value: r.value, label: r.value })),
+                        options: ROLE_VALUES.map((value) => ({ value, label: getRoleLabel(t, value) })),
                         icon: <Crown size={14} />,
                     },
                 ]}

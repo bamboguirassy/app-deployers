@@ -19,11 +19,7 @@ import { dateLocale } from '@/lib/i18n';
 
 const { Title, Paragraph, Text } = Typography;
 
-const STATUS_OPTIONS = [
-    { value: 'active', label: 'active' },
-    { value: 'past_due', label: 'past_due' },
-    { value: 'canceled', label: 'canceled' },
-];
+const STATUS_VALUES = ['active', 'past_due', 'canceled'] as const;
 
 export default function Show({
     workspace,
@@ -161,7 +157,7 @@ export default function Show({
         {
             title: t('workspacesShow.failedDeploymentColumns.triggered'),
             key: 'created_at',
-            render: (_value, deployment) => timeAgo(deployment.created_at),
+            render: (_value, deployment) => timeAgo(deployment.created_at, t),
         },
         {
             title: '',
@@ -201,7 +197,7 @@ export default function Show({
             title: t('workspacesShow.applicationColumns.lastDeployment'),
             key: 'last_deployment_at',
             align: 'center',
-            render: (_value, application) => (application.last_deployment_at ? timeAgo(application.last_deployment_at) : '—'),
+            render: (_value, application) => (application.last_deployment_at ? timeAgo(application.last_deployment_at, t) : '—'),
         },
         {
             title: t('workspacesShow.applicationColumns.failureRate'),
@@ -343,7 +339,7 @@ export default function Show({
                                     className="w-full"
                                     value={data.status}
                                     onChange={(value) => setData('status', value)}
-                                    options={STATUS_OPTIONS}
+                                    options={STATUS_VALUES.map((value) => ({ value, label: t(`subscriptionStatuses.${value}`) }))}
                                 />
                             </div>
                             <div className="form-actions form-actions--end">
