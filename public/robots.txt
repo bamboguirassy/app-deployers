@@ -1,7 +1,74 @@
 User-agent: *
 Allow: /$
-Allow: /login
-Allow: /register
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+# Crawlers IA — autorisés à indexer/citer les mêmes pages publiques que les
+# moteurs de recherche classiques (résumé produit dans /llms.txt).
+User-agent: GPTBot
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: ChatGPT-User
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: ClaudeBot
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: Claude-User
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: anthropic-ai
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: PerplexityBot
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: Google-Extended
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
+Allow: /logos/
+Disallow: /
+
+User-agent: CCBot
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /refunds
 Allow: /logos/
 Disallow: /
 

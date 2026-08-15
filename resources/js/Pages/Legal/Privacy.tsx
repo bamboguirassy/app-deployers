@@ -2,7 +2,11 @@ import LegalLayout from '@/Layouts/LegalLayout';
 
 export default function Privacy() {
     return (
-        <LegalLayout title="Politique de confidentialité" updatedAt="12 août 2026">
+        <LegalLayout
+            title="Politique de confidentialité"
+            description="Comment App Deployer collecte, utilise et protège vos données personnelles : compte, facturation, connexions SSH et variables chiffrées."
+            updatedAt="12 août 2026"
+        >
             <p>
                 Cette politique décrit comment <strong>BAMBOCLOUD</strong> (« nous »), éditeur de
                 la plateforme App Deployer, collecte, utilise et protège vos données personnelles lorsque vous

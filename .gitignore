@@ -14,10 +14,12 @@
 /.zed
 /auth.json
 /node_modules
+/bootstrap/ssr
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/resources/js/ziggy.js
 /storage/*.key
 /storage/pail
 /vendor

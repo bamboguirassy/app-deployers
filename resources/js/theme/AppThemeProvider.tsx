@@ -24,6 +24,10 @@ function ConfirmBridge({ children }: PropsWithChildren) {
 }
 
 function getPreferredMode(): ThemeMode {
+    if (typeof window === 'undefined') {
+        return 'light';
+    }
+
     const stored = localStorage.getItem(STORAGE_KEY);
 
     if (stored === 'light' || stored === 'dark') {

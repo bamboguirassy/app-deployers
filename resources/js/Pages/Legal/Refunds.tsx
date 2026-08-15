@@ -2,7 +2,11 @@ import LegalLayout from '@/Layouts/LegalLayout';
 
 export default function Refunds() {
     return (
-        <LegalLayout title="Politique de remboursement" updatedAt="12 août 2026">
+        <LegalLayout
+            title="Politique de remboursement"
+            description="Politique de remboursement des abonnements App Deployer, facturés via Paddle.com Market Limited : annulation, remboursement et renouvellement."
+            updatedAt="12 août 2026"
+        >
             <p>
                 Les abonnements payants à App Deployer sont facturés par notre partenaire{' '}
                 <strong>Paddle.com Market Limited</strong>, qui agit en tant que revendeur officiel (Merchant of

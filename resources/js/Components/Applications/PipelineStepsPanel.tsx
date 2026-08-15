@@ -247,19 +247,6 @@ function StepEditorDrawer({
                     />
                 </div>
 
-                <div>
-                    <label className="step-editor__field-label">Nom de l&apos;étape</label>
-                    <Input
-                        ref={labelRef}
-                        value={label}
-                        onChange={(e) => {
-                            labelTouchedRef.current = true;
-                            setLabel(e.target.value);
-                        }}
-                        placeholder="ex: Build & déploiement"
-                    />
-                </div>
-
                 {type === 'command' && (
                     <div>
                         <label className="step-editor__field-label">Commande</label>
@@ -279,6 +266,19 @@ function StepEditorDrawer({
                         />
                     </div>
                 )}
+
+                <div>
+                    <label className="step-editor__field-label">Nom de l&apos;étape</label>
+                    <Input
+                        ref={labelRef}
+                        value={label}
+                        onChange={(e) => {
+                            labelTouchedRef.current = true;
+                            setLabel(e.target.value);
+                        }}
+                        placeholder="ex: Build & déploiement"
+                    />
+                </div>
 
                 {type === 'email' && (
                     <>

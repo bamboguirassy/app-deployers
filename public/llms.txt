@@ -1,0 +1,28 @@
+# App Deployer
+
+> App Deployer est une plateforme d'orchestration de déploiements applicatifs en self-hosted. Elle permet de créer des applications (tenants), avec des environnements (Prod, Staging, etc.) et des cibles de déploiement (API, Frontend, etc.), chacune dotée d'un pipeline ordonné d'étapes shell. Les déploiements sont déclenchés manuellement ou via des webhooks entrants (GitHub, GitLab, Bitbucket), s'exécutent de façon asynchrone, et diffusent leur statut et leurs logs en temps réel.
+
+App Deployer s'adresse aux équipes de développement qui veulent superviser leurs déploiements sans dépendre d'un service SaaS tiers pour l'exécution : les connexions SSH vers les serveurs cibles sont chiffrées et gérées par la plateforme, les variables d'environnement sont chiffrées par environnement, et les rôles (owner, manager, deployer, viewer) permettent de contrôler précisément qui peut déclencher un déploiement ou modifier un pipeline.
+
+## Fonctionnalités principales
+
+- Pipelines de déploiement personnalisables (étapes shell ordonnées, timeout, gestion des échecs par étape)
+- Connexions SSH chiffrées vers les serveurs cibles du client
+- Variables d'environnement et secrets chiffrés, isolés par environnement
+- Webhooks entrants GitHub, GitLab et Bitbucket avec mapping branche → environnement
+- Suivi de déploiement en temps réel (statuts, logs, annulation) via WebSockets
+- Rôles par équipe : owner, manager, deployer, viewer
+- Historique de déploiement complet et journal d'audit
+
+## Pages
+
+- [Accueil](https://app-deployer.dev/): présentation du produit, fonctionnalités, tarifs
+- [Conditions d'utilisation](https://app-deployer.dev/terms)
+- [Politique de confidentialité](https://app-deployer.dev/privacy)
+- [Politique de remboursement](https://app-deployer.dev/refunds)
+
+## À noter
+
+Le reste de l'application (tableau de bord, gestion des applications/environnements/pipelines,
+membres, facturation) nécessite un compte et n'est pas destiné à être indexé ou résumé par un
+crawler — ces pages sont explicitement marquées `noindex`.

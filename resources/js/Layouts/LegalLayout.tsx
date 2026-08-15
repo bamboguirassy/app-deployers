@@ -4,10 +4,22 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { PropsWithChildren } from 'react';
 
-export default function LegalLayout({ title, updatedAt, children }: PropsWithChildren<{ title: string; updatedAt: string }>) {
+export default function LegalLayout({
+    title,
+    description,
+    updatedAt,
+    children,
+}: PropsWithChildren<{ title: string; description: string; updatedAt: string }>) {
     return (
         <div className="landing legal-page">
-            <Head title={title} />
+            <Head title={title}>
+                <meta name="robots" content="index, follow" />
+                <meta name="description" content={description} />
+                <meta property="og:title" content={`${title} - App Deployer`} />
+                <meta property="og:description" content={description} />
+                <meta name="twitter:title" content={`${title} - App Deployer`} />
+                <meta name="twitter:description" content={description} />
+            </Head>
 
             <header className="landing-nav">
                 <div className="landing-nav__inner">

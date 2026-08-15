@@ -2,7 +2,11 @@ import LegalLayout from '@/Layouts/LegalLayout';
 
 export default function Terms() {
     return (
-        <LegalLayout title="Conditions d'utilisation" updatedAt="12 août 2026">
+        <LegalLayout
+            title="Conditions d'utilisation"
+            description="Conditions d'utilisation de la plateforme App Deployer, éditée par BAMBOCLOUD : accès au service, comptes, engagements et responsabilités."
+            updatedAt="12 août 2026"
+        >
             <p>
                 Les présentes conditions d'utilisation (les « <strong>Conditions</strong> ») régissent l'accès et
                 l'utilisation de la plateforme App Deployer (le « <strong>Service</strong> »), éditée par{' '}

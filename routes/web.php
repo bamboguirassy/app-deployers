@@ -173,10 +173,14 @@ Route::post('/webhooks/paddle', [PaddleWebhookController::class, 'handle'])
     ->name('webhooks.paddle');
 
 Route::get('/sitemap.xml', function () {
+    // Login/Register sont volontairement absents : ce sont des pages
+    // d'authentification sans contenu à indexer (voir robots.txt, qui les
+    // laisse sous le Disallow: / général).
     $urls = [
-        ['loc' => route('welcome'), 'priority' => '1.0'],
-        ['loc' => route('login'), 'priority' => '0.3'],
-        ['loc' => route('register'), 'priority' => '0.5'],
+        ['loc' => route('welcome'), 'lastmod' => '2026-08-15', 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['loc' => route('legal.terms'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
+        ['loc' => route('legal.privacy'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
+        ['loc' => route('legal.refunds'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
     ];
 
     return response()
