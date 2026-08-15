@@ -12,7 +12,10 @@
         // server-side, by route, whenever a page is known to fully own that
         // tag via its own <Head>.
         $currentRoute = Route::currentRouteName();
-        $ownsFullSeoMeta = in_array($currentRoute, ['welcome', 'legal.terms', 'legal.privacy', 'legal.refunds']);
+        $ownsFullSeoMeta = in_array($currentRoute, [
+            'welcome', 'legal.terms', 'legal.privacy', 'legal.refunds',
+            'marketing.features', 'marketing.how-it-works', 'marketing.pricing', 'marketing.security',
+        ]);
         $ownsTitleOnly = in_array($currentRoute, ['login', 'register']);
     @endphp
     <head>

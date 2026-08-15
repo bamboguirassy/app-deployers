@@ -202,6 +202,37 @@ not re-publish over these or revert them to Laravel's stock defaults.
   express (e.g. an embedded chart), that's a signal to discuss a dedicated Blade/Markdown view
   before building one, not to bolt raw HTML into a `->line()`.
 
+### Pages marketing dédiées (SEO)
+
+Les anciennes sections ancrées de `Welcome.tsx` (`#fonctionnalites`, `#comment-ca-marche`,
+`#tarifs`, `#securite`) sont désormais 4 pages indexables à part entière : `/fonctionnalites`,
+`/comment-ca-marche`, `/tarifs`, `/securite` (routes nommées `marketing.*` dans `routes/web.php`,
+composants sous `resources/js/Pages/Marketing/`). Objectif : chaque page cible une intention de
+recherche précise, avec un contenu complet (300-500 mots), plutôt qu'une seule home qui doit
+rivaliser sur tout à la fois.
+
+- **`resources/js/Layouts/MarketingLayout.tsx`** factorise le header/nav/drawer mobile/footer
+  partagés (auparavant dupliqués en dur dans `Welcome.tsx`) — toute nouvelle page marketing publique
+  doit passer par ce layout, pas recopier le nav/footer. Il gère aussi le title/description/OG/
+  Twitter/robots et, si un prop `breadcrumbs` est fourni, le fil d'Ariane visuel + le schema.org
+  `BreadcrumbList`.
+- **`resources/js/constants/marketing.ts`** centralise `FEATURES`/`STEPS`/`FREE_FEATURES`/
+  `PRO_FEATURES`/`NAV_LINKS`, partagés entre les teasers de la home et les pages dédiées.
+- **Éviter la cannibalisation** : la home ne garde que des teasers courts (titre + 1 phrase + lien
+  "En savoir plus") vers ces pages — le contenu complet/détaillé vit **uniquement** sur la page
+  dédiée. Ne recopiez jamais un paragraphe complet d'une page dédiée sur la home (ou vice-versa) :
+  Google traite ça comme du contenu dupliqué et ça dilue le positionnement des deux.
+- **N'oubliez pas `app.blade.php`** : toute nouvelle page qui possède son propre title/robots/
+  description/OG via `MarketingLayout` doit être ajoutée au tableau `$ownsFullSeoMeta` (voir section
+  suivante) — sinon le bug de duplication de meta déjà rencontré une fois revient.
+- Schema.org choisi par type de contenu : `HowTo` pour la page "Comment ça marche" (ses étapes
+  collent exactement au type), `Product`+`Offer`+`FAQPage` pour "Tarifs" (vraies questions/réponses,
+  pas de contenu inventé pour remplir), simple `BreadcrumbList` pour les pages sans structure
+  sémantique évidente (Fonctionnalités, Sécurité) — n'ajoutez pas un type schema.org juste pour en
+  avoir un si le contenu ne s'y prête pas naturellement.
+- `robots.txt`, `llms.txt` et la route `sitemap.xml` (dans `routes/web.php`) doivent être mis à jour
+  à chaque nouvelle page marketing publique — voir les 4 entrées existantes comme modèle.
+
 ### Per-page SEO meta overrides (`app.blade.php`)
 
 The `inertia` attribute on a blade default tag (`<title inertia>`, `<meta name="description" inertia>`,

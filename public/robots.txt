@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -10,6 +14,10 @@ Disallow: /
 # moteurs de recherche classiques (résumé produit dans /llms.txt).
 User-agent: GPTBot
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -18,6 +26,10 @@ Disallow: /
 
 User-agent: ChatGPT-User
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -26,6 +38,10 @@ Disallow: /
 
 User-agent: ClaudeBot
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -34,6 +50,10 @@ Disallow: /
 
 User-agent: Claude-User
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -42,6 +62,10 @@ Disallow: /
 
 User-agent: anthropic-ai
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -50,6 +74,10 @@ Disallow: /
 
 User-agent: PerplexityBot
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -58,6 +86,10 @@ Disallow: /
 
 User-agent: Google-Extended
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds
@@ -66,6 +98,10 @@ Disallow: /
 
 User-agent: CCBot
 Allow: /$
+Allow: /fonctionnalites
+Allow: /comment-ca-marche
+Allow: /tarifs
+Allow: /securite
 Allow: /terms
 Allow: /privacy
 Allow: /refunds

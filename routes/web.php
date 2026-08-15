@@ -42,6 +42,14 @@ Route::get('/terms', fn () => Inertia::render('Legal/Terms'))->name('legal.terms
 Route::get('/privacy', fn () => Inertia::render('Legal/Privacy'))->name('legal.privacy');
 Route::get('/refunds', fn () => Inertia::render('Legal/Refunds'))->name('legal.refunds');
 
+// Pages marketing dédiées (SEO) — anciennement des sections ancrées de
+// Welcome.tsx, éclatées en pages indexables à part entière. Voir
+// CLAUDE.md, section "Pages marketing dédiées (SEO)".
+Route::get('/fonctionnalites', fn () => Inertia::render('Marketing/Fonctionnalites'))->name('marketing.features');
+Route::get('/comment-ca-marche', fn () => Inertia::render('Marketing/CommentCaMarche'))->name('marketing.how-it-works');
+Route::get('/tarifs', fn () => Inertia::render('Marketing/Tarifs'))->name('marketing.pricing');
+Route::get('/securite', fn () => Inertia::render('Marketing/Securite'))->name('marketing.security');
+
 Route::middleware('auth')->group(function () {
     Route::get('/home', [WorkspaceController::class, 'redirectToDefault'])->name('home');
     Route::get('/workspaces/create', [WorkspaceController::class, 'create'])->name('workspaces.create');
@@ -178,6 +186,10 @@ Route::get('/sitemap.xml', function () {
     // laisse sous le Disallow: / général).
     $urls = [
         ['loc' => route('welcome'), 'lastmod' => '2026-08-15', 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['loc' => route('marketing.pricing'), 'lastmod' => '2026-08-15', 'changefreq' => 'weekly', 'priority' => '0.9'],
+        ['loc' => route('marketing.features'), 'lastmod' => '2026-08-15', 'changefreq' => 'monthly', 'priority' => '0.8'],
+        ['loc' => route('marketing.security'), 'lastmod' => '2026-08-15', 'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['loc' => route('marketing.how-it-works'), 'lastmod' => '2026-08-15', 'changefreq' => 'monthly', 'priority' => '0.6'],
         ['loc' => route('legal.terms'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
         ['loc' => route('legal.privacy'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],
         ['loc' => route('legal.refunds'), 'lastmod' => '2026-08-12', 'changefreq' => 'monthly', 'priority' => '0.3'],

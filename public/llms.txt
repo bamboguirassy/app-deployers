@@ -16,7 +16,11 @@ App Deployer s'adresse aux équipes de développement qui veulent superviser leu
 
 ## Pages
 
-- [Accueil](https://app-deployer.dev/): présentation du produit, fonctionnalités, tarifs
+- [Accueil](https://app-deployer.dev/): présentation du produit
+- [Fonctionnalités](https://app-deployer.dev/fonctionnalites): détail des fonctionnalités (pipelines, SSH, webhooks, suivi en direct, rôles, audit)
+- [Comment ça marche](https://app-deployer.dev/comment-ca-marche): les trois étapes, de l'inscription au premier déploiement
+- [Sécurité](https://app-deployer.dev/securite): connexions SSH chiffrées, secrets, contrôle d'accès, audit
+- [Tarifs](https://app-deployer.dev/tarifs): plans Free et Pro, FAQ facturation
 - [Conditions d'utilisation](https://app-deployer.dev/terms)
 - [Politique de confidentialité](https://app-deployer.dev/privacy)
 - [Politique de remboursement](https://app-deployer.dev/refunds)
