@@ -1,0 +1,131 @@
+{
+    "status": {
+        "pending": "En attente",
+        "running": "En cours",
+        "succes": "Succès",
+        "echec": "Échec",
+        "annule": "Annulé"
+    },
+    "source": {
+        "manual": "Manuel",
+        "webhook": "Webhook",
+        "scheduled": "Planifié"
+    },
+    "index": {
+        "header": "Déploiements",
+        "eyebrow": "Application",
+        "title": "Déploiements",
+        "description": "Chaque exécution est présentée avec sa cible, sa source et son état pour une lecture immédiate."
+    },
+    "all": {
+        "header": "Déploiements",
+        "eyebrow": "Vue globale",
+        "title": "Déploiements",
+        "description": "Un historique global pour parcourir l’ensemble des exécutions, avec la même hiérarchie visuelle.",
+        "newDeployment": "Nouveau déploiement"
+    },
+    "show": {
+        "header": "Déploiement",
+        "pageTitle": "Déploiement #{{id}}",
+        "nav": {
+            "label": "Navigation du déploiement",
+            "history": "Historique des déploiements",
+            "viewApplication": "Voir l'application",
+            "editPipeline": "Modifier le pipeline"
+        },
+        "eyebrow": "DÉPLOIEMENT #{{id}}",
+        "branch": "branche",
+        "triggeredManually": "déclenché manuellement",
+        "triggeredByWebhook": "déclenché par webhook",
+        "triggeredBy": "par {{name}}",
+        "actionsLabel": "Actions du déploiement",
+        "currentStatus": "État actuel",
+        "cancel": {
+            "button": "Annuler",
+            "tooltip": "Arrêter l'étape en cours et annuler les suivantes",
+            "ariaLabel": "Annuler le déploiement",
+            "confirmTitle": "Annuler ce déploiement ?",
+            "confirmContent": "L'étape en cours sera arrêtée et les suivantes ne s'exécuteront pas.",
+            "okText": "Annuler le déploiement",
+            "cancelText": "Fermer"
+        },
+        "retry": {
+            "button": "Relancer",
+            "tooltip": "Relancer un nouveau déploiement avec la même branche",
+            "ariaLabel": "Relancer le déploiement",
+            "confirmTitle": "Relancer ce déploiement ?",
+            "confirmContent": "Un nouveau déploiement sera créé sur {{target}} → {{environment}} avec la même branche.",
+            "okText": "Relancer",
+            "cancelText": "Annuler"
+        },
+        "rollback": {
+            "button": "Revenir à cette version",
+            "tooltip": "Redéployer cette version connue-bonne",
+            "ariaLabel": "Revenir à cette version",
+            "confirmTitle": "Revenir à cette version ?",
+            "confirmContent": "Un nouveau déploiement sera créé sur {{target}} → {{environment}} avec la même branche/commit que ce déploiement réussi.",
+            "okText": "Revenir à cette version",
+            "cancelText": "Annuler"
+        },
+        "summary": {
+            "pipeline": "Pipeline",
+            "step_one": "étape",
+            "step_other": "étapes",
+            "duration": "Durée",
+            "source": "Source",
+            "manual": "Manuel",
+            "webhook": "Webhook"
+        },
+        "pipeline": {
+            "eyebrow": "EXÉCUTION",
+            "title": "Étapes du pipeline",
+            "completed": "{{done}}/{{total}} terminées",
+            "commandType": "Commande shell",
+            "emailType": "Email",
+            "hideLogs": "Masquer les logs",
+            "showLogs": "Voir les logs"
+        }
+    },
+    "list": {
+        "kpisTitle": "Indicateurs clés",
+        "columns": {
+            "application": "Application",
+            "target": "Target → Environnement",
+            "branch": "Branche",
+            "source": "Source",
+            "date": "Date",
+            "status": "Statut",
+            "duration": "Durée",
+            "open": "Ouvrir"
+        },
+        "kpis": {
+            "total": "Total",
+            "running": "En cours",
+            "succes": "Succès",
+            "echec": "Échecs",
+            "successRate": "Taux de succès",
+            "avgDuration": "Durée moyenne"
+        },
+        "toolbar": {
+            "searchPlaceholder": "Rechercher par branche ou commit...",
+            "statusPlaceholder": "Statut",
+            "sourcePlaceholder": "Source",
+            "sortDate": "Date",
+            "sortDuration": "Durée",
+            "sortStatus": "Statut"
+        },
+        "emptyDescription": "Aucun déploiement ne correspond à ces critères",
+        "loadingMore": "Chargement de plus de déploiements...",
+        "allShown": "Tous les déploiements sont affichés."
+    },
+    "newModal": {
+        "title": "Nouveau déploiement",
+        "okText": "Déployer",
+        "applicationLabel": "Application",
+        "applicationPlaceholder": "Choisir une application",
+        "targetLabel": "Target / Environnement",
+        "targetPlaceholder": "Choisir une cible",
+        "targetPlaceholderNoApp": "Choisissez d'abord une application",
+        "noTargetConfigured": "Aucun target/environnement configuré pour cette application."
+    }
+}

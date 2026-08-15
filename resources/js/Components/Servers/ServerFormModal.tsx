@@ -9,6 +9,7 @@ import axios from 'axios';
 import { Alert, Input, InputNumber, Modal, Radio } from 'antd';
 import { FolderOpen, KeyRound, Lock, PlugZap } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TestResult {
     success: boolean;
@@ -27,6 +28,7 @@ export default function ServerFormModal({
     open: boolean;
     onClose: () => void;
 }) {
+    const { t } = useTranslation('servers');
     const isEditing = !!server;
 
     const { data, setData, post, patch, processing, errors, reset, clearErrors } = useForm({
@@ -90,7 +92,7 @@ export default function ServerFormModal({
 
         request
             .then((res) => setTestResult(res.data))
-            .catch((err) => setTestResult(err.response?.data ?? { success: false, message: 'Erreur inattendue.', latency_ms: null }))
+            .catch((err) => setTestResult(err.response?.data ?? { success: false, message: t('form.unexpectedError'), latency_ms: null }))
             .finally(() => setTesting(false));
     };
 
@@ -118,7 +120,7 @@ export default function ServerFormModal({
 
     return (
         <Modal
-            title={isEditing ? 'Modifier le serveur' : 'Ajouter un serveur'}
+            title={isEditing ? t('form.titleEdit') : t('form.titleCreate')}
             open={open}
             onCancel={onClose}
             footer={null}
@@ -127,10 +129,10 @@ export default function ServerFormModal({
         >
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor="server-name" value="Nom du serveur" />
+                    <InputLabel htmlFor="server-name" value={t('form.nameLabel')} />
                     <Input
                         id="server-name"
-                        placeholder="ex : Serveur de production EU-West"
+                        placeholder={t('form.namePlaceholder')}
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         autoFocus
@@ -140,17 +142,17 @@ export default function ServerFormModal({
 
                 <div style={{ display: 'flex', gap: 12 }}>
                     <div style={{ flex: 3 }}>
-                        <InputLabel htmlFor="server-host" value="Adresse (IP ou nom d'hôte)" />
+                        <InputLabel htmlFor="server-host" value={t('form.hostLabel')} />
                         <Input
                             id="server-host"
-                            placeholder="ex: 203.0.113.10"
+                            placeholder={t('form.hostPlaceholder')}
                             value={data.host}
                             onChange={(e) => setData('host', e.target.value)}
                         />
                         <InputError message={errors.host} />
                     </div>
                     <div style={{ flex: 1 }}>
-                        <InputLabel htmlFor="server-port" value="Port" />
+                        <InputLabel htmlFor="server-port" value={t('form.portLabel')} />
                         <InputNumber
                             id="server-port"
                             className="w-full"
@@ -164,10 +166,10 @@ export default function ServerFormModal({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="server-username" value="Nom d'utilisateur" />
+                    <InputLabel htmlFor="server-username" value={t('form.usernameLabel')} />
                     <Input
                         id="server-username"
-                        placeholder="ex: deploy"
+                        placeholder={t('form.usernamePlaceholder')}
                         value={data.username}
                         onChange={(e) => setData('username', e.target.value)}
                     />
@@ -175,7 +177,7 @@ export default function ServerFormModal({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="server-default-path" value="Répertoire racine par défaut" />
+                    <InputLabel htmlFor="server-default-path" value={t('form.defaultPathLabel')} />
                     <div style={{ display: 'flex', gap: 8 }}>
                         <Input
                             id="server-default-path"
@@ -185,18 +187,18 @@ export default function ServerFormModal({
                         />
                         {isEditing && (
                             <SecondaryButton htmlType="button" icon={<FolderOpen size={14} />} onClick={() => setBrowsingDefaultPath(true)}>
-                                Parcourir
+                                {t('form.browse')}
                             </SecondaryButton>
                         )}
                     </div>
                     <InputError message={errors.default_path} />
                     <p className="section-hint" style={{ marginTop: 4 }}>
-                        Point de départ proposé lors du choix du chemin de déploiement pour ce serveur.
+                        {t('form.defaultPathHint')}
                     </p>
                 </div>
 
                 <div>
-                    <InputLabel value="Méthode d'authentification" />
+                    <InputLabel value={t('form.authMethodLabel')} />
                     <Radio.Group
                         value={data.auth_method}
                         onChange={(e) => setData('auth_method', e.target.value)}
@@ -205,13 +207,13 @@ export default function ServerFormModal({
                         <Radio.Button value="ssh_key" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
                                 <KeyRound size={13} />
-                                Clé SSH
+                                {t('form.authMethod.sshKey')}
                             </span>
                         </Radio.Button>
                         <Radio.Button value="password" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
                                 <Lock size={13} />
-                                Mot de passe
+                                {t('form.authMethod.password')}
                             </span>
                         </Radio.Button>
                     </Radio.Group>
@@ -219,10 +221,10 @@ export default function ServerFormModal({
 
                 {data.auth_method === 'password' ? (
                     <div>
-                        <InputLabel htmlFor="server-password" value="Mot de passe" />
+                        <InputLabel htmlFor="server-password" value={t('form.passwordLabel')} />
                         <Input.Password
                             id="server-password"
-                            placeholder={isEditing ? 'Laisser vide pour ne pas modifier' : undefined}
+                            placeholder={isEditing ? t('form.passwordPlaceholderEdit') : undefined}
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                         />
@@ -231,15 +233,15 @@ export default function ServerFormModal({
                 ) : (
                     <>
                         <div>
-                            <InputLabel htmlFor="server-private-key" value="Clé privée SSH" />
+                            <InputLabel htmlFor="server-private-key" value={t('form.privateKeyLabel')} />
                             <Input.TextArea
                                 id="server-private-key"
                                 rows={6}
                                 className="ssh-key-textarea"
                                 placeholder={
                                     isEditing
-                                        ? 'Laisser vide pour ne pas modifier\n-----BEGIN OPENSSH PRIVATE KEY-----\n...'
-                                        : '-----BEGIN OPENSSH PRIVATE KEY-----\n...'
+                                        ? t('form.privateKeyPlaceholderEdit')
+                                        : t('form.privateKeyPlaceholderCreate')
                                 }
                                 value={data.private_key}
                                 onChange={(e) => setData('private_key', e.target.value)}
@@ -247,10 +249,10 @@ export default function ServerFormModal({
                             <InputError message={errors.private_key} />
                         </div>
                         <div>
-                            <InputLabel htmlFor="server-passphrase" value="Passphrase (optionnel)" />
+                            <InputLabel htmlFor="server-passphrase" value={t('form.passphraseLabel')} />
                             <Input.Password
                                 id="server-passphrase"
-                                placeholder={isEditing ? 'Laisser vide pour ne pas modifier' : undefined}
+                                placeholder={isEditing ? t('form.passphrasePlaceholderEdit') : undefined}
                                 value={data.passphrase}
                                 onChange={(e) => setData('passphrase', e.target.value)}
                             />
@@ -261,7 +263,7 @@ export default function ServerFormModal({
 
                 {isEditing && (
                     <p className="section-hint" style={{ margin: 0 }}>
-                        Le test utilise les identifiants ci-dessus s&apos;ils sont renseignés, sinon ceux déjà enregistrés pour ce serveur.
+                        {t('form.editTestHint')}
                     </p>
                 )}
 
@@ -273,7 +275,7 @@ export default function ServerFormModal({
                         disabled={!canTest || testing}
                         loading={testing}
                     >
-                        Tester la connexion
+                        {t('form.testConnection')}
                     </SecondaryButton>
                 </div>
 
@@ -284,7 +286,7 @@ export default function ServerFormModal({
                         message={testResult.message}
                         description={
                             testResult.success && testResult.latency_ms !== null
-                                ? `Temps de réponse : ${testResult.latency_ms} ms`
+                                ? t('form.responseTime', { ms: testResult.latency_ms })
                                 : undefined
                         }
                     />
@@ -292,9 +294,9 @@ export default function ServerFormModal({
 
                 <div className="form-actions form-actions--end">
                     <SecondaryButton htmlType="button" onClick={onClose}>
-                        Annuler
+                        {t('form.cancel')}
                     </SecondaryButton>
-                    <PrimaryButton disabled={processing}>{isEditing ? 'Enregistrer' : 'Ajouter le serveur'}</PrimaryButton>
+                    <PrimaryButton disabled={processing}>{isEditing ? t('form.save') : t('form.addServer')}</PrimaryButton>
                 </div>
             </form>
 

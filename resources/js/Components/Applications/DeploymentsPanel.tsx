@@ -7,6 +7,7 @@ import { router, usePage } from '@inertiajs/react';
 import { Modal, Select, Tooltip } from 'antd';
 import { Activity, Rocket } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function DeploymentsPanel({
     application,
@@ -19,6 +20,7 @@ export default function DeploymentsPanel({
     kpis: DeploymentKpis;
     canDeploy: boolean;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const listRef = useRef<DeploymentsListHandle>(null);
     const [triggering, setTriggering] = useState(false);
@@ -46,16 +48,16 @@ export default function DeploymentsPanel({
         <div className="application-deployments-panel application-resource-panel">
             <div className="application-resource-header application-resource-header--deployments">
                 <div>
-                    <h3>Déploiements</h3>
-                    <span>Suivi des pipelines, statuts et performances</span>
+                    <h3>{t('deploymentsPanel.title')}</h3>
+                    <span>{t('deploymentsPanel.subtitle')}</span>
                 </div>
                 <div className="application-resource-header__actions">
                     <Activity size={18} aria-hidden="true" />
                     {canDeploy && (
-                        <Tooltip title={options.length === 0 ? "Configurez d'abord un couple target/environnement dans l'onglet Environnements" : undefined}>
+                        <Tooltip title={options.length === 0 ? t('deploymentsPanel.configureFirstTooltip') : undefined}>
                             <span>
                                 <PrimaryButton size="small" icon={<Rocket size={14} />} onClick={() => setTriggering(true)} disabled={options.length === 0}>
-                                    Nouveau déploiement
+                                    {t('deploymentsPanel.newDeployment')}
                                 </PrimaryButton>
                             </span>
                         </Tooltip>
@@ -72,17 +74,17 @@ export default function DeploymentsPanel({
             />
 
             <Modal
-                title="Nouveau déploiement"
+                title={t('deploymentsPanel.modalTitle')}
                 open={triggering}
                 onCancel={() => setTriggering(false)}
                 onOk={deploy}
-                okText="Déployer"
+                okText={t('deploymentsPanel.deployOk')}
                 okButtonProps={{ disabled: !selected }}
                 destroyOnClose
             >
                 <Select
                     className="w-full"
-                    placeholder="Choisir un target × environnement"
+                    placeholder={t('deploymentsPanel.selectPlaceholder')}
                     style={{ width: '100%' }}
                     options={options}
                     value={selected}
@@ -90,8 +92,7 @@ export default function DeploymentsPanel({
                 />
                 {options.length === 0 && (
                     <p className="section-hint" style={{ marginTop: 8 }}>
-                        Aucun couple target/environnement configuré. Configurez-en un depuis
-                        l&apos;onglet Environnements.
+                        {t('deploymentsPanel.noPairsConfigured')}
                     </p>
                 )}
             </Modal>

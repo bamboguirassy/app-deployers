@@ -11,6 +11,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { Avatar, Empty, Input, Modal } from 'antd';
 import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function TargetEditModal({
     application,
@@ -25,6 +26,7 @@ function TargetEditModal({
     open: boolean;
     onClose: () => void;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const { data, setData, patch, processing, errors } = useForm({
         name: target.name,
@@ -37,10 +39,10 @@ function TargetEditModal({
     };
 
     return (
-        <Modal title="Modifier le target" open={open} onCancel={onClose} footer={null} destroyOnClose>
+        <Modal title={t('targetWorkspace.modalTitle')} open={open} onCancel={onClose} footer={null} destroyOnClose>
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor={`framework-${target.id}`} value="Framework / stack" />
+                    <InputLabel htmlFor={`framework-${target.id}`} value={t('targetWorkspace.frameworkLabel')} />
                     <FrameworkSelect
                         id={`framework-${target.id}`}
                         frameworks={frameworks}
@@ -50,7 +52,7 @@ function TargetEditModal({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor={`name-${target.id}`} value="Nom du target" />
+                    <InputLabel htmlFor={`name-${target.id}`} value={t('targetWorkspace.nameLabel')} />
                     <Input
                         id={`name-${target.id}`}
                         value={data.name}
@@ -61,7 +63,7 @@ function TargetEditModal({
                 </div>
 
                 <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
-                    <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+                    <PrimaryButton disabled={processing}>{t('targetWorkspace.save')}</PrimaryButton>
                 </div>
             </form>
         </Modal>
@@ -81,6 +83,7 @@ export default function TargetWorkspace({
     initialTargetId?: string;
     activeMembers: { id: number; name: string; email: string }[];
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const [selectedId, setSelectedId] = useState<string | null>(initialTargetId ?? application.targets[0]?.uuid ?? null);
     const [creating, setCreating] = useState(false);
@@ -97,11 +100,11 @@ export default function TargetWorkspace({
 
     const destroy = (target: Target) => {
         confirm.confirm({
-            title: `Supprimer le target "${target.name}" ?`,
-            content: 'Toutes ses étapes, environnements liés et webhooks seront supprimés.',
+            title: t('targetWorkspace.confirmDelete.title', { name: target.name }),
+            content: t('targetWorkspace.confirmDelete.content'),
             okType: 'danger',
-            okText: 'Supprimer',
-            cancelText: 'Annuler',
+            okText: t('targetWorkspace.confirmDelete.okText'),
+            cancelText: t('targetWorkspace.confirmDelete.cancelText'),
             onOk: () => router.delete(route('targets.destroy', [workspace!.slug, application.slug, target.uuid])),
         });
     };
@@ -109,10 +112,10 @@ export default function TargetWorkspace({
     if (application.targets.length === 0) {
         return (
             <div className="target-workspace target-workspace--empty">
-                <Empty description="Aucun target. Ajoutez par exemple « Backend » et « Frontend ».">
+                <Empty description={t('targetWorkspace.emptyDescription')}>
                     {canManage && (
                         <PrimaryButton icon={<Plus size={14} />} onClick={() => setCreating(true)}>
-                            Nouveau target
+                            {t('targetWorkspace.newTarget')}
                         </PrimaryButton>
                     )}
                 </Empty>
@@ -131,10 +134,10 @@ export default function TargetWorkspace({
         <div className="target-workspace">
             <aside className="target-workspace__sidebar">
                 <div className="target-workspace__sidebar-header">
-                    <span>Targets</span>
+                    <span>{t('targetWorkspace.sidebarTitle')}</span>
                     {canManage && (
                         <button type="button" className="target-workspace__add-btn" onClick={() => setCreating(true)}>
-                            <Plus size={14} /> Ajouter
+                            <Plus size={14} /> {t('targetWorkspace.add')}
                         </button>
                     )}
                 </div>
@@ -155,9 +158,9 @@ export default function TargetWorkspace({
                             />
                             <span className="target-workspace__item-text">
                                 <strong>{target.name}</strong>
-                                <small>{target.framework?.name ?? 'Personnalisé'}</small>
+                                <small>{target.framework?.name ?? t('targetWorkspace.customFramework')}</small>
                             </span>
-                            <span className="target-workspace__item-badge">{target.pipeline_steps.length} étapes</span>
+                            <span className="target-workspace__item-badge">{target.pipeline_steps.length} {t('targetWorkspace.stepsUnit')}</span>
                         </button>
                     ))}
                 </div>
@@ -175,25 +178,25 @@ export default function TargetWorkspace({
                             />
                             <div className="target-workspace__detail-title">
                                 <h3>{selected.name}</h3>
-                                <span>{selected.framework?.name ?? 'Stack personnalisée'}</span>
+                                <span>{selected.framework?.name ?? t('targetWorkspace.customStack')}</span>
                             </div>
 
                             {canManage && (
                                 <div className="target-workspace__detail-actions">
                                     <button type="button" onClick={() => setEditing(true)}>
-                                        <Pencil size={14} /> Modifier
+                                        <Pencil size={14} /> {t('targetWorkspace.edit')}
                                     </button>
                                     <button type="button" onClick={() => destroy(selected)}>
-                                        <Trash2 size={14} /> Supprimer
+                                        <Trash2 size={14} /> {t('targetWorkspace.delete')}
                                     </button>
                                 </div>
                             )}
                         </div>
 
-                        <h4 className="target-workspace__section-title">Étapes du pipeline</h4>
+                        <h4 className="target-workspace__section-title">{t('targetWorkspace.pipelineStepsTitle')}</h4>
                         <PipelineStepsPanel application={application} target={selected} canManage={canManage} activeMembers={activeMembers} />
 
-                        <h4 className="target-workspace__section-title">Intégration webhook</h4>
+                        <h4 className="target-workspace__section-title">{t('targetWorkspace.webhookIntegrationTitle')}</h4>
                         <WebhooksPanel
                             application={application}
                             target={selected}

@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Deployment } from '@/types/models';
 import { Head } from '@inertiajs/react';
 import { Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -13,21 +14,22 @@ export default function Index({
     deployments: { data: Deployment[] };
     kpis: AdminDeploymentMonitorKpis;
 }) {
+    const { t } = useTranslation('admin');
+
     return (
         <AdminLayout
-            breadcrumbs={[{ label: 'Administration', href: route('admin.dashboard') }, { label: 'Déploiements' }]}
+            breadcrumbs={[{ label: t('layout.breadcrumbFallback'), href: route('admin.dashboard') }, { label: t('layout.nav.deployments') }]}
         >
-            <Head title="Administration — Déploiements" />
+            <Head title={t('deploymentsIndex.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Monitoring plateforme</div>
+                    <div className="premium-list-eyebrow">{t('deploymentsIndex.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Déploiements
+                        {t('deploymentsIndex.heading')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Tous les déploiements, tous workspaces confondus, pour repérer et investiguer les échecs. Vue
-                        lecture seule.
+                        {t('deploymentsIndex.subtitle')}
                     </Paragraph>
                 </div>
             </div>

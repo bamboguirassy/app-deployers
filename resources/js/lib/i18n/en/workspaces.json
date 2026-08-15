@@ -1,0 +1,9 @@
+{
+    "create": {
+        "title": "New workspace",
+        "description": "A workspace brings together your applications, servers, and team members. You can create more later and switch between them anytime.",
+        "nameLabel": "Workspace name",
+        "namePlaceholder": "e.g. My company",
+        "submit": "Create workspace"
+    }
+}

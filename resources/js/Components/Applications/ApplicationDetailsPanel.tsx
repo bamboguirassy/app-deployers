@@ -7,8 +7,10 @@ import { useForm, usePage } from '@inertiajs/react';
 import { Avatar, Card, Input } from 'antd';
 import { Boxes } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function ApplicationDetailsPanel({ application, canManage }: { application: Application; canManage: boolean }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [preview, setPreview] = useState<string | null>(null);
@@ -33,13 +35,13 @@ export default function ApplicationDetailsPanel({ application, canManage }: { ap
     };
 
     return (
-        <Card title="Détails de l'application" style={{ maxWidth: 560 }}>
+        <Card title={t('detailsPanel.cardTitle')} style={{ maxWidth: 560 }}>
             <form onSubmit={submit} className="form-stack">
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16 }}>
                     <div
                         role={canManage ? 'button' : undefined}
                         tabIndex={canManage ? 0 : undefined}
-                        aria-label={canManage ? 'Changer le logo' : undefined}
+                        aria-label={canManage ? t('detailsPanel.changeLogoAriaLabel') : undefined}
                         style={{ cursor: canManage ? 'pointer' : 'default' }}
                         onClick={() => canManage && logoInputRef.current?.click()}
                         onKeyDown={(e) => {
@@ -58,8 +60,8 @@ export default function ApplicationDetailsPanel({ application, canManage }: { ap
                         />
                     </div>
                     <div>
-                        <InputLabel value="Logo" />
-                        <span className="section-hint">{canManage ? "Cliquez sur l'icône pour la changer." : ''}</span>
+                        <InputLabel value={t('detailsPanel.logoLabel')} />
+                        <span className="section-hint">{canManage ? t('detailsPanel.logoHint') : ''}</span>
                     </div>
                     {canManage && (
                         <input
@@ -77,7 +79,7 @@ export default function ApplicationDetailsPanel({ application, canManage }: { ap
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="app-name" value="Nom de l'application" />
+                    <InputLabel htmlFor="app-name" value={t('detailsPanel.nameLabel')} />
                     <Input
                         id="app-name"
                         value={data.name}
@@ -88,7 +90,7 @@ export default function ApplicationDetailsPanel({ application, canManage }: { ap
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="app-description" value="Description" />
+                    <InputLabel htmlFor="app-description" value={t('detailsPanel.descriptionLabel')} />
                     <Input.TextArea
                         id="app-description"
                         rows={3}
@@ -101,8 +103,8 @@ export default function ApplicationDetailsPanel({ application, canManage }: { ap
 
                 {canManage && (
                     <div className="form-actions" style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12 }}>
-                        <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
-                        {recentlySuccessful && <span className="saved-hint">Enregistré.</span>}
+                        <PrimaryButton disabled={processing}>{t('detailsPanel.save')}</PrimaryButton>
+                        {recentlySuccessful && <span className="saved-hint">{t('detailsPanel.saved')}</span>}
                     </div>
                 )}
             </form>

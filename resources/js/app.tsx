@@ -8,6 +8,9 @@ import { createRoot } from 'react-dom/client';
 import { configureEcho } from '@laravel/echo-react';
 import { AppThemeProvider } from './theme/AppThemeProvider';
 import { initI18n, SupportedLocale } from './lib/i18n';
+import { watchLocaleOnNavigate } from './lib/i18n/LocaleSync';
+
+watchLocaleOnNavigate();
 
 configureEcho({
     broadcaster: 'reverb',

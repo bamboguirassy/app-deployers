@@ -6,6 +6,8 @@ import { Alert, Button, Segmented, Tooltip, Typography, message } from 'antd';
 import { Check, Rocket, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import { dateLocale } from '@/lib/i18n';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -41,9 +43,6 @@ type ProPlan = Pick<BillingPlan, 'slug' | 'name' | 'max_applications' | 'max_con
     yearlyConfigured: boolean;
 };
 
-const formatLimit = (value: number | null, singular: string, plural: string) =>
-    value === null ? `${plural} illimité(e)s` : `${value} ${value > 1 ? plural : singular}`;
-
 export default function Show({
     plan,
     usage,
@@ -61,10 +60,16 @@ export default function Show({
     can: { manageBilling: boolean };
     paddle: { client_token: string | null; sandbox: boolean };
 }) {
+    const { t, i18n } = useTranslation('billing');
     const { workspace } = usePage<PageProps>().props;
     const [upgrading, setUpgrading] = useState(false);
     const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
     const paddleReady = useRef(false);
+
+    const formatLimit = (value: number | null, singularUnitKey: string, pluralUnitKey: string) =>
+        value === null
+            ? t('features.unlimited', { unit: t(pluralUnitKey) })
+            : t('features.count', { count: value, unit: t(value > 1 ? pluralUnitKey : singularUnitKey) });
 
     // Paddle.js n'est chargé que sur cette page (pas globalement) : c'est la
     // seule qui en a besoin.
@@ -100,7 +105,7 @@ export default function Show({
 
     const startCheckout = async () => {
         if (!paddle.client_token || !window.Paddle) {
-            message.error("La facturation en ligne n'est pas encore configurée. Contactez le support.");
+            message.error(t('errors.notConfigured'));
             return;
         }
 
@@ -111,9 +116,7 @@ export default function Show({
             window.Paddle.Checkout.open({ transactionId: data.transaction_id });
         } catch (error) {
             const description =
-                axios.isAxiosError(error) && error.response?.data?.message
-                    ? error.response.data.message
-                    : 'Impossible de lancer le paiement pour le moment.';
+                axios.isAxiosError(error) && error.response?.data?.message ? error.response.data.message : t('errors.checkoutFailed');
             message.error(description);
         } finally {
             setUpgrading(false);
@@ -124,44 +127,46 @@ export default function Show({
     const upgradeDisabled = !can.manageBilling || upgrading || !intervalConfigured || !paddle.client_token;
 
     const upgradeTooltip = !can.manageBilling
-        ? 'Seul le owner du workspace peut changer de plan'
+        ? t('tooltip.ownerOnly')
         : !intervalConfigured || !paddle.client_token
-          ? `La facturation ${interval === 'monthly' ? 'mensuelle' : 'annuelle'} n'est pas encore configurée pour ce plan`
+          ? t('tooltip.notConfigured', { interval: t(interval === 'monthly' ? 'interval.monthlyLabel' : 'interval.yearlyLabel') })
           : null;
 
     const freeFeatures = [
-        formatLimit(freePlan.max_applications, 'application', 'applications'),
-        formatLimit(freePlan.max_concurrent_deployments, 'déploiement simultané', 'déploiements simultanés'),
-        'Webhooks Git (GitHub, GitLab, Bitbucket)',
-        'Historique de déploiement',
-        'Logs en direct',
+        formatLimit(freePlan.max_applications, 'units.application', 'units.applications'),
+        formatLimit(freePlan.max_concurrent_deployments, 'units.deployment', 'units.deployments'),
+        t('plans.free.webhooks'),
+        t('plans.free.history'),
+        t('plans.free.logs'),
     ];
 
     const proFeatures = [
-        'Toutes les fonctionnalités du plan Free',
-        proPlan?.max_applications == null ? 'Applications illimitées' : formatLimit(proPlan.max_applications, 'application', 'applications'),
-        formatLimit(proPlan?.max_concurrent_deployments ?? null, 'déploiement simultané', 'déploiements simultanés'),
-        'Support prioritaire',
+        t('plans.pro.allFreeFeatures'),
+        proPlan?.max_applications == null
+            ? t('plans.pro.unlimitedApplications')
+            : formatLimit(proPlan.max_applications, 'units.application', 'units.applications'),
+        formatLimit(proPlan?.max_concurrent_deployments ?? null, 'units.deployment', 'units.deployments'),
+        t('plans.pro.prioritySupport'),
     ];
 
     const upgradeButton = (
         <Button type="primary" size="large" block disabled={upgradeDisabled} loading={upgrading} onClick={startCheckout} icon={<Rocket size={16} />}>
-            Passer à {proPlan?.name ?? 'Pro'}
+            {t('plans.pro.upgradeButton', { name: proPlan?.name ?? t('plans.pro.name') })}
         </Button>
     );
 
     return (
-        <AuthenticatedLayout header="Facturation">
-            <Head title="Facturation" />
+        <AuthenticatedLayout header={t('meta.headerTitle')}>
+            <Head title={t('meta.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Workspace</div>
+                    <div className="premium-list-eyebrow">{t('meta.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Facturation
+                        {t('meta.title')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Choisissez le plan adapté à votre équipe. Changez à tout moment.
+                        {t('meta.subtitle')}
                     </Paragraph>
                 </div>
             </div>
@@ -171,11 +176,9 @@ export default function Show({
                     type="warning"
                     showIcon
                     style={{ marginBottom: 20 }}
-                    message="Échec de paiement"
+                    message={t('pastDue.title')}
                     description={
-                        daysLeft !== null
-                            ? `Votre dernier paiement a échoué. Vous gardez votre plan actuel encore ${daysLeft} jour(s) avant un retour automatique au plan Free.`
-                            : 'Votre dernier paiement a échoué.'
+                        daysLeft !== null ? t('pastDue.descriptionWithDays', { days: daysLeft }) : t('pastDue.description')
                     }
                 />
             )}
@@ -185,8 +188,8 @@ export default function Show({
                     value={interval}
                     onChange={(value) => setInterval(value as 'monthly' | 'yearly')}
                     options={[
-                        { label: 'Mensuel', value: 'monthly' },
-                        { label: 'Annuel — 2 mois offerts', value: 'yearly' },
+                        { label: t('interval.monthly'), value: 'monthly' },
+                        { label: t('interval.yearly'), value: 'yearly' },
                     ]}
                     size="large"
                 />
@@ -194,16 +197,16 @@ export default function Show({
 
             <div className="plans-grid">
                 <div className={`plan-card ${isFree ? 'plan-card--current' : ''}`}>
-                    {isFree && <div className="plan-card__badge">Plan actuel</div>}
+                    {isFree && <div className="plan-card__badge">{t('plans.currentPlan')}</div>}
 
                     <div className="plan-card__head">
-                        <Text className="plan-card__name">Free</Text>
+                        <Text className="plan-card__name">{t('plans.free.name')}</Text>
                         <div className="plan-card__price">
                             <span className="plan-card__price-amount">0€</span>
-                            <span className="plan-card__price-period">/ mois</span>
+                            <span className="plan-card__price-period">{t('plans.free.perMonth')}</span>
                         </div>
                         <Paragraph type="secondary" className="plan-card__tagline">
-                            Pour découvrir la plateforme et déployer votre premier projet.
+                            {t('plans.free.tagline')}
                         </Paragraph>
                     </div>
 
@@ -219,39 +222,42 @@ export default function Show({
                     <div className="plan-card__cta">
                         {isFree ? (
                             <Button size="large" block disabled>
-                                Plan actuel
+                                {t('plans.free.currentButton')}
                             </Button>
                         ) : (
                             <Button size="large" block disabled>
-                                Inclus dans votre plan
+                                {t('plans.free.includedButton')}
                             </Button>
                         )}
                     </div>
                 </div>
 
                 <div className={`plan-card plan-card--pro ${!isFree ? 'plan-card--current' : ''}`}>
-                    {!isFree && <div className="plan-card__badge plan-card__badge--pro">Plan actuel</div>}
+                    {!isFree && <div className="plan-card__badge plan-card__badge--pro">{t('plans.currentPlan')}</div>}
                     {isFree && (
                         <div className="plan-card__ribbon">
-                            <Sparkles size={13} /> Recommandé
+                            <Sparkles size={13} /> {t('plans.pro.recommended')}
                         </div>
                     )}
 
                     <div className="plan-card__head">
-                        <Text className="plan-card__name">{proPlan?.name ?? 'Pro'}</Text>
+                        <Text className="plan-card__name">{proPlan?.name ?? t('plans.pro.name')}</Text>
                         <div className="plan-card__price">
                             <span className="plan-card__price-amount">
                                 {interval === 'monthly' ? PRO_MONTHLY_PRICE_EUR : PRO_YEARLY_MONTHLY_EQUIVALENT_EUR}€
                             </span>
-                            <span className="plan-card__price-period">/ mois{interval === 'yearly' ? ', facturé annuellement' : ''}</span>
+                            <span className="plan-card__price-period">
+                                {t('plans.pro.perMonth')}
+                                {interval === 'yearly' ? t('plans.pro.perMonthYearlySuffix') : ''}
+                            </span>
                         </div>
                         {interval === 'yearly' && (
                             <Text className="plan-card__price-note">
-                                {PRO_YEARLY_PRICE_EUR}€ facturés une fois par an — économisez {PRO_YEARLY_SAVINGS_EUR}€ vs mensuel
+                                {t('plans.pro.yearlyNote', { price: PRO_YEARLY_PRICE_EUR, savings: PRO_YEARLY_SAVINGS_EUR })}
                             </Text>
                         )}
                         <Paragraph type="secondary" className="plan-card__tagline">
-                            Pour les équipes qui déploient en production, sans limite.
+                            {t('plans.pro.tagline')}
                         </Paragraph>
                     </div>
 
@@ -276,12 +282,16 @@ export default function Show({
                         ) : (
                             <Button size="large" block disabled>
                                 {subscription?.is_comped ? (
-                                    'Plan actuel — offert par notre équipe'
+                                    t('plans.pro.compedButton')
                                 ) : (
                                     <>
-                                        Plan actuel
+                                        {t('plans.pro.currentButton')}
                                         {subscription?.renews_at && subscription.status === 'active' && (
-                                            <> — renouvellement le {new Date(subscription.renews_at).toLocaleDateString('fr-FR')}</>
+                                            <>
+                                                {t('plans.pro.renewsAt', {
+                                                    date: new Date(subscription.renews_at).toLocaleDateString(dateLocale(i18n.language)),
+                                                })}
+                                            </>
                                         )}
                                     </>
                                 )}
@@ -293,28 +303,30 @@ export default function Show({
 
             <div className="billing-usage-card">
                 <Title level={5} style={{ margin: '0 0 16px' }}>
-                    Utilisation actuelle
+                    {t('usage.title')}
                 </Title>
                 <div className="billing-usage-card__grid">
                     <div>
-                        <Text type="secondary">Applications</Text>
+                        <Text type="secondary">{t('usage.applications')}</Text>
                         <Paragraph style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 600 }}>
                             {usage.applications} / {plan.max_applications ?? '∞'}
                         </Paragraph>
                     </div>
                     <div>
-                        <Text type="secondary">Déploiements simultanés autorisés</Text>
+                        <Text type="secondary">{t('usage.deploymentsAllowed')}</Text>
                         <Paragraph style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 600 }}>
-                            {plan.max_concurrent_deployments ?? 'Illimité'}
+                            {plan.max_concurrent_deployments ?? t('usage.unlimited')}
                         </Paragraph>
                     </div>
                 </div>
             </div>
 
             <Paragraph type="secondary" style={{ marginTop: 24, fontSize: 12 }}>
-                Le passage à un plan payant est facturé par notre partenaire Paddle. En souscrivant, vous acceptez
-                nos <Link href={route('legal.terms')}>conditions d'utilisation</Link> et notre{' '}
-                <Link href={route('legal.refunds')}>politique de remboursement</Link>.
+                {t('footer.prefix')}
+                <Link href={route('legal.terms')}>{t('footer.termsLink')}</Link>
+                {t('footer.middle')}
+                <Link href={route('legal.refunds')}>{t('footer.refundsLink')}</Link>
+                {t('footer.suffix')}
             </Paragraph>
         </AuthenticatedLayout>
     );

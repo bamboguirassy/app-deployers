@@ -8,31 +8,33 @@ import { Head, usePage } from '@inertiajs/react';
 import { Typography } from 'antd';
 import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
 export default function Index({ servers, kpis }: { servers: { data: Server[] }; kpis: ServerKpis }) {
     const { workspace } = usePage<PageProps>().props;
+    const { t } = useTranslation('servers');
     const listRef = useRef<ServersListHandle>(null);
     const [creating, setCreating] = useState(false);
 
     return (
-        <AuthenticatedLayout header="Serveurs">
-            <Head title="Serveurs" />
+        <AuthenticatedLayout header={t('index.header')}>
+            <Head title={t('index.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Workspace</div>
+                    <div className="premium-list-eyebrow">{t('index.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Serveurs
+                        {t('index.title')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Déclarez ici les serveurs sur lesquels vos applications peuvent être déployées à distance via SSH.
+                        {t('index.description')}
                     </Paragraph>
                 </div>
 
                 <PrimaryButton className="premium-list-hero__action" onClick={() => setCreating(true)} icon={<Plus size={14} />}>
-                    Nouveau serveur
+                    {t('index.newServer')}
                 </PrimaryButton>
             </div>
 

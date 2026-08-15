@@ -5,6 +5,7 @@ import { PageProps } from '@/types';
 import { Application, Deployment } from '@/types/models';
 import { Head, usePage } from '@inertiajs/react';
 import { Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -18,19 +19,20 @@ export default function Index({
     kpis: DeploymentKpis;
 }) {
     const { workspace } = usePage<PageProps>().props;
+    const { t } = useTranslation('deployments');
 
     return (
-        <AuthenticatedLayout header="Déploiements">
-            <Head title="Déploiements" />
+        <AuthenticatedLayout header={t('index.header')}>
+            <Head title={t('index.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Application</div>
+                    <div className="premium-list-eyebrow">{t('index.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Déploiements
+                        {t('index.title')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Chaque exécution est présentée avec sa cible, sa source et son état pour une lecture immédiate.
+                        {t('index.description')}
                     </Paragraph>
                 </div>
             </div>

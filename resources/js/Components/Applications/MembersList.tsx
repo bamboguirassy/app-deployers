@@ -6,6 +6,7 @@ import { ApplicationMember } from '@/types';
 import { Avatar, Space, Spin, Table } from 'antd';
 import { Crown, Eye, Users as UsersIcon, Wrench } from 'lucide-react';
 import { ReactNode, forwardRef, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface MembersListHandle {
     refresh: () => void;
@@ -18,6 +19,7 @@ export default forwardRef<MembersListHandle, {
     renderRole?: (member: ApplicationMember) => ReactNode;
     renderActions?: (member: ApplicationMember) => ReactNode;
 }>(function MembersList({ searchUrl, initialItems, initialKpis, renderRole, renderActions }, ref) {
+    const { t } = useTranslation('applications');
     const search = useListSearch<ApplicationMember, MembersKpis>(searchUrl, initialItems, initialKpis, {
         sort: 'name',
         direction: 'asc',
@@ -29,11 +31,11 @@ export default forwardRef<MembersListHandle, {
         <div className="workspace-members-list">
             <KpiCollapse
                 items={[
-                    { key: 'total', title: 'Total', value: search.kpis.total, icon: <UsersIcon size={14} /> },
-                    { key: 'owner', title: 'Owners', value: search.kpis.owner, icon: <Crown size={14} /> },
-                    { key: 'manager', title: 'Managers', value: search.kpis.manager, icon: <Wrench size={14} /> },
-                    { key: 'deployer', title: 'Deployers', value: search.kpis.deployer },
-                    { key: 'viewer', title: 'Viewers', value: search.kpis.viewer, icon: <Eye size={14} /> },
+                    { key: 'total', title: t('membersList.kpiTotal'), value: search.kpis.total, icon: <UsersIcon size={14} /> },
+                    { key: 'owner', title: t('membersList.kpiOwners'), value: search.kpis.owner, icon: <Crown size={14} /> },
+                    { key: 'manager', title: t('membersList.kpiManagers'), value: search.kpis.manager, icon: <Wrench size={14} /> },
+                    { key: 'deployer', title: t('membersList.kpiDeployers'), value: search.kpis.deployer },
+                    { key: 'viewer', title: t('membersList.kpiViewers'), value: search.kpis.viewer, icon: <Eye size={14} /> },
                 ]}
             />
 
@@ -41,11 +43,11 @@ export default forwardRef<MembersListHandle, {
               <ListToolbar
                 search={search.search}
                 onSearchChange={search.setSearch}
-                searchPlaceholder="Rechercher par nom ou email..."
+                searchPlaceholder={t('membersList.searchPlaceholder')}
                 filters={[
                     {
                         key: 'role',
-                        placeholder: 'Rôle',
+                        placeholder: t('membersList.roleFilterPlaceholder'),
                         options: ROLE_OPTIONS.map((r) => ({ value: r.value, label: r.value })),
                         icon: <Crown size={14} />,
                     },
@@ -53,9 +55,9 @@ export default forwardRef<MembersListHandle, {
                 filterValues={search.filters}
                 onFilterChange={search.setFilter}
                 sortOptions={[
-                    { value: 'name', label: 'Nom' },
-                    { value: 'email', label: 'Email' },
-                    { value: 'role', label: 'Rôle' },
+                    { value: 'name', label: t('membersList.sortName') },
+                    { value: 'email', label: t('membersList.sortEmail') },
+                    { value: 'role', label: t('membersList.sortRole') },
                 ]}
                 sort={search.sort}
                 direction={search.direction}
@@ -74,7 +76,7 @@ export default forwardRef<MembersListHandle, {
                 className="premium-table application-members-table"
                 columns={[
                     {
-                        title: 'Membre',
+                        title: t('membersList.memberColumn'),
                         render: (_, member) => (
                             <Space>
                                 <Avatar size="small">{member.name.charAt(0).toUpperCase()}</Avatar>
@@ -86,7 +88,7 @@ export default forwardRef<MembersListHandle, {
                         ),
                     },
                     {
-                        title: 'Rôle',
+                        title: t('membersList.roleColumn'),
                         render: (_, member) => (renderRole ? renderRole(member) : member.role),
                     },
                     ...(renderActions
@@ -103,10 +105,10 @@ export default forwardRef<MembersListHandle, {
             <div ref={search.sentinelRef} style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
                 {search.loading && <Spin size="small" />}
                 {!search.hasMore && !search.loading && search.items.length > 0 && (
-                    <span className="section-hint">Tous les membres sont affichés.</span>
+                    <span className="section-hint">{t('membersList.allShown')}</span>
                 )}
                 {!search.loading && search.items.length === 0 && (
-                    <span className="section-hint">Aucun membre ne correspond à ces critères.</span>
+                    <span className="section-hint">{t('membersList.emptyResults')}</span>
                 )}
             </div>
         </div>

@@ -5,6 +5,7 @@ import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -15,6 +16,7 @@ export default function UpdateProfileInformation({
     status?: string;
     className?: string;
 }) {
+    const { t } = useTranslation('profile');
     const user = usePage().props.auth.user;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
@@ -32,15 +34,15 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header>
-                <h2 className="section-title">Informations du profil</h2>
+                <h2 className="section-title">{t('updateProfileInformation.title')}</h2>
                 <p className="section-hint">
-                    Mettez à jour votre nom et votre adresse email.
+                    {t('updateProfileInformation.hint')}
                 </p>
             </header>
 
             <form onSubmit={submit} className="form-stack" style={{ marginTop: 24 }}>
                 <div>
-                    <InputLabel htmlFor="name" value="Nom" />
+                    <InputLabel htmlFor="name" value={t('updateProfileInformation.nameLabel')} />
 
                     <TextInput
                         id="name"
@@ -56,7 +58,7 @@ export default function UpdateProfileInformation({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value={t('updateProfileInformation.emailLabel')} />
 
                     <TextInput
                         id="email"
@@ -74,21 +76,20 @@ export default function UpdateProfileInformation({
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div>
                         <p className="section-hint">
-                            Votre adresse email n&apos;est pas vérifiée.{' '}
+                            {t('updateProfileInformation.emailUnverified')}{' '}
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
                                 className="form-link"
                             >
-                                Cliquez ici pour renvoyer l&apos;email de
-                                vérification.
+                                {t('updateProfileInformation.resendVerification')}
                             </Link>
                         </p>
 
                         {status === 'verification-link-sent' && (
                             <div className="saved-hint" style={{ marginTop: 8 }}>
-                                Un nouveau lien de vérification a été envoyé.
+                                {t('updateProfileInformation.verificationSent')}
                             </div>
                         )}
                     </div>
@@ -96,7 +97,7 @@ export default function UpdateProfileInformation({
 
                 <div className="form-actions" style={{ justifyContent: 'flex-start' }}>
                     <PrimaryButton disabled={processing}>
-                        Enregistrer
+                        {t('updateProfileInformation.save')}
                     </PrimaryButton>
 
                     <Transition
@@ -106,7 +107,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="saved-hint">Enregistré.</p>
+                        <p className="saved-hint">{t('updateProfileInformation.saved')}</p>
                     </Transition>
                 </div>
             </form>

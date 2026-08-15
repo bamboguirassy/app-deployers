@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Sider, Header, Content } = Layout;
 
@@ -38,6 +39,7 @@ export default function AdminLayout({
     actions?: ReactNode;
 }>) {
     const { auth, flash } = usePage<PageProps>().props;
+    const { t } = useTranslation('admin');
     const user = auth.user;
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -49,27 +51,27 @@ export default function AdminLayout({
         {
             key: 'dashboard',
             icon: <LayoutDashboard size={16} />,
-            label: <Link href={route('admin.dashboard')}>Tableau de bord</Link>,
+            label: <Link href={route('admin.dashboard')}>{t('layout.nav.dashboard')}</Link>,
         },
         {
             key: 'workspaces',
             icon: <CreditCard size={16} />,
-            label: <Link href={route('admin.workspaces.index')}>Workspaces</Link>,
+            label: <Link href={route('admin.workspaces.index')}>{t('layout.nav.workspaces')}</Link>,
         },
         {
             key: 'users',
             icon: <Users size={16} />,
-            label: <Link href={route('admin.users.index')}>Utilisateurs</Link>,
+            label: <Link href={route('admin.users.index')}>{t('layout.nav.users')}</Link>,
         },
         {
             key: 'plans',
             icon: <PackageCheck size={16} />,
-            label: <Link href={route('admin.plans.index')}>Plans</Link>,
+            label: <Link href={route('admin.plans.index')}>{t('layout.nav.plans')}</Link>,
         },
         {
             key: 'deployments',
             icon: <Rocket size={16} />,
-            label: <Link href={route('admin.deployments.index')}>Déploiements</Link>,
+            label: <Link href={route('admin.deployments.index')}>{t('layout.nav.deployments')}</Link>,
         },
     ];
 
@@ -87,7 +89,7 @@ export default function AdminLayout({
         {
             key: 'exit',
             icon: <ChevronLeft size={14} />,
-            label: <Link href={route('home')}>Retour à l'application</Link>,
+            label: <Link href={route('home')}>{t('layout.backToApp')}</Link>,
         },
         {
             key: 'logout',
@@ -95,7 +97,7 @@ export default function AdminLayout({
             danger: true,
             label: (
                 <Link href={route('logout')} method="post" as="button">
-                    Déconnexion
+                    {t('layout.logout')}
                 </Link>
             ),
         },
@@ -105,12 +107,12 @@ export default function AdminLayout({
         <>
             <div className="admin-shell__brand">
                 <ShieldCheck />
-                <span>Administration</span>
+                <span>{t('layout.brand')}</span>
             </div>
 
             <div style={{ padding: '12px 20px 4px' }}>
                 <span className="admin-shell__badge">
-                    <ShieldCheck size={11} /> Super Admin
+                    <ShieldCheck size={11} /> {t('layout.superAdminBadge')}
                 </span>
             </div>
 
@@ -125,7 +127,7 @@ export default function AdminLayout({
 
             <div className="admin-shell__exit">
                 <Link href={route('home')} className="app-shell__workspace-trigger" style={{ justifyContent: 'center' }}>
-                    <ChevronLeft size={14} /> Retour à l'application
+                    <ChevronLeft size={14} /> {t('layout.backToApp')}
                 </Link>
             </div>
         </>
@@ -159,7 +161,7 @@ export default function AdminLayout({
                                 type="button"
                                 className="admin-shell__hamburger"
                                 onClick={() => setMobileOpen(true)}
-                                aria-label="Ouvrir le menu"
+                                aria-label={t('layout.openMenu')}
                             >
                                 <MenuIcon size={20} />
                             </button>
@@ -177,7 +179,7 @@ export default function AdminLayout({
                                         </span>
                                     ))
                                 ) : (
-                                    <span className="admin-shell__breadcrumb-current">Administration</span>
+                                    <span className="admin-shell__breadcrumb-current">{t('layout.breadcrumbFallback')}</span>
                                 )}
                             </div>
                         </div>

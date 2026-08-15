@@ -1,0 +1,79 @@
+{
+    "nav": {
+        "dashboard": "Dashboard",
+        "deployments": "Déploiements",
+        "applications": "Applications",
+        "servers": "Serveurs",
+        "users": "Utilisateurs",
+        "backToWorkspace": "Retour au workspace",
+        "newWorkspace": "Nouveau workspace",
+        "newApplication": "Nouvelle application",
+        "openMenu": "Ouvrir le menu",
+        "closeMenu": "Fermer le menu"
+    },
+    "account": {
+        "account": "Compte",
+        "currentPlan": "Plan actuel : {{plan}}",
+        "billing": "Facturation",
+        "profile": "Profil",
+        "administration": "Administration",
+        "logout": "Déconnexion"
+    },
+    "header": {
+        "search": "Rechercher...",
+        "globalSearchSoon": "Recherche globale (bientôt disponible)",
+        "help": "Aide (bientôt disponible)"
+    },
+    "page": {
+        "header": "Dashboard",
+        "welcome": "Bienvenue, {{name}}",
+        "subtitle": "Voici un aperçu de vos applications et de leur activité de déploiement.",
+        "viewAll": "Voir tout",
+        "stats": {
+            "applications": "Applications",
+            "targets": "Targets",
+            "environments": "Environnements",
+            "deployments30d": "Déploiements (30j)",
+            "running": "En cours",
+            "successRate30d": "Taux de succès (30j)"
+        },
+        "breakdown": {
+            "title": "Répartition des déploiements (30 derniers jours)",
+            "status": {
+                "succes": "Succès",
+                "echec": "Échec",
+                "running": "En cours",
+                "pending": "En attente",
+                "annule": "Annulé"
+            }
+        },
+        "applicationsTable": {
+            "title": "Applications",
+            "empty": "Aucune application pour le moment",
+            "noDescription": "Aucune description",
+            "none": "Aucun",
+            "columns": {
+                "application": "Application",
+                "targets": "Targets",
+                "environments": "Environnements",
+                "lastDeployment": "Dernier déploiement"
+            }
+        },
+        "deploymentsTable": {
+            "title": "Déploiements récents",
+            "empty": "Aucun déploiement pour le moment",
+            "columns": {
+                "application": "Application",
+                "target": "Cible",
+                "source": "Source",
+                "status": "Statut",
+                "when": "Quand"
+            }
+        },
+        "emptyState": {
+            "prefix": "Aucune application pour le moment.",
+            "link": "Créez votre première application",
+            "suffix": "pour commencer à configurer des targets, des environnements et des pipelines de déploiement."
+        }
+    }
+}

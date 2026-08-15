@@ -5,8 +5,10 @@ import { Application } from '@/types/models';
 import { router, usePage } from '@inertiajs/react';
 import { Dropdown, Tooltip, type MenuProps } from 'antd';
 import { ChevronDown, Rocket } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function RunDeployButton({ application }: { application: Application }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const options = buildDeployOptions(application);
 
@@ -27,10 +29,10 @@ export default function RunDeployButton({ application }: { application: Applicat
 
     if (items.length === 0) {
         return (
-            <Tooltip title="Configurez d'abord un couple target/environnement dans l'onglet Environnements">
+            <Tooltip title={t('runDeployButton.configureFirstTooltip')}>
                 <span>
                     <PrimaryButton htmlType="button" size="middle" icon={<Rocket size={14} />} className="run-deploy-btn" disabled>
-                        Run deploy
+                        {t('runDeployButton.runDeploy')}
                     </PrimaryButton>
                 </span>
             </Tooltip>
@@ -40,7 +42,7 @@ export default function RunDeployButton({ application }: { application: Applicat
     return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
             <PrimaryButton htmlType="button" size="middle" icon={<Rocket size={14} />} className="run-deploy-btn">
-                Run deploy
+                {t('runDeployButton.runDeploy')}
                 <ChevronDown size={14} />
             </PrimaryButton>
         </Dropdown>

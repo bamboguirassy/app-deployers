@@ -4,6 +4,7 @@ import { AdminPlan } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { Button, Card, Checkbox, Col, InputNumber, Row, Typography } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -14,6 +15,7 @@ const { Title, Paragraph } = Typography;
  * lecture seule.
  */
 function PlanCard({ plan }: { plan: AdminPlan }) {
+    const { t } = useTranslation('admin');
     const confirm = useConfirm();
 
     const { data, setData, patch, processing } = useForm({
@@ -37,11 +39,10 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
 
         if (lowersBelowCurrentUsage) {
             confirm.confirm({
-                title: 'Limite inférieure à l\'usage actuel',
-                content:
-                    "Cette limite est inférieure à l'usage actuel d'au moins un workspace sur ce plan — les workspaces concernés ne pourront plus créer d'application tant qu'ils ne repassent pas sous la limite, mais rien ne sera supprimé automatiquement. Continuer ?",
-                okText: 'Continuer',
-                cancelText: 'Annuler',
+                title: t('plans.confirmLowerLimit.title'),
+                content: t('plans.confirmLowerLimit.content'),
+                okText: t('plans.confirmLowerLimit.okText'),
+                cancelText: t('plans.confirmLowerLimit.cancelText'),
                 okType: 'danger',
                 onOk: doSubmit,
             });
@@ -53,12 +54,15 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
     return (
         <Card title={plan.name} className="premium-table-card">
             <Paragraph type="secondary" style={{ marginTop: -8 }}>
-                {plan.workspaces_count} workspace(s) sur ce plan · usage max actuel constaté : {plan.max_applications_in_use} application(s)
+                {t('plans.usageSummary', {
+                    workspacesCount: plan.workspaces_count,
+                    maxApplicationsInUse: plan.max_applications_in_use,
+                })}
             </Paragraph>
 
             <div className="form-stack">
                 <div>
-                    <label className="admin-field-label">Nombre d'applications max</label>
+                    <label className="admin-field-label">{t('plans.maxApplicationsLabel')}</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <InputNumber
                             className="w-full"
@@ -81,13 +85,13 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
                                 }
                             }}
                         >
-                            Illimité
+                            {t('plans.unlimited')}
                         </Checkbox>
                     </div>
                 </div>
 
                 <div>
-                    <label className="admin-field-label">Déploiements concurrents max</label>
+                    <label className="admin-field-label">{t('plans.maxConcurrentDeploymentsLabel')}</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <InputNumber
                             className="w-full"
@@ -110,14 +114,14 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
                                 }
                             }}
                         >
-                            Illimité
+                            {t('plans.unlimited')}
                         </Checkbox>
                     </div>
                 </div>
 
                 <div className="form-actions form-actions--end">
                     <Button type="primary" loading={processing} onClick={submit}>
-                        Enregistrer
+                        {t('plans.save')}
                     </Button>
                 </div>
             </div>
@@ -126,19 +130,20 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
 }
 
 export default function Index({ plans }: { plans: AdminPlan[] }) {
+    const { t } = useTranslation('admin');
+
     return (
-        <AdminLayout breadcrumbs={[{ label: 'Administration', href: route('admin.dashboard') }, { label: 'Plans' }]}>
-            <Head title="Administration — Plans" />
+        <AdminLayout breadcrumbs={[{ label: t('layout.breadcrumbFallback'), href: route('admin.dashboard') }, { label: t('layout.nav.plans') }]}>
+            <Head title={t('plans.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Limites & quotas</div>
+                    <div className="premium-list-eyebrow">{t('plans.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Plans
+                        {t('plans.heading')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Édition des limites de quota par plan. La création/suppression de plan et les tarifs Paddle ne
-                        sont pas gérés ici.
+                        {t('plans.subtitle')}
                     </Paragraph>
                 </div>
             </div>

@@ -1,3 +1,5 @@
+import { TFunction } from 'i18next';
+
 export const STATUS_COLORS: Record<string, string> = {
     pending: 'default',
     running: 'blue',
@@ -6,33 +8,30 @@ export const STATUS_COLORS: Record<string, string> = {
     annule: 'orange',
 };
 
-export const STATUS_OPTIONS = [
-    { value: 'pending', label: 'En attente' },
-    { value: 'running', label: 'En cours' },
-    { value: 'succes', label: 'Succès' },
-    { value: 'echec', label: 'Échec' },
-    { value: 'annule', label: 'Annulé' },
-];
+const STATUS_VALUES = ['pending', 'running', 'succes', 'echec', 'annule'] as const;
+const SOURCE_VALUES = ['manual', 'webhook', 'scheduled'] as const;
 
-export const SOURCE_OPTIONS = [
-    { value: 'manual', label: 'Manuel' },
-    { value: 'webhook', label: 'Webhook' },
-    { value: 'scheduled', label: 'Planifié' },
-];
+/**
+ * Ces libellés dépendent de la locale (contrairement aux valeurs `status`/
+ * `trigger_source` elles-mêmes, volontairement françaises côté données —
+ * voir CLAUDE.md) — d'où des fonctions prenant `t` plutôt que des objets
+ * constants, à appeler depuis un composant qui a déjà `useTranslation`.
+ */
+export function getStatusLabel(t: TFunction, status: string): string {
+    return t(`deployments:status.${status}`, { defaultValue: status });
+}
 
-export const SOURCE_LABELS: Record<string, string> = {
-    manual: 'Manuel',
-    webhook: 'Webhook',
-    scheduled: 'Planifié',
-};
+export function getSourceLabel(t: TFunction, source: string): string {
+    return t(`deployments:source.${source}`, { defaultValue: source });
+}
 
-export const STATUS_LABELS: Record<string, string> = {
-    pending: 'En attente',
-    running: 'En cours',
-    succes: 'Succès',
-    echec: 'Échec',
-    annule: 'Annulé',
-};
+export function getStatusOptions(t: TFunction) {
+    return STATUS_VALUES.map((value) => ({ value, label: getStatusLabel(t, value) }));
+}
+
+export function getSourceOptions(t: TFunction) {
+    return SOURCE_VALUES.map((value) => ({ value, label: getSourceLabel(t, value) }));
+}
 
 export function formatDuration(durationMs: number | null | undefined): string {
     if (durationMs === null || durationMs === undefined) {

@@ -1,0 +1,100 @@
+{
+    "index": {
+        "header": "Serveurs",
+        "eyebrow": "Workspace",
+        "title": "Serveurs",
+        "description": "Déclarez ici les serveurs sur lesquels vos applications peuvent être déployées à distance via SSH.",
+        "newServer": "Nouveau serveur"
+    },
+    "list": {
+        "kpisTitle": "Indicateurs clés",
+        "kpisSubtitle": "Aperçu de votre parc de serveurs",
+        "kpis": {
+            "total": "Serveurs",
+            "sshKey": "Par clé SSH",
+            "password": "Par mot de passe"
+        },
+        "authOptions": {
+            "sshKey": "Clé SSH",
+            "password": "Mot de passe"
+        },
+        "toolbar": {
+            "searchPlaceholder": "Rechercher par nom, hôte ou utilisateur...",
+            "authPlaceholder": "Authentification",
+            "sortName": "Nom",
+            "sortHost": "Hôte",
+            "sortCreatedAt": "Date d'ajout"
+        },
+        "columns": {
+            "server": "Serveur",
+            "authentication": "Authentification",
+            "addedOn": "Ajouté le"
+        },
+        "actions": {
+            "testConnection": "Tester la connexion",
+            "edit": "Modifier",
+            "delete": "Supprimer"
+        },
+        "delete": {
+            "confirmTitle": "Supprimer le serveur \"{{name}}\" ?",
+            "confirmContent": "Les target×environnement qui l'utilisent perdront leur association.",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        },
+        "emptyDescription": "Aucun serveur ne correspond à ces critères",
+        "allShown": "Tous les serveurs sont affichés."
+    },
+    "form": {
+        "titleEdit": "Modifier le serveur",
+        "titleCreate": "Ajouter un serveur",
+        "nameLabel": "Nom du serveur",
+        "namePlaceholder": "ex : Serveur de production EU-West",
+        "hostLabel": "Adresse (IP ou nom d'hôte)",
+        "hostPlaceholder": "ex: 203.0.113.10",
+        "portLabel": "Port",
+        "usernameLabel": "Nom d'utilisateur",
+        "usernamePlaceholder": "ex: deploy",
+        "defaultPathLabel": "Répertoire racine par défaut",
+        "browse": "Parcourir",
+        "defaultPathHint": "Point de départ proposé lors du choix du chemin de déploiement pour ce serveur.",
+        "authMethodLabel": "Méthode d'authentification",
+        "authMethod": {
+            "sshKey": "Clé SSH",
+            "password": "Mot de passe"
+        },
+        "passwordLabel": "Mot de passe",
+        "passwordPlaceholderEdit": "Laisser vide pour ne pas modifier",
+        "privateKeyLabel": "Clé privée SSH",
+        "privateKeyPlaceholderEdit": "Laisser vide pour ne pas modifier\n-----BEGIN OPENSSH PRIVATE KEY-----\n...",
+        "privateKeyPlaceholderCreate": "-----BEGIN OPENSSH PRIVATE KEY-----\n...",
+        "passphraseLabel": "Passphrase (optionnel)",
+        "passphrasePlaceholderEdit": "Laisser vide pour ne pas modifier",
+        "editTestHint": "Le test utilise les identifiants ci-dessus s'ils sont renseignés, sinon ceux déjà enregistrés pour ce serveur.",
+        "testConnection": "Tester la connexion",
+        "responseTime": "Temps de réponse : {{ms}} ms",
+        "unexpectedError": "Erreur inattendue.",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "addServer": "Ajouter le serveur"
+    },
+    "directoryBrowser": {
+        "titleWithServer": "Parcourir {{name}}",
+        "title": "Parcourir",
+        "cancel": "Annuler",
+        "select": "Sélectionner ce dossier",
+        "searchPlaceholder": "Rechercher un dossier...",
+        "loading": "Chargement du contenu du dossier...",
+        "noSubfolders": "Aucun sous-dossier ici",
+        "noMatch": "Aucun dossier ne correspond à cette recherche",
+        "loadError": "Impossible de parcourir ce dossier."
+    },
+    "testConnection": {
+        "titleWithServer": "Tester la connexion — {{name}}",
+        "title": "Tester la connexion",
+        "retry": "Relancer le test",
+        "close": "Fermer",
+        "connecting": "Connexion en cours...",
+        "responseTime": "Temps de réponse : {{ms}} ms",
+        "unexpectedError": "Erreur inattendue lors du test."
+    }
+}

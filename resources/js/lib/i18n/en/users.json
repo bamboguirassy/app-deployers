@@ -1,0 +1,104 @@
+{
+    "index": {
+        "pageTitle": "Users",
+        "eyebrow": "Workspace",
+        "heading": "Workspace members",
+        "description": "Access, roles, and statuses are gathered in one clear, easy-to-scan view.",
+        "inviteMember": "Invite a member",
+        "modal": {
+            "title": "Invite a member",
+            "nameLabel": "Name",
+            "emailLabel": "Email",
+            "roleLabel": "Role in the workspace",
+            "noAccountNotice": "If this address doesn't have an account yet, they'll receive an email to set their password.",
+            "submit": "Invite"
+        }
+    },
+    "show": {
+        "pageHeader": "Workspace member",
+        "backToAllMembers": "All members",
+        "suspended": "Suspended",
+        "roleCard": {
+            "title": "Role in the workspace",
+            "save": "Save"
+        },
+        "actionsCard": {
+            "title": "Actions",
+            "resendVerification": "Resend verification email",
+            "resetPassword": "Reset password",
+            "reactivateAccount": "Reactivate account",
+            "suspendAccount": "Suspend account",
+            "removeFromWorkspace": "Remove from workspace"
+        },
+        "confirms": {
+            "resendVerification": {
+                "title": "Resend the verification email?",
+                "content": "A new verification email will be sent to {{email}}.",
+                "okText": "Send",
+                "cancelText": "Cancel"
+            },
+            "resetPassword": {
+                "title": "Reset the password?",
+                "content": "An email with a reset link will be sent to {{email}}.",
+                "okText": "Send",
+                "cancelText": "Cancel"
+            },
+            "reactivate": {
+                "title": "Reactivate this account?",
+                "content": "The user will be able to sign in again.",
+                "okText": "Reactivate",
+                "cancelText": "Cancel"
+            },
+            "suspend": {
+                "title": "Suspend this account?",
+                "content": "The user won't be able to sign in while the account is suspended.",
+                "okText": "Suspend",
+                "cancelText": "Cancel"
+            },
+            "remove": {
+                "title": "Remove {{name}} from the workspace?",
+                "content": "They will lose their role and access to every application in this workspace. Their account itself is not deleted.",
+                "okText": "Remove",
+                "cancelText": "Cancel"
+            }
+        },
+        "applicationsCard": {
+            "title": "Applications",
+            "noAccess": "No application access yet."
+        },
+        "activityCard": {
+            "title": "Recent activity",
+            "empty": "No activity"
+        }
+    },
+    "list": {
+        "columns": {
+            "user": "User",
+            "emailVerified": "Email verified",
+            "role": "Role",
+            "applications": "Applications",
+            "status": "Status",
+            "registration": "Joined"
+        },
+        "verified": "Verified",
+        "pending": "Pending",
+        "none": "None",
+        "suspended": "Suspended",
+        "active": "Active",
+        "kpis": {
+            "total": "Total",
+            "owners": "Owners",
+            "managers": "Managers",
+            "deployers": "Deployers",
+            "viewers": "Viewers"
+        },
+        "searchPlaceholder": "Search by name or email...",
+        "rolePlaceholder": "Role",
+        "sort": {
+            "name": "Name",
+            "email": "Email"
+        },
+        "allShown": "All members are shown.",
+        "noMatch": "No member matches these filters."
+    }
+}

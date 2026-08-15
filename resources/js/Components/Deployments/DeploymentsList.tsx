@@ -2,7 +2,7 @@ import KpiCollapse from '@/Components/KpiCollapse';
 import ListToolbar from '@/Components/ListToolbar';
 import { SourceIcon, StatusDotsIcon } from '@/Components/Deployments/DeploymentIcons';
 import StatusTag from '@/Components/StatusTag';
-import { DeploymentKpis, formatDuration, SOURCE_LABELS, SOURCE_OPTIONS, STATUS_OPTIONS } from '@/constants/deployments';
+import { DeploymentKpis, formatDuration, getSourceLabel, getSourceOptions, getStatusOptions } from '@/constants/deployments';
 import { useListSearch } from '@/hooks/useListSearch';
 import { timeAgo } from '@/lib/time';
 import { PageProps } from '@/types';
@@ -13,6 +13,8 @@ import { Avatar, Card, Empty, Spin, Table, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ArrowRight, Boxes, CheckCircle2, Clock, Filter, Hourglass, TrendingUp, XCircle } from 'lucide-react';
 import { KeyboardEvent, ReactNode, forwardRef, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
+import { dateLocale } from '@/lib/i18n';
 
 export interface DeploymentsListHandle {
     refresh: () => void;
@@ -31,6 +33,7 @@ export default forwardRef<DeploymentsListHandle, {
     ref,
 ) {
     const { workspace } = usePage<PageProps>().props;
+    const { t, i18n } = useTranslation('deployments');
     const search = useListSearch<Deployment, DeploymentKpis>(searchUrl, initialItems, initialKpis, {
         sort: 'created_at',
         direction: 'desc',
@@ -54,7 +57,7 @@ export default forwardRef<DeploymentsListHandle, {
         ...(showApplicationColumn
             ? [
                   {
-                      title: 'Application',
+                      title: t('list.columns.application'),
                       key: 'application',
                       render: (_value: unknown, d: Deployment) => (
                           <span className="applications-table__name">
@@ -73,7 +76,7 @@ export default forwardRef<DeploymentsListHandle, {
               ]
             : []),
         {
-            title: 'Target → Environnement',
+            title: t('list.columns.target'),
             key: 'target',
             render: (_value, d) => (
                 <span>
@@ -83,45 +86,45 @@ export default forwardRef<DeploymentsListHandle, {
             ),
         },
         {
-            title: 'Branche',
+            title: t('list.columns.branch'),
             dataIndex: 'branch',
             key: 'branch',
             render: (branch) => <span className="branch-chip">{branch}</span>,
         },
         {
-            title: 'Source',
+            title: t('list.columns.source'),
             dataIndex: 'trigger_source',
             key: 'trigger_source',
             render: (source) => (
                 <span className="source-chip">
                     <SourceIcon source={source} />
-                    {SOURCE_LABELS[source] ?? source}
+                    {getSourceLabel(t, source)}
                 </span>
             ),
         },
         {
-            title: 'Date',
+            title: t('list.columns.date'),
             dataIndex: 'created_at',
             key: 'created_at',
             render: (createdAt: string) => (
-                <Tooltip title={new Date(createdAt).toLocaleString('fr-FR')}>
+                <Tooltip title={new Date(createdAt).toLocaleString(dateLocale(i18n.language))}>
                     <span>{timeAgo(createdAt)}</span>
                 </Tooltip>
             ),
         },
         {
-            title: 'Statut',
+            title: t('list.columns.status'),
             dataIndex: 'status',
             key: 'status',
             render: (status) => <StatusTag status={status} />,
         },
         {
-            title: 'Durée',
+            title: t('list.columns.duration'),
             key: 'duration',
             render: (_value, d) => formatDuration(d.duration_ms),
         },
         {
-            title: 'Ouvrir',
+            title: t('list.columns.open'),
             key: 'action',
             align: 'right',
             render: (_value, d) => (
@@ -130,7 +133,7 @@ export default forwardRef<DeploymentsListHandle, {
                     className="premium-table__action"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    Ouvrir <ArrowRight size={14} />
+                    {t('list.columns.open')} <ArrowRight size={14} />
                 </Link>
             ),
         },
@@ -141,22 +144,22 @@ export default forwardRef<DeploymentsListHandle, {
             {actions}
 
             <KpiCollapse
-                title="Indicateurs clés"
+                title={t('list.kpisTitle')}
                 items={[
-                    { key: 'total', title: 'Total', value: search.kpis.total, icon: <Boxes size={14} /> },
-                    { key: 'running', title: 'En cours', value: search.kpis.running, icon: <Clock size={14} /> },
-                    { key: 'succes', title: 'Succès', value: search.kpis.succes, icon: <CheckCircle2 size={14} /> },
-                    { key: 'echec', title: 'Échecs', value: search.kpis.echec, icon: <XCircle size={14} /> },
+                    { key: 'total', title: t('list.kpis.total'), value: search.kpis.total, icon: <Boxes size={14} /> },
+                    { key: 'running', title: t('list.kpis.running'), value: search.kpis.running, icon: <Clock size={14} /> },
+                    { key: 'succes', title: t('list.kpis.succes'), value: search.kpis.succes, icon: <CheckCircle2 size={14} /> },
+                    { key: 'echec', title: t('list.kpis.echec'), value: search.kpis.echec, icon: <XCircle size={14} /> },
                     {
                         key: 'success_rate',
-                        title: 'Taux de succès',
+                        title: t('list.kpis.successRate'),
                         value: search.kpis.success_rate,
                         suffix: '%',
                         icon: <TrendingUp size={14} />,
                     },
                     {
                         key: 'avg_duration_ms',
-                        title: 'Durée moyenne',
+                        title: t('list.kpis.avgDuration'),
                         value: Math.round(search.kpis.avg_duration_ms / 1000),
                         suffix: 's',
                         icon: <Hourglass size={14} />,
@@ -168,17 +171,17 @@ export default forwardRef<DeploymentsListHandle, {
                 <ListToolbar
                     search={search.search}
                     onSearchChange={search.setSearch}
-                    searchPlaceholder="Rechercher par branche ou commit..."
+                    searchPlaceholder={t('list.toolbar.searchPlaceholder')}
                     filters={[
-                        { key: 'status', placeholder: 'Statut', options: STATUS_OPTIONS, icon: <StatusDotsIcon /> },
-                        { key: 'trigger_source', placeholder: 'Source', options: SOURCE_OPTIONS, icon: <Filter size={14} /> },
+                        { key: 'status', placeholder: t('list.toolbar.statusPlaceholder'), options: getStatusOptions(t), icon: <StatusDotsIcon /> },
+                        { key: 'trigger_source', placeholder: t('list.toolbar.sourcePlaceholder'), options: getSourceOptions(t), icon: <Filter size={14} /> },
                     ]}
                     filterValues={search.filters}
                     onFilterChange={search.setFilter}
                     sortOptions={[
-                        { value: 'created_at', label: 'Date' },
-                        { value: 'duration_ms', label: 'Durée' },
-                        { value: 'status', label: 'Statut' },
+                        { value: 'created_at', label: t('list.toolbar.sortDate') },
+                        { value: 'duration_ms', label: t('list.toolbar.sortDuration') },
+                        { value: 'status', label: t('list.toolbar.sortStatus') },
                     ]}
                     sort={search.sort}
                     direction={search.direction}
@@ -191,7 +194,7 @@ export default forwardRef<DeploymentsListHandle, {
 
             {search.items.length === 0 && !search.loading ? (
                 <Card>
-                    <Empty description="Aucun déploiement ne correspond à ces critères">{emptyAction}</Empty>
+                    <Empty description={t('list.emptyDescription')}>{emptyAction}</Empty>
                 </Card>
             ) : (
                 <>
@@ -220,11 +223,11 @@ export default forwardRef<DeploymentsListHandle, {
                         {search.loading && (
                             <>
                                 <Spin size="small" />
-                                <span className="section-hint">Chargement de plus de déploiements...</span>
+                                <span className="section-hint">{t('list.loadingMore')}</span>
                             </>
                         )}
                         {!search.hasMore && !search.loading && search.items.length > 0 && (
-                            <span className="section-hint">Tous les déploiements sont affichés.</span>
+                            <span className="section-hint">{t('list.allShown')}</span>
                         )}
                     </div>
                 </>

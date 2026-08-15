@@ -2,7 +2,7 @@ import KpiCollapse from '@/Components/KpiCollapse';
 import ListToolbar from '@/Components/ListToolbar';
 import { SourceIcon, StatusDotsIcon } from '@/Components/Deployments/DeploymentIcons';
 import StatusTag from '@/Components/StatusTag';
-import { formatDuration, SOURCE_LABELS, SOURCE_OPTIONS, STATUS_OPTIONS } from '@/constants/deployments';
+import { formatDuration, getSourceLabel, getSourceOptions, getStatusOptions } from '@/constants/deployments';
 import { useListSearch } from '@/hooks/useListSearch';
 import { Deployment } from '@/types/models';
 import { router } from '@inertiajs/react';
@@ -10,6 +10,8 @@ import { Avatar, Button, Card, Empty, Spin, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ArrowRight, Boxes, Clock, Filter, XCircle } from 'lucide-react';
 import { KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { dateLocale } from '@/lib/i18n';
 
 export interface AdminDeploymentMonitorKpis {
     total: number;
@@ -49,6 +51,7 @@ export default function DeploymentsMonitor({
     initialItems: AdminDeploymentRow[];
     initialKpis: AdminDeploymentMonitorKpis;
 }) {
+    const { t, i18n } = useTranslation('admin');
     const search = useListSearch<AdminDeploymentRow, AdminDeploymentMonitorKpis>(searchUrl, initialItems, initialKpis, {
         sort: 'created_at',
         direction: 'desc',
@@ -58,7 +61,7 @@ export default function DeploymentsMonitor({
 
     const columns: ColumnsType<AdminDeploymentRow> = [
         {
-            title: 'Workspace / Application',
+            title: t('deploymentsMonitor.columns.workspaceApplication'),
             key: 'workspace',
             fixed: 'left',
             width: 240,
@@ -83,7 +86,7 @@ export default function DeploymentsMonitor({
             },
         },
         {
-            title: 'Target → Environnement',
+            title: t('deploymentsMonitor.columns.targetEnvironment'),
             key: 'target',
             width: 220,
             render: (_value, d) => (
@@ -94,45 +97,45 @@ export default function DeploymentsMonitor({
             ),
         },
         {
-            title: 'Branche',
+            title: t('deploymentsMonitor.columns.branch'),
             dataIndex: 'branch',
             key: 'branch',
             width: 150,
             render: (branch) => <span className="branch-chip" title={branch}>{branch}</span>,
         },
         {
-            title: 'Source',
+            title: t('deploymentsMonitor.columns.source'),
             dataIndex: 'trigger_source',
             key: 'trigger_source',
             width: 140,
             render: (source) => (
                 <span className="source-chip">
                     <SourceIcon source={source} />
-                    {SOURCE_LABELS[source] ?? source}
+                    {getSourceLabel(t, source)}
                 </span>
             ),
         },
         {
-            title: 'Statut',
+            title: t('deploymentsMonitor.columns.status'),
             dataIndex: 'status',
             key: 'status',
             width: 130,
             render: (status) => <StatusTag status={status} />,
         },
         {
-            title: 'Durée',
+            title: t('deploymentsMonitor.columns.duration'),
             key: 'duration',
             width: 100,
             render: (_value, d) => formatDuration(d.duration_ms),
         },
         {
-            title: 'Déclenché le',
+            title: t('deploymentsMonitor.columns.triggeredAt'),
             key: 'created_at',
             width: 170,
-            render: (_value, d) => new Date(d.created_at).toLocaleString('fr-FR'),
+            render: (_value, d) => new Date(d.created_at).toLocaleString(dateLocale(i18n.language)),
         },
         {
-            title: 'Ouvrir',
+            title: t('deploymentsMonitor.columns.open'),
             key: 'action',
             align: 'right',
             fixed: 'right',
@@ -147,7 +150,7 @@ export default function DeploymentsMonitor({
                         router.visit(getRowHref(d));
                     }}
                 >
-                    Ouvrir <ArrowRight size={14} />
+                    {t('deploymentsMonitor.columns.open')} <ArrowRight size={14} />
                 </a>
             ),
         },
@@ -156,13 +159,13 @@ export default function DeploymentsMonitor({
     return (
         <div>
             <KpiCollapse
-                title="Indicateurs clés"
-                subtitle="Toutes plateformes confondues"
+                title={t('deploymentsMonitor.kpiTitle')}
+                subtitle={t('deploymentsMonitor.kpiSubtitle')}
                 items={[
-                    { key: 'total', title: 'Total', value: search.kpis.total, icon: <Boxes size={14} /> },
-                    { key: 'running', title: 'En cours', value: search.kpis.running, icon: <Clock size={14} /> },
-                    { key: 'echec', title: 'Échecs (total)', value: search.kpis.echec, icon: <XCircle size={14} /> },
-                    { key: 'echec_24h', title: 'Échecs (24h)', value: search.kpis.echec_24h, icon: <XCircle size={14} /> },
+                    { key: 'total', title: t('deploymentsMonitor.kpis.total'), value: search.kpis.total, icon: <Boxes size={14} /> },
+                    { key: 'running', title: t('deploymentsMonitor.kpis.running'), value: search.kpis.running, icon: <Clock size={14} /> },
+                    { key: 'echec', title: t('deploymentsMonitor.kpis.echec'), value: search.kpis.echec, icon: <XCircle size={14} /> },
+                    { key: 'echec_24h', title: t('deploymentsMonitor.kpis.echec24h'), value: search.kpis.echec_24h, icon: <XCircle size={14} /> },
                 ]}
             />
 
@@ -170,17 +173,17 @@ export default function DeploymentsMonitor({
                 <ListToolbar
                     search={search.search}
                     onSearchChange={search.setSearch}
-                    searchPlaceholder="Rechercher par branche ou commit..."
+                    searchPlaceholder={t('deploymentsMonitor.searchPlaceholder')}
                     filters={[
-                        { key: 'status', placeholder: 'Statut', options: STATUS_OPTIONS, icon: <StatusDotsIcon /> },
-                        { key: 'trigger_source', placeholder: 'Source', options: SOURCE_OPTIONS, icon: <Filter size={14} /> },
+                        { key: 'status', placeholder: t('deploymentsMonitor.statusFilterPlaceholder'), options: getStatusOptions(t), icon: <StatusDotsIcon /> },
+                        { key: 'trigger_source', placeholder: t('deploymentsMonitor.columns.source'), options: getSourceOptions(t), icon: <Filter size={14} /> },
                     ]}
                     filterValues={search.filters}
                     onFilterChange={search.setFilter}
                     sortOptions={[
-                        { value: 'created_at', label: 'Date' },
-                        { value: 'duration_ms', label: 'Durée' },
-                        { value: 'status', label: 'Statut' },
+                        { value: 'created_at', label: t('deploymentsMonitor.sortOptions.date') },
+                        { value: 'duration_ms', label: t('deploymentsMonitor.sortOptions.duration') },
+                        { value: 'status', label: t('deploymentsMonitor.sortOptions.status') },
                     ]}
                     sort={search.sort}
                     direction={search.direction}
@@ -195,13 +198,13 @@ export default function DeploymentsMonitor({
                     icon={<XCircle size={14} />}
                     onClick={() => search.setFilter('status', search.filters.status === 'echec' ? null : 'echec')}
                 >
-                    Voir les échecs
+                    {t('deploymentsMonitor.viewFailures')}
                 </Button>
             </div>
 
             {search.items.length === 0 && !search.loading ? (
                 <Card>
-                    <Empty description="Aucun déploiement ne correspond à ces critères" />
+                    <Empty description={t('deploymentsMonitor.empty')} />
                 </Card>
             ) : (
                 <>
@@ -230,11 +233,11 @@ export default function DeploymentsMonitor({
                         {search.loading && (
                             <>
                                 <Spin size="small" />
-                                <span className="section-hint">Chargement de plus de déploiements...</span>
+                                <span className="section-hint">{t('deploymentsMonitor.loadingMore')}</span>
                             </>
                         )}
                         {!search.hasMore && !search.loading && search.items.length > 0 && (
-                            <span className="section-hint">Tous les déploiements sont affichés.</span>
+                            <span className="section-hint">{t('deploymentsMonitor.allShown')}</span>
                         )}
                     </div>
                 </>

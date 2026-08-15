@@ -1,0 +1,78 @@
+{
+    "meta": {
+        "headerTitle": "Billing",
+        "eyebrow": "Workspace",
+        "title": "Billing",
+        "subtitle": "Choose the plan that fits your team. Switch anytime."
+    },
+    "errors": {
+        "notConfigured": "Online billing isn't set up yet. Please contact support.",
+        "checkoutFailed": "We couldn't start the checkout right now."
+    },
+    "pastDue": {
+        "title": "Payment failed",
+        "descriptionWithDays": "Your last payment failed. Your current plan stays active for {{days}} more day(s) before automatically reverting to the Free plan.",
+        "description": "Your last payment failed."
+    },
+    "interval": {
+        "monthly": "Monthly",
+        "yearly": "Yearly — 2 months free",
+        "monthlyLabel": "monthly",
+        "yearlyLabel": "yearly"
+    },
+    "tooltip": {
+        "ownerOnly": "Only the workspace owner can change the plan",
+        "notConfigured": "{{interval}} billing isn't set up yet for this plan"
+    },
+    "units": {
+        "application": "application",
+        "applications": "applications",
+        "deployment": "concurrent deployment",
+        "deployments": "concurrent deployments"
+    },
+    "features": {
+        "unlimited": "Unlimited {{unit}}",
+        "count": "{{count}} {{unit}}"
+    },
+    "plans": {
+        "currentPlan": "Current plan",
+        "free": {
+            "name": "Free",
+            "perMonth": "/ month",
+            "tagline": "Explore the platform and deploy your first project.",
+            "currentButton": "Current plan",
+            "includedButton": "Included in your plan",
+            "webhooks": "Git webhooks (GitHub, GitLab, Bitbucket)",
+            "history": "Deployment history",
+            "logs": "Live logs"
+        },
+        "pro": {
+            "name": "Pro",
+            "recommended": "Recommended",
+            "perMonth": "/ month",
+            "perMonthYearlySuffix": ", billed yearly",
+            "yearlyNote": "{{price}}€ billed once a year — save {{savings}}€ vs monthly",
+            "tagline": "For teams deploying to production, without limits.",
+            "allFreeFeatures": "Everything in the Free plan",
+            "unlimitedApplications": "Unlimited applications",
+            "prioritySupport": "Priority support",
+            "upgradeButton": "Upgrade to {{name}}",
+            "compedButton": "Current plan — provided by our team",
+            "currentButton": "Current plan",
+            "renewsAt": " — renews on {{date}}"
+        }
+    },
+    "usage": {
+        "title": "Current usage",
+        "applications": "Applications",
+        "deploymentsAllowed": "Allowed concurrent deployments",
+        "unlimited": "Unlimited"
+    },
+    "footer": {
+        "prefix": "Upgrading to a paid plan is billed by our partner Paddle. By subscribing, you agree to our ",
+        "termsLink": "terms of service",
+        "middle": " and our ",
+        "refundsLink": "refund policy",
+        "suffix": "."
+    }
+}

@@ -6,12 +6,14 @@ import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { Modal } from 'antd';
 import { FormEventHandler, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function DeleteUserForm({
     className = '',
 }: {
     className?: string;
 }) {
+    const { t } = useTranslation('profile');
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef<HTMLInputElement>(null);
 
@@ -52,17 +54,15 @@ export default function DeleteUserForm({
     return (
         <section className={className}>
             <header>
-                <h2 className="section-title">Supprimer le compte</h2>
+                <h2 className="section-title">{t('deleteUser.title')}</h2>
                 <p className="section-hint">
-                    Une fois votre compte supprimé, toutes ses ressources et
-                    données seront définitivement effacées. Téléchargez ce
-                    que vous souhaitez conserver avant de continuer.
+                    {t('deleteUser.hint')}
                 </p>
             </header>
 
             <div style={{ marginTop: 16 }}>
                 <DangerButton onClick={confirmUserDeletion}>
-                    Supprimer le compte
+                    {t('deleteUser.deleteButton')}
                 </DangerButton>
             </div>
 
@@ -70,19 +70,18 @@ export default function DeleteUserForm({
                 open={confirmingUserDeletion}
                 onCancel={closeModal}
                 footer={null}
-                title="Êtes-vous sûr de vouloir supprimer votre compte ?"
+                title={t('deleteUser.modalTitle')}
                 destroyOnHidden
             >
                 <form onSubmit={deleteUser}>
                     <p className="section-hint">
-                        Cette action est irréversible. Merci de saisir votre
-                        mot de passe pour confirmer.
+                        {t('deleteUser.modalHint')}
                     </p>
 
                     <div style={{ marginTop: 16 }}>
                         <InputLabel
                             htmlFor="password"
-                            value="Mot de passe"
+                            value={t('deleteUser.passwordLabel')}
                             className="sr-only"
                         />
 
@@ -97,7 +96,7 @@ export default function DeleteUserForm({
                             }
                             className="w-full"
                             isFocused
-                            placeholder="Mot de passe"
+                            placeholder={t('deleteUser.passwordPlaceholder')}
                         />
 
                         <InputError message={errors.password} />
@@ -105,11 +104,11 @@ export default function DeleteUserForm({
 
                     <div className="form-actions form-actions--end" style={{ marginTop: 24 }}>
                         <SecondaryButton onClick={closeModal}>
-                            Annuler
+                            {t('deleteUser.cancel')}
                         </SecondaryButton>
 
                         <DangerButton disabled={processing}>
-                            Supprimer le compte
+                            {t('deleteUser.confirmDelete')}
                         </DangerButton>
                     </div>
                 </form>

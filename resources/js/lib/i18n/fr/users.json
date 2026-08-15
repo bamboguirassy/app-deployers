@@ -1,0 +1,104 @@
+{
+    "index": {
+        "pageTitle": "Utilisateurs",
+        "eyebrow": "Workspace",
+        "heading": "Membres du workspace",
+        "description": "Les accès, rôles et statuts sont regroupés dans une vue claire et rapide à parcourir.",
+        "inviteMember": "Inviter un membre",
+        "modal": {
+            "title": "Inviter un membre",
+            "nameLabel": "Nom",
+            "emailLabel": "Email",
+            "roleLabel": "Rôle dans le workspace",
+            "noAccountNotice": "Si cette adresse n'a pas encore de compte, un email lui sera envoyé pour définir son mot de passe.",
+            "submit": "Inviter"
+        }
+    },
+    "show": {
+        "pageHeader": "Membre du workspace",
+        "backToAllMembers": "Tous les membres",
+        "suspended": "Suspendu",
+        "roleCard": {
+            "title": "Rôle dans le workspace",
+            "save": "Enregistrer"
+        },
+        "actionsCard": {
+            "title": "Actions",
+            "resendVerification": "Renvoyer l'email de vérification",
+            "resetPassword": "Réinitialiser le mot de passe",
+            "reactivateAccount": "Réactiver le compte",
+            "suspendAccount": "Suspendre le compte",
+            "removeFromWorkspace": "Retirer du workspace"
+        },
+        "confirms": {
+            "resendVerification": {
+                "title": "Renvoyer l'email de vérification ?",
+                "content": "Un nouvel email de vérification sera envoyé à {{email}}.",
+                "okText": "Envoyer",
+                "cancelText": "Annuler"
+            },
+            "resetPassword": {
+                "title": "Réinitialiser le mot de passe ?",
+                "content": "Un email avec un lien de réinitialisation sera envoyé à {{email}}.",
+                "okText": "Envoyer",
+                "cancelText": "Annuler"
+            },
+            "reactivate": {
+                "title": "Réactiver ce compte ?",
+                "content": "L'utilisateur pourra de nouveau se connecter.",
+                "okText": "Réactiver",
+                "cancelText": "Annuler"
+            },
+            "suspend": {
+                "title": "Suspendre ce compte ?",
+                "content": "L'utilisateur ne pourra plus se connecter tant que le compte est suspendu.",
+                "okText": "Suspendre",
+                "cancelText": "Annuler"
+            },
+            "remove": {
+                "title": "Retirer {{name}} du workspace ?",
+                "content": "Il perdra son rôle et l'accès à toutes les applications de ce workspace. Son compte n'est pas supprimé.",
+                "okText": "Retirer",
+                "cancelText": "Annuler"
+            }
+        },
+        "applicationsCard": {
+            "title": "Applications",
+            "noAccess": "Aucun accès à une application pour le moment."
+        },
+        "activityCard": {
+            "title": "Activité récente",
+            "empty": "Aucune activité"
+        }
+    },
+    "list": {
+        "columns": {
+            "user": "Utilisateur",
+            "emailVerified": "Email vérifié",
+            "role": "Rôle",
+            "applications": "Applications",
+            "status": "Statut",
+            "registration": "Inscription"
+        },
+        "verified": "Vérifié",
+        "pending": "En attente",
+        "none": "Aucune",
+        "suspended": "Suspendu",
+        "active": "Actif",
+        "kpis": {
+            "total": "Total",
+            "owners": "Owners",
+            "managers": "Managers",
+            "deployers": "Deployers",
+            "viewers": "Viewers"
+        },
+        "searchPlaceholder": "Rechercher par nom ou email...",
+        "rolePlaceholder": "Rôle",
+        "sort": {
+            "name": "Nom",
+            "email": "Email"
+        },
+        "allShown": "Tous les membres sont affichés.",
+        "noMatch": "Aucun membre ne correspond à ces critères."
+    }
+}

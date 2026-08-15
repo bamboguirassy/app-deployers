@@ -4,6 +4,7 @@ import { useEcho } from '@laravel/echo-react';
 import { Badge, Dropdown, Empty, Tooltip, Typography } from 'antd';
 import { ArrowRight, Rocket } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 
@@ -16,6 +17,7 @@ const { Text } = Typography;
  */
 export default function ActiveDeploymentsBell() {
     const { workspace, activeDeployments } = usePage<PageProps>().props;
+    const { t } = useTranslation('common');
     const [items, setItems] = useState<ActiveDeploymentEntry[]>(activeDeployments?.items ?? []);
 
     useEcho(
@@ -60,7 +62,7 @@ export default function ActiveDeploymentsBell() {
                       {
                           key: 'empty',
                           disabled: true,
-                          label: <Empty description="Aucun déploiement en cours" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+                          label: <Empty description={t('activeDeployments.empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} />,
                       },
                   ]
                 : items.map((item) => ({
@@ -83,11 +85,11 @@ export default function ActiveDeploymentsBell() {
 
     return (
         <Dropdown menu={menu} trigger={['click']} placement="bottomRight" getPopupContainer={() => document.body}>
-            <Tooltip title="Déploiements en cours">
+            <Tooltip title={t('activeDeployments.title')}>
                 <button
                     type="button"
                     className="app-shell__icon-btn active-deployments-trigger"
-                    aria-label="Déploiements en cours"
+                    aria-label={t('activeDeployments.title')}
                 >
                     <Badge count={items.length} size="small" offset={[-2, 2]}>
                         <Rocket size={18} />

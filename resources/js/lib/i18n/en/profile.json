@@ -1,0 +1,37 @@
+{
+    "edit": {
+        "pageTitle": "Profile",
+        "headerTitle": "Profile"
+    },
+    "deleteUser": {
+        "title": "Delete account",
+        "hint": "Once your account is deleted, all of its resources and data will be permanently erased. Please download anything you'd like to keep before continuing.",
+        "deleteButton": "Delete account",
+        "modalTitle": "Are you sure you want to delete your account?",
+        "modalHint": "This action cannot be undone. Please enter your password to confirm.",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Password",
+        "cancel": "Cancel",
+        "confirmDelete": "Delete account"
+    },
+    "updatePassword": {
+        "title": "Update password",
+        "hint": "Use a long, unique password to keep your account secure.",
+        "currentPasswordLabel": "Current password",
+        "newPasswordLabel": "New password",
+        "confirmPasswordLabel": "Confirm password",
+        "save": "Save",
+        "saved": "Saved."
+    },
+    "updateProfileInformation": {
+        "title": "Profile information",
+        "hint": "Update your account's name and email address.",
+        "nameLabel": "Name",
+        "emailLabel": "Email",
+        "emailUnverified": "Your email address is unverified.",
+        "resendVerification": "Click here to re-send the verification email.",
+        "verificationSent": "A new verification link has been sent.",
+        "save": "Save",
+        "saved": "Saved."
+    }
+}

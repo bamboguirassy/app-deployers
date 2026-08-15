@@ -6,6 +6,7 @@ import { Application, Framework } from '@/types/models';
 import { useForm, usePage } from '@inertiajs/react';
 import { Input, Modal } from 'antd';
 import { FormEventHandler } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function CreateTargetModal({
     application,
@@ -20,6 +21,7 @@ export default function CreateTargetModal({
     onClose: () => void;
     onCreated: (targetId: string) => void;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
@@ -39,10 +41,10 @@ export default function CreateTargetModal({
     };
 
     return (
-        <Modal title="Nouveau target" open={open} onCancel={onClose} footer={null} destroyOnClose>
+        <Modal title={t('createTargetModal.title')} open={open} onCancel={onClose} footer={null} destroyOnClose>
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor="framework" value="Framework / stack" />
+                    <InputLabel htmlFor="framework" value={t('createTargetModal.frameworkLabel')} />
                     <FrameworkSelect
                         id="framework"
                         frameworks={frameworks}
@@ -58,10 +60,10 @@ export default function CreateTargetModal({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="name" value="Nom du target" />
+                    <InputLabel htmlFor="name" value={t('createTargetModal.nameLabel')} />
                     <Input
                         id="name"
-                        placeholder="ex: Backend, Frontend, Worker..."
+                        placeholder={t('createTargetModal.namePlaceholder')}
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                     />
@@ -69,7 +71,7 @@ export default function CreateTargetModal({
                 </div>
 
                 <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
-                    <PrimaryButton disabled={processing}>Créer</PrimaryButton>
+                    <PrimaryButton disabled={processing}>{t('createTargetModal.submit')}</PrimaryButton>
                 </div>
             </form>
         </Modal>

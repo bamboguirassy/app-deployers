@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { AdminWorkspace } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -13,18 +14,20 @@ export default function List({
     workspaces: { data: AdminWorkspace[] };
     kpis: WorkspaceKpis;
 }) {
+    const { t } = useTranslation('admin');
+
     return (
-        <AdminLayout breadcrumbs={[{ label: 'Administration', href: route('admin.dashboard') }, { label: 'Workspaces' }]}>
-            <Head title="Administration — Workspaces" />
+        <AdminLayout breadcrumbs={[{ label: t('layout.breadcrumbFallback'), href: route('admin.dashboard') }, { label: t('layout.nav.workspaces') }]}>
+            <Head title={t('workspacesList.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Plateforme</div>
+                    <div className="premium-list-eyebrow">{t('workspacesList.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Workspaces
+                        {t('workspacesList.heading')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Consultez et gérez tous les workspaces créés sur la plateforme.
+                        {t('workspacesList.subtitle')}
                     </Paragraph>
                 </div>
             </div>

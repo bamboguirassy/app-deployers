@@ -5,6 +5,7 @@ import { Application } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Modal, Select } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type DeployableApplication = Pick<Application, 'id' | 'name' | 'slug' | 'targets'>;
 
@@ -21,6 +22,7 @@ export default function NewDeploymentModal({
     onClose: () => void;
     onDeployed?: () => void;
 }) {
+    const { t } = useTranslation('deployments');
     const [applicationId, setApplicationId] = useState<number | null>(null);
     const [target, setTarget] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -53,23 +55,23 @@ export default function NewDeploymentModal({
 
     return (
         <Modal
-            title="Nouveau déploiement"
+            title={t('newModal.title')}
             open={open}
             onCancel={() => {
                 reset();
                 onClose();
             }}
             onOk={submit}
-            okText="Déployer"
+            okText={t('newModal.okText')}
             okButtonProps={{ disabled: !target, loading: submitting }}
             destroyOnClose
         >
             <div className="form-stack">
                 <div>
-                    <InputLabel value="Application" />
+                    <InputLabel value={t('newModal.applicationLabel')} />
                     <Select
                         className="w-full"
-                        placeholder="Choisir une application"
+                        placeholder={t('newModal.applicationPlaceholder')}
                         showSearch
                         optionFilterProp="label"
                         value={applicationId ?? undefined}
@@ -82,10 +84,10 @@ export default function NewDeploymentModal({
                 </div>
 
                 <div>
-                    <InputLabel value="Target / Environnement" />
+                    <InputLabel value={t('newModal.targetLabel')} />
                     <Select
                         className="w-full"
-                        placeholder={application ? 'Choisir une cible' : "Choisissez d'abord une application"}
+                        placeholder={application ? t('newModal.targetPlaceholder') : t('newModal.targetPlaceholderNoApp')}
                         disabled={!application}
                         value={target ?? undefined}
                         onChange={setTarget}
@@ -93,7 +95,7 @@ export default function NewDeploymentModal({
                     />
                     {application && options.length === 0 && (
                         <p className="section-hint" style={{ marginTop: 4 }}>
-                            Aucun target/environnement configuré pour cette application.
+                            {t('newModal.noTargetConfigured')}
                         </p>
                     )}
                 </div>

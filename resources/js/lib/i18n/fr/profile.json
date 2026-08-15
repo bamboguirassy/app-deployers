@@ -1,0 +1,37 @@
+{
+    "edit": {
+        "pageTitle": "Profile",
+        "headerTitle": "Profil"
+    },
+    "deleteUser": {
+        "title": "Supprimer le compte",
+        "hint": "Une fois votre compte supprimé, toutes ses ressources et données seront définitivement effacées. Téléchargez ce que vous souhaitez conserver avant de continuer.",
+        "deleteButton": "Supprimer le compte",
+        "modalTitle": "Êtes-vous sûr de vouloir supprimer votre compte ?",
+        "modalHint": "Cette action est irréversible. Merci de saisir votre mot de passe pour confirmer.",
+        "passwordLabel": "Mot de passe",
+        "passwordPlaceholder": "Mot de passe",
+        "cancel": "Annuler",
+        "confirmDelete": "Supprimer le compte"
+    },
+    "updatePassword": {
+        "title": "Mettre à jour le mot de passe",
+        "hint": "Utilisez un mot de passe long et unique pour sécuriser votre compte.",
+        "currentPasswordLabel": "Mot de passe actuel",
+        "newPasswordLabel": "Nouveau mot de passe",
+        "confirmPasswordLabel": "Confirmer le mot de passe",
+        "save": "Enregistrer",
+        "saved": "Enregistré."
+    },
+    "updateProfileInformation": {
+        "title": "Informations du profil",
+        "hint": "Mettez à jour votre nom et votre adresse email.",
+        "nameLabel": "Nom",
+        "emailLabel": "Email",
+        "emailUnverified": "Votre adresse email n'est pas vérifiée.",
+        "resendVerification": "Cliquez ici pour renvoyer l'email de vérification.",
+        "verificationSent": "Un nouveau lien de vérification a été envoyé.",
+        "save": "Enregistrer",
+        "saved": "Enregistré."
+    }
+}

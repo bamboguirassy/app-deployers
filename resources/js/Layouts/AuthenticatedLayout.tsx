@@ -25,6 +25,7 @@ import {
     Users,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const COLLAPSE_STORAGE_KEY = 'app-deployers:sidebar-collapsed';
 
@@ -60,6 +61,7 @@ export default function Authenticated({
     actions?: ReactNode;
 }>) {
     const { auth, workspace, workspaces, flash } = usePage<PageProps>().props;
+    const { t } = useTranslation('dashboard');
     const user = auth.user;
     const [mobileOpen, setMobileOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1');
@@ -85,38 +87,38 @@ export default function Authenticated({
               {
                   key: 'dashboard',
                   icon: <LayoutDashboard size={16} />,
-                  label: <Link href={route('dashboard', wsSlug)}>Dashboard</Link>,
+                  label: <Link href={route('dashboard', wsSlug)}>{t('nav.dashboard')}</Link>,
               },
               {
                   key: 'deployments',
                   icon: <History size={16} />,
-                  label: <Link href={route('deployments.all', wsSlug)}>Déploiements</Link>,
+                  label: <Link href={route('deployments.all', wsSlug)}>{t('nav.deployments')}</Link>,
               },
               {
                   key: 'applications',
                   icon: <Boxes size={16} />,
-                  label: <Link href={route('applications.index', wsSlug)}>Applications</Link>,
+                  label: <Link href={route('applications.index', wsSlug)}>{t('nav.applications')}</Link>,
               },
               ...(canManageServers
                   ? [
                         {
                             key: 'servers',
                             icon: <ServerIcon size={16} />,
-                            label: <Link href={route('servers.index', wsSlug)}>Serveurs</Link>,
+                            label: <Link href={route('servers.index', wsSlug)}>{t('nav.servers')}</Link>,
                         },
                     ]
                   : []),
               {
                   key: 'users',
                   icon: <Users size={16} />,
-                  label: <Link href={route('users.index', wsSlug)}>Utilisateurs</Link>,
+                  label: <Link href={route('users.index', wsSlug)}>{t('nav.users')}</Link>,
               },
           ]
         : [
               {
                   key: 'home',
                   icon: <LayoutDashboard size={16} />,
-                  label: <Link href={route('home')}>Retour au workspace</Link>,
+                  label: <Link href={route('home')}>{t('nav.backToWorkspace')}</Link>,
               },
           ];
 
@@ -130,7 +132,7 @@ export default function Authenticated({
         {
             key: 'ws-create',
             icon: <Plus size={14} />,
-            label: <Link href={route('workspaces.create')}>Nouveau workspace</Link>,
+            label: <Link href={route('workspaces.create')}>{t('nav.newWorkspace')}</Link>,
         },
     ];
 
@@ -153,7 +155,7 @@ export default function Authenticated({
                         {
                             key: 'plan',
                             disabled: true,
-                            label: <span className="app-shell__account-plan-label">Plan actuel : {workspace.plan.name}</span>,
+                            label: <span className="app-shell__account-plan-label">{t('account.currentPlan', { plan: workspace.plan.name })}</span>,
                         },
                         { type: 'divider' as const },
                     ]
@@ -161,7 +163,7 @@ export default function Authenticated({
               {
                   key: 'billing',
                   icon: <CreditCard size={14} />,
-                  label: <Link href={route('billing.show', wsSlug)}>Facturation</Link>,
+                  label: <Link href={route('billing.show', wsSlug)}>{t('account.billing')}</Link>,
               },
           ]
         : [];
@@ -170,14 +172,14 @@ export default function Authenticated({
         {
             key: 'profile',
             icon: <UserIcon size={14} />,
-            label: <Link href={route('profile.edit')}>Profil</Link>,
+            label: <Link href={route('profile.edit')}>{t('account.profile')}</Link>,
         },
         ...(user.is_super_admin
             ? [
                   {
                       key: 'admin',
                       icon: <ShieldCheck size={14} />,
-                      label: <Link href={route('admin.dashboard')}>Administration</Link>,
+                      label: <Link href={route('admin.dashboard')}>{t('account.administration')}</Link>,
                   },
               ]
             : []),
@@ -187,7 +189,7 @@ export default function Authenticated({
             danger: true,
             label: (
                 <Link href={route('logout')} method="post" as="button">
-                    Déconnexion
+                    {t('account.logout')}
                 </Link>
             ),
         },
@@ -206,7 +208,7 @@ export default function Authenticated({
                         type="button"
                         className="app-shell__collapse-toggle"
                         onClick={() => setCollapsed((c) => !c)}
-                        aria-label={collapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
+                        aria-label={collapsed ? t('nav.openMenu') : t('nav.closeMenu')}
                     >
                         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
                     </button>
@@ -229,7 +231,7 @@ export default function Authenticated({
             {wsSlug && canCreateApplication && (!isDesktop || !collapsed) && (
                 <div className="app-shell__cta">
                     <Link href={route('applications.create', wsSlug)} className="app-shell__cta-btn">
-                        <Plus size={14} /> Nouvelle application
+                        <Plus size={14} /> {t('nav.newApplication')}
                     </Link>
                 </div>
             )}
@@ -250,7 +252,7 @@ export default function Authenticated({
                 placement="topLeft"
                 getPopupContainer={() => document.body}
             >
-                <button type="button" className="app-shell__account" aria-label="Compte">
+                <button type="button" className="app-shell__account" aria-label={t('account.account')}>
                     <Avatar size={32}>{user.name.charAt(0).toUpperCase()}</Avatar>
                     {(!isDesktop || !collapsed) && (
                         <>
@@ -297,7 +299,7 @@ export default function Authenticated({
                             type="button"
                             className="app-shell__hamburger"
                             onClick={() => setMobileOpen(true)}
-                            aria-label="Ouvrir le menu"
+                            aria-label={t('nav.openMenu')}
                         >
                             <MenuIcon size={20} />
                         </button>
@@ -315,17 +317,17 @@ export default function Authenticated({
                                     </span>
                                 ))
                             ) : (
-                                <span className="app-shell__header-title">{header ?? 'Dashboard'}</span>
+                                <span className="app-shell__header-title">{header ?? t('nav.dashboard')}</span>
                             )}
                         </div>
                     </div>
 
                     <div className="app-shell__header-right">
-                        <Tooltip title="Recherche globale (bientôt disponible)">
+                        <Tooltip title={t('header.globalSearchSoon')}>
                             <Input
                                 className="app-shell__search"
                                 prefix={<Search size={14} />}
-                                placeholder="Rechercher..."
+                                placeholder={t('header.search')}
                                 suffix={<span className="app-shell__search-kbd">⌘K</span>}
                                 disabled
                             />
@@ -333,8 +335,8 @@ export default function Authenticated({
 
                         <ActiveDeploymentsBell />
 
-                        <Tooltip title="Aide (bientôt disponible)">
-                            <button type="button" className="app-shell__icon-btn" aria-label="Aide (bientôt disponible)" disabled>
+                        <Tooltip title={t('header.help')}>
+                            <button type="button" className="app-shell__icon-btn" aria-label={t('header.help')} disabled>
                                 <HelpCircle size={18} />
                             </button>
                         </Tooltip>

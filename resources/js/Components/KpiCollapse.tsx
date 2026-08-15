@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface KpiItem {
     key: string;
@@ -10,17 +11,19 @@ export interface KpiItem {
 
 export default function KpiCollapse({
     items,
-    title = 'Indicateurs clés',
+    title,
     subtitle,
 }: {
     items: KpiItem[];
     title?: string;
     subtitle?: string;
 }) {
+    const { t } = useTranslation('common');
+
     return (
         <div className="kpi-panel">
             <div className="kpi-panel__heading">
-                <strong>{title}</strong>
+                <strong>{title ?? t('kpi.defaultTitle')}</strong>
                 {subtitle && <span>{subtitle}</span>}
             </div>
 

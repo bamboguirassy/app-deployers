@@ -1,0 +1,284 @@
+{
+    "create": {
+        "title": "Nouvelle application",
+        "cardTitle": "Créer une application",
+        "cardDescription": "Vous pourrez ensuite définir ses targets (tiers), son pipeline de déploiement et ses environnements.",
+        "logoLabel": "Logo (optionnel)",
+        "logoAriaLabel": "Choisir un logo",
+        "logoHint": "Cliquez sur l'icône pour choisir une image.",
+        "nameLabel": "Nom de l'application",
+        "descriptionLabel": "Description (optionnel)",
+        "submit": "Créer l'application"
+    },
+    "index": {
+        "title": "Applications",
+        "eyebrow": "Workspace",
+        "heading": "Vos applications",
+        "subtitle": "Chaque application regroupe ses targets, ses environnements et son pipeline de déploiement.",
+        "newApplication": "Nouvelle application",
+        "createFirst": "Créer ma première application"
+    },
+    "show": {
+        "breadcrumbApplications": "Applications",
+        "changeLogoAriaLabel": "Changer le logo",
+        "tabs": {
+            "targets": "Targets & Pipeline",
+            "environments": "Environnements",
+            "members": "Membres",
+            "deployments": "Déploiements",
+            "details": "Détails"
+        },
+        "moreActionsAriaLabel": "Plus d'actions",
+        "deleteApplication": "Supprimer l'application",
+        "confirmDelete": {
+            "title": "Supprimer l'application \"{{name}}\" ?",
+            "content": "Cette action supprime définitivement ses targets, environnements, pipelines et webhooks.",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        }
+    },
+    "detailsPanel": {
+        "cardTitle": "Détails de l'application",
+        "changeLogoAriaLabel": "Changer le logo",
+        "logoLabel": "Logo",
+        "logoHint": "Cliquez sur l'icône pour la changer.",
+        "nameLabel": "Nom de l'application",
+        "descriptionLabel": "Description",
+        "save": "Enregistrer",
+        "saved": "Enregistré."
+    },
+    "switcher": {
+        "allApplications": "Toutes les applications",
+        "newApplication": "Nouvelle application",
+        "triggerAriaLabel": "Changer d'application"
+    },
+    "list": {
+        "nameColumn": "Application",
+        "openRecord": "Ouvrir la fiche",
+        "targetsColumn": "Targets",
+        "targetsUnit": "targets",
+        "environmentsColumn": "Environnements",
+        "environmentsUnit": "environnements",
+        "lastDeploymentColumn": "Dernier déploiement",
+        "noDeployment": "Aucun déploiement",
+        "descriptionColumn": "Description",
+        "noDescription": "Aucune description.",
+        "openColumn": "Ouvrir",
+        "kpiTitle": "Indicateurs clés",
+        "kpiSubtitle": "Aperçu rapide de votre portefeuille d'applications",
+        "kpiTotal": "Applications totales",
+        "kpiWithoutTargets": "Sans target",
+        "kpiRecentDeployments": "Déployées (7 derniers jours)",
+        "searchPlaceholder": "Rechercher une application...",
+        "sortCreatedAt": "Date de création",
+        "sortName": "Nom",
+        "sortTargetsCount": "Nb de targets",
+        "emptyDescription": "Aucune application ne correspond à ces critères",
+        "allShown": "Toutes les applications sont affichées."
+    },
+    "createTargetModal": {
+        "title": "Nouveau target",
+        "frameworkLabel": "Framework / stack",
+        "nameLabel": "Nom du target",
+        "namePlaceholder": "ex: Backend, Frontend, Worker...",
+        "submit": "Créer"
+    },
+    "deploymentsPanel": {
+        "title": "Déploiements",
+        "subtitle": "Suivi des pipelines, statuts et performances",
+        "newDeployment": "Nouveau déploiement",
+        "configureFirstTooltip": "Configurez d'abord un couple target/environnement dans l'onglet Environnements",
+        "modalTitle": "Nouveau déploiement",
+        "deployOk": "Déployer",
+        "selectPlaceholder": "Choisir un target × environnement",
+        "noPairsConfigured": "Aucun couple target/environnement configuré. Configurez-en un depuis l'onglet Environnements."
+    },
+    "environmentWorkspace": {
+        "notConfigured": "Non configuré",
+        "configured": "Configured",
+        "noServer": "Aucun serveur",
+        "varsUnit": "vars",
+        "heading": "Matrice des environnements",
+        "subheading": "Gérez et comparez la configuration de vos targets à travers les environnements.",
+        "addEnvironment": "Ajouter un environnement",
+        "addTarget": "Ajouter un target",
+        "refresh": "Actualiser",
+        "moreActionsAriaLabel": "Plus d'actions",
+        "legend": {
+            "configured": "Configuré",
+            "notConfigured": "Non configuré",
+            "hasSecrets": "Contient des secrets"
+        },
+        "emptyNoTargets": "Créez d'abord au moins un target dans l'onglet Targets & Pipeline.",
+        "emptyNoEnvironments": "Aucun environnement. Ajoutez par exemple « develop » et « production ».",
+        "targetsColumnHeader": "Targets",
+        "customFramework": "Personnalisé",
+        "confirmRemoveEnvironment": {
+            "title": "Supprimer l'environnement \"{{name}}\" ?",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        },
+        "newEnvironmentModalTitle": "Nouvel environnement",
+        "newEnvironmentPlaceholder": "ex: develop, staging, production...",
+        "create": "Créer",
+        "drawer": {
+            "customStack": "Stack personnalisée",
+            "cancel": "Cancel",
+            "save": "Save changes",
+            "generalSectionTitle": "Général",
+            "serverLabel": "Serveur",
+            "serverPlaceholder": "Choisir un serveur du workspace",
+            "noServerHint": "Aucun serveur. Ajoutez-en un dans l'espace Serveurs.",
+            "deployPathLabel": "Chemin de déploiement",
+            "deployPathPlaceholder": "/var/www/api",
+            "browse": "Parcourir",
+            "chooseServerHint": "Choisissez d'abord un serveur pour parcourir ses dossiers.",
+            "branchLabel": "Branche git",
+            "branchPlaceholder": "main",
+            "deploy": "Déployer",
+            "variablesSectionTitle": "Variables d'environnement"
+        }
+    },
+    "frameworkSelect": {
+        "placeholder": "Choisir un framework..."
+    },
+    "membersList": {
+        "kpiTotal": "Total",
+        "kpiOwners": "Owners",
+        "kpiManagers": "Managers",
+        "kpiDeployers": "Deployers",
+        "kpiViewers": "Viewers",
+        "searchPlaceholder": "Rechercher par nom ou email...",
+        "roleFilterPlaceholder": "Rôle",
+        "memberColumn": "Membre",
+        "roleColumn": "Rôle",
+        "sortName": "Nom",
+        "sortEmail": "Email",
+        "sortRole": "Rôle",
+        "allShown": "Tous les membres sont affichés.",
+        "emptyResults": "Aucun membre ne correspond à ces critères."
+    },
+    "membersPanel": {
+        "title": "Membres",
+        "subtitle": "Accès à l’application et responsabilités de l’équipe",
+        "grantAccess": "Donner accès à un membre",
+        "confirmRemove": {
+            "title": "Retirer l'accès de {{name}} à cette application ?",
+            "okText": "Retirer",
+            "cancelText": "Annuler"
+        },
+        "modalTitle": "Donner accès à un membre du workspace",
+        "emailLabel": "Email",
+        "emailPlaceholder": "collegue@exemple.com",
+        "emailHint": "Doit déjà être membre du workspace. Son rôle (owner, manager, deployer, viewer) est géré depuis la page Utilisateurs du workspace.",
+        "submit": "Donner accès"
+    },
+    "pipelineSteps": {
+        "variableButton": "Variable",
+        "emptyDescription": "Aucune étape définie",
+        "addStep": "Ajouter une étape",
+        "confirmDelete": {
+            "title": "Supprimer l'étape \"{{label}}\" ?",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        },
+        "header": {
+            "stepColumn": "Étape",
+            "detailColumn": "Détail",
+            "timeoutColumn": "Timeout",
+            "continueColumn": "Continue"
+        },
+        "row": {
+            "commandTooltip": "Commande shell",
+            "emailTooltip": "Email",
+            "timeoutTooltip": "Timeout",
+            "continueTooltip": "Continue en cas d'échec",
+            "yes": "Oui",
+            "no": "Non",
+            "editTooltip": "Modifier l'étape",
+            "editAriaLabel": "Modifier l'étape",
+            "deleteTooltip": "Supprimer l'étape",
+            "deleteAriaLabel": "Supprimer l'étape"
+        },
+        "drawer": {
+            "editTitle": "Modifier l'étape",
+            "newTitle": "Nouvelle étape",
+            "cancel": "Annuler",
+            "close": "Fermer",
+            "save": "Enregistrer",
+            "addStep": "Ajouter cette étape",
+            "errorTitle": "Impossible d'enregistrer l'étape",
+            "typeLabel": "Type d'action",
+            "commandLabel": "Commande",
+            "commandPlaceholder": "npm run build && npm run deploy",
+            "labelLabel": "Nom de l'étape",
+            "labelPlaceholder": "ex: Build & déploiement",
+            "recipientsLabel": "Destinataires",
+            "recipientsPlaceholder": "Sélectionner un ou plusieurs membres",
+            "noActiveMembers": "Aucun membre actif sur cette application",
+            "subjectLabel": "Objet",
+            "messageLabel": "Message",
+            "previewTooltip": "Prévisualiser avec des données d'exemple",
+            "previewButton": "Aperçu",
+            "previewSubjectLabel": "Objet :",
+            "timeoutLabel": "Timeout (secondes)",
+            "timeoutPlaceholder": "défaut",
+            "continueOnFailureLabel": "Continuer le pipeline même si cette étape échoue"
+        }
+    },
+    "runDeployButton": {
+        "configureFirstTooltip": "Configurez d'abord un couple target/environnement dans l'onglet Environnements",
+        "runDeploy": "Run deploy"
+    },
+    "targetWorkspace": {
+        "modalTitle": "Modifier le target",
+        "frameworkLabel": "Framework / stack",
+        "nameLabel": "Nom du target",
+        "save": "Enregistrer",
+        "emptyDescription": "Aucun target. Ajoutez par exemple « Backend » et « Frontend ».",
+        "newTarget": "Nouveau target",
+        "confirmDelete": {
+            "title": "Supprimer le target \"{{name}}\" ?",
+            "content": "Toutes ses étapes, environnements liés et webhooks seront supprimés.",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        },
+        "sidebarTitle": "Targets",
+        "add": "Ajouter",
+        "customFramework": "Personnalisé",
+        "stepsUnit": "étapes",
+        "customStack": "Stack personnalisée",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "pipelineStepsTitle": "Étapes du pipeline",
+        "webhookIntegrationTitle": "Intégration webhook"
+    },
+    "variablesEditor": {
+        "hideValueTooltip": "Masquer la valeur dans l'interface et les journaux de déploiement",
+        "deleteVariableTooltip": "Supprimer la variable",
+        "deleteVariableAriaLabel": "Supprimer la variable"
+    },
+    "webhooksPanel": {
+        "hint": "Une seule intégration peut être active à la fois : activer un autre provider désactivera l'actuel.",
+        "revealSecret": "Afficher le secret",
+        "hide": "Masquer",
+        "urlLabel": "URL :",
+        "secretToPaste": "Secret à coller dans {{provider}} :",
+        "noMappingConfigured": "Aucun mapping configuré",
+        "notConfigured": "Non configuré",
+        "active": "Active",
+        "available": "Disponible",
+        "activate": "Activer",
+        "deleteTitle": "Supprimer",
+        "branchMappingLabel": "Mapping de branches → environnement :",
+        "environmentPlaceholder": "Environnement",
+        "branchPlaceholder": "branche (ex: main)",
+        "map": "Mapper",
+        "confirmRemove": {
+            "title": "Supprimer l'intégration {{provider}} ?",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        },
+        "activateHint": "Activer un provider révèle son URL de webhook et permet de mapper des branches à des environnements."
+    }
+}

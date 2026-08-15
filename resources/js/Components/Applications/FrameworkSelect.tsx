@@ -2,6 +2,7 @@ import { Framework } from '@/types/models';
 import { Select } from 'antd';
 import { Boxes } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function FrameworkLogo({ src }: { src?: string | null }) {
     const [failed, setFailed] = useState(false);
@@ -24,13 +25,14 @@ export default function FrameworkSelect({
     value: number | null;
     onChange: (value: number | null) => void;
 }) {
+    const { t } = useTranslation('applications');
     const options = frameworks.map((f) => ({ value: f.id, label: f.name, logo: f.logo_url }));
 
     return (
         <Select
             id={id}
             className="w-full"
-            placeholder="Choisir un framework..."
+            placeholder={t('frameworkSelect.placeholder')}
             showSearch
             allowClear
             optionFilterProp="label"

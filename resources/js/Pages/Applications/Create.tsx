@@ -8,10 +8,12 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Alert, Avatar, Card, Input, Typography } from 'antd';
 import { Boxes } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
 export default function Create() {
+    const { t } = useTranslation('applications');
     const { workspace, flash } = usePage<PageProps>().props;
     const [preview, setPreview] = useState<string | null>(null);
     const logoInputRef = useRef<HTMLInputElement>(null);
@@ -31,16 +33,15 @@ export default function Create() {
     };
 
     return (
-        <AuthenticatedLayout header="Nouvelle application">
-            <Head title="Nouvelle application" />
+        <AuthenticatedLayout header={t('create.title')}>
+            <Head title={t('create.title')} />
 
             <Card style={{ maxWidth: 560 }}>
                 <Title level={5} style={{ marginTop: 0 }}>
-                    Créer une application
+                    {t('create.cardTitle')}
                 </Title>
                 <Paragraph type="secondary">
-                    Vous pourrez ensuite définir ses targets (tiers), son
-                    pipeline de déploiement et ses environnements.
+                    {t('create.cardDescription')}
                 </Paragraph>
 
                 {flash?.error && (
@@ -57,7 +58,7 @@ export default function Create() {
                         <div
                             role="button"
                             tabIndex={0}
-                            aria-label="Choisir un logo"
+                            aria-label={t('create.logoAriaLabel')}
                             style={{ cursor: 'pointer' }}
                             onClick={() => logoInputRef.current?.click()}
                             onKeyDown={(e) => {
@@ -76,8 +77,8 @@ export default function Create() {
                             />
                         </div>
                         <div>
-                            <InputLabel value="Logo (optionnel)" />
-                            <span className="section-hint">Cliquez sur l&apos;icône pour choisir une image.</span>
+                            <InputLabel value={t('create.logoLabel')} />
+                            <span className="section-hint">{t('create.logoHint')}</span>
                         </div>
                         <input
                             ref={logoInputRef}
@@ -93,7 +94,7 @@ export default function Create() {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="name" value="Nom de l'application" />
+                        <InputLabel htmlFor="name" value={t('create.nameLabel')} />
                         <TextInput
                             id="name"
                             className="w-full"
@@ -106,7 +107,7 @@ export default function Create() {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="description" value="Description (optionnel)" />
+                        <InputLabel htmlFor="description" value={t('create.descriptionLabel')} />
                         <Input.TextArea
                             id="description"
                             rows={3}
@@ -118,7 +119,7 @@ export default function Create() {
 
                     <div className="form-actions form-actions--end">
                         <PrimaryButton disabled={processing}>
-                            Créer l&apos;application
+                            {t('create.submit')}
                         </PrimaryButton>
                     </div>
                 </form>

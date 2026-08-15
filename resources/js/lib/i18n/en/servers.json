@@ -1,0 +1,100 @@
+{
+    "index": {
+        "header": "Servers",
+        "eyebrow": "Workspace",
+        "title": "Servers",
+        "description": "Declare here the servers your applications can be remotely deployed to over SSH.",
+        "newServer": "New server"
+    },
+    "list": {
+        "kpisTitle": "Key metrics",
+        "kpisSubtitle": "Overview of your server fleet",
+        "kpis": {
+            "total": "Servers",
+            "sshKey": "By SSH key",
+            "password": "By password"
+        },
+        "authOptions": {
+            "sshKey": "SSH key",
+            "password": "Password"
+        },
+        "toolbar": {
+            "searchPlaceholder": "Search by name, host or user...",
+            "authPlaceholder": "Authentication",
+            "sortName": "Name",
+            "sortHost": "Host",
+            "sortCreatedAt": "Added on"
+        },
+        "columns": {
+            "server": "Server",
+            "authentication": "Authentication",
+            "addedOn": "Added on"
+        },
+        "actions": {
+            "testConnection": "Test connection",
+            "edit": "Edit",
+            "delete": "Delete"
+        },
+        "delete": {
+            "confirmTitle": "Delete server \"{{name}}\"?",
+            "confirmContent": "Targets×environments using it will lose their association.",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        },
+        "emptyDescription": "No server matches these criteria",
+        "allShown": "All servers are shown."
+    },
+    "form": {
+        "titleEdit": "Edit server",
+        "titleCreate": "Add a server",
+        "nameLabel": "Server name",
+        "namePlaceholder": "e.g. Production server EU-West",
+        "hostLabel": "Address (IP or hostname)",
+        "hostPlaceholder": "e.g. 203.0.113.10",
+        "portLabel": "Port",
+        "usernameLabel": "Username",
+        "usernamePlaceholder": "e.g. deploy",
+        "defaultPathLabel": "Default root directory",
+        "browse": "Browse",
+        "defaultPathHint": "Starting point suggested when choosing the deploy path for this server.",
+        "authMethodLabel": "Authentication method",
+        "authMethod": {
+            "sshKey": "SSH key",
+            "password": "Password"
+        },
+        "passwordLabel": "Password",
+        "passwordPlaceholderEdit": "Leave blank to keep unchanged",
+        "privateKeyLabel": "SSH private key",
+        "privateKeyPlaceholderEdit": "Leave blank to keep unchanged\n-----BEGIN OPENSSH PRIVATE KEY-----\n...",
+        "privateKeyPlaceholderCreate": "-----BEGIN OPENSSH PRIVATE KEY-----\n...",
+        "passphraseLabel": "Passphrase (optional)",
+        "passphrasePlaceholderEdit": "Leave blank to keep unchanged",
+        "editTestHint": "The test uses the credentials above if provided, otherwise the ones already saved for this server.",
+        "testConnection": "Test connection",
+        "responseTime": "Response time: {{ms}} ms",
+        "unexpectedError": "Unexpected error.",
+        "cancel": "Cancel",
+        "save": "Save",
+        "addServer": "Add server"
+    },
+    "directoryBrowser": {
+        "titleWithServer": "Browse {{name}}",
+        "title": "Browse",
+        "cancel": "Cancel",
+        "select": "Select this folder",
+        "searchPlaceholder": "Search a folder...",
+        "loading": "Loading folder contents...",
+        "noSubfolders": "No subfolders here",
+        "noMatch": "No folder matches this search",
+        "loadError": "Unable to browse this folder."
+    },
+    "testConnection": {
+        "titleWithServer": "Test connection — {{name}}",
+        "title": "Test connection",
+        "retry": "Retry test",
+        "close": "Close",
+        "connecting": "Connecting...",
+        "responseTime": "Response time: {{ms}} ms",
+        "unexpectedError": "Unexpected error during the test."
+    }
+}

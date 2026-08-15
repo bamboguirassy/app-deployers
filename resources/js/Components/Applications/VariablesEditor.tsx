@@ -5,6 +5,7 @@ import { Input, Switch, Tooltip } from 'antd';
 import { Plus, Trash2 } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import type { InputRef } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const persistOptions = { preserveScroll: true, preserveState: true } as const;
 
@@ -17,6 +18,7 @@ function VariableRow({
     variable: EnvironmentVariable;
     canManage: boolean;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const [value, setValue] = useState(variable.value);
 
@@ -44,7 +46,7 @@ function VariableRow({
                 variant="borderless"
             />
 
-            <Tooltip title="Masquer la valeur dans l'interface et les journaux de déploiement">
+            <Tooltip title={t('variablesEditor.hideValueTooltip')}>
                 <Switch
                     className="var-row__secret"
                     size="small"
@@ -55,11 +57,11 @@ function VariableRow({
             </Tooltip>
 
             {canManage && (
-                <Tooltip title="Supprimer la variable">
+                <Tooltip title={t('variablesEditor.deleteVariableTooltip')}>
                     <button
                         type="button"
                         className="var-row__delete"
-                        aria-label="Supprimer la variable"
+                        aria-label={t('variablesEditor.deleteVariableAriaLabel')}
                         onClick={() =>
                             router.delete(
                                 route('environment-variables.destroy', [workspace!.slug, application.slug, variable.uuid]),

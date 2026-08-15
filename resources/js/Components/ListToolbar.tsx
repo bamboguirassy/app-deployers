@@ -1,6 +1,7 @@
 import { Button, Input, Select, Space } from 'antd';
 import { ArrowUpDown, RotateCcw, Search } from 'lucide-react';
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface FilterOption {
     key: string;
@@ -27,7 +28,7 @@ function chipLabel(icon: ReactNode, text: string, value: string) {
 export default function ListToolbar({
     search,
     onSearchChange,
-    searchPlaceholder = 'Rechercher...',
+    searchPlaceholder,
     filters = [],
     filterValues,
     onFilterChange,
@@ -53,10 +54,12 @@ export default function ListToolbar({
     onReset: () => void;
     hasActiveFilters?: boolean;
 }) {
+    const { t } = useTranslation('common');
+
     return (
         <Space wrap size={12} style={{ marginBottom: 16, width: '100%' }}>
             <Input
-                placeholder={searchPlaceholder}
+                placeholder={searchPlaceholder ?? t('listToolbar.searchPlaceholder')}
                 prefix={<Search size={14} />}
                 value={search}
                 onChange={(e) => onSearchChange(e.target.value)}
@@ -66,7 +69,7 @@ export default function ListToolbar({
 
             {filters.map((filter) => {
                 const currentValue = filterValues[filter.key] as string | undefined;
-                const currentLabel = filter.options.find((o) => o.value === currentValue)?.label ?? 'Tous';
+                const currentLabel = filter.options.find((o) => o.value === currentValue)?.label ?? t('listToolbar.all');
 
                 return (
                     <Select
@@ -75,7 +78,7 @@ export default function ListToolbar({
                         style={{ width: filter.width ?? 190 }}
                         value={currentValue}
                         options={filter.options}
-                        placeholder={chipLabel(filter.icon, filter.placeholder, 'Tous')}
+                        placeholder={chipLabel(filter.icon, filter.placeholder, t('listToolbar.all'))}
                         labelRender={() => chipLabel(filter.icon, filter.placeholder, currentLabel)}
                         onChange={(value) => onFilterChange(filter.key, value ?? null)}
                     />
@@ -87,7 +90,7 @@ export default function ListToolbar({
                     style={{ width: 210 }}
                     value={sort}
                     options={sortOptions}
-                    labelRender={(option) => chipLabel(<ArrowUpDown size={14} />, 'Trier', String(option.label ?? ''))}
+                    labelRender={(option) => chipLabel(<ArrowUpDown size={14} />, t('listToolbar.sort'), String(option.label ?? ''))}
                     onChange={onSortChange}
                 />
             )}
@@ -96,13 +99,13 @@ export default function ListToolbar({
                 <Button
                     icon={<ArrowUpDown size={14} style={{ transform: direction === 'asc' ? 'scaleY(-1)' : undefined }} />}
                     onClick={onDirectionToggle}
-                    title={direction === 'asc' ? 'Ordre croissant' : 'Ordre décroissant'}
+                    title={direction === 'asc' ? t('listToolbar.ascending') : t('listToolbar.descending')}
                 />
             )}
 
             {hasActiveFilters && (
                 <Button icon={<RotateCcw size={14} />} onClick={onReset}>
-                    Réinitialiser
+                    {t('listToolbar.reset')}
                 </Button>
             )}
         </Space>

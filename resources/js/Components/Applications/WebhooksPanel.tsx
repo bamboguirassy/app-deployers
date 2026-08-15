@@ -7,10 +7,12 @@ import axios from 'axios';
 import { CheckCircle2, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { Button, Input, Select, Tag, Typography } from 'antd';
 import { FormEventHandler, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 
 function WebhookUrlReveal({ application, webhook }: { application: Application; webhook: WebhookConfig }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const [revealed, setRevealed] = useState<{ secret: string; url: string } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -27,13 +29,13 @@ function WebhookUrlReveal({ application, webhook }: { application: Application; 
         return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                    URL :
+                    {t('webhooksPanel.urlLabel')}
                 </Text>
                 <Text code style={{ fontSize: 12 }}>
                     {route('webhooks.receive', [webhook.provider, webhook.uuid])}
                 </Text>
                 <Button size="small" type="text" icon={<Eye size={13} />} loading={loading} onClick={reveal}>
-                    Afficher le secret
+                    {t('webhooksPanel.revealSecret')}
                 </Button>
             </div>
         );
@@ -43,19 +45,19 @@ function WebhookUrlReveal({ application, webhook }: { application: Application; 
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                    URL :
+                    {t('webhooksPanel.urlLabel')}
                 </Text>
                 <Text code copyable style={{ fontSize: 12 }}>
                     {revealed.url}
                 </Text>
                 <Button size="small" type="text" icon={<EyeOff size={13} />} onClick={() => setRevealed(null)}>
-                    Masquer
+                    {t('webhooksPanel.hide')}
                 </Button>
             </div>
             {webhook.provider !== 'bitbucket' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                        Secret à coller dans {webhook.provider === 'github' ? 'GitHub' : 'GitLab'} :
+                        {t('webhooksPanel.secretToPaste', { provider: webhook.provider === 'github' ? 'GitHub' : 'GitLab' })}
                     </Text>
                     <Text code copyable style={{ fontSize: 12 }}>
                         {revealed.secret}
@@ -81,6 +83,7 @@ function BranchMappingForm({
     webhookConfig: WebhookConfig;
     environments: Environment[];
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const { data, setData, post, processing, reset } = useForm({
         environment_id: '' as number | '',
@@ -103,7 +106,7 @@ function BranchMappingForm({
         <form onSubmit={submit} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
             <Select
                 size="small"
-                placeholder="Environnement"
+                placeholder={t('webhooksPanel.environmentPlaceholder')}
                 style={{ width: 140, flex: '1 1 140px' }}
                 value={data.environment_id || undefined}
                 onChange={(value) => setData('environment_id', value)}
@@ -111,13 +114,13 @@ function BranchMappingForm({
             />
             <Input
                 size="small"
-                placeholder="branche (ex: main)"
+                placeholder={t('webhooksPanel.branchPlaceholder')}
                 value={data.branch}
                 onChange={(e) => setData('branch', e.target.value)}
                 style={{ width: 140, flex: '1 1 140px' }}
             />
             <Button size="small" htmlType="submit" disabled={processing || !data.environment_id || !data.branch}>
-                Mapper
+                {t('webhooksPanel.map')}
             </Button>
         </form>
     );
@@ -134,6 +137,7 @@ export default function WebhooksPanel({
     environments: Environment[];
     canManage: boolean;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const confirm = useConfirm();
 
@@ -148,10 +152,10 @@ export default function WebhooksPanel({
     const removeWebhook = (webhook: WebhookConfig) => {
         const label = PROVIDERS.find((p) => p.value === webhook.provider)?.label ?? webhook.provider;
         confirm.confirm({
-            title: `Supprimer l'intégration ${label} ?`,
+            title: t('webhooksPanel.confirmRemove.title', { provider: label }),
             okType: 'danger',
-            okText: 'Supprimer',
-            cancelText: 'Annuler',
+            okText: t('webhooksPanel.confirmRemove.okText'),
+            cancelText: t('webhooksPanel.confirmRemove.cancelText'),
             onOk: () =>
                 router.delete(route('webhook-configs.destroy', [workspace!.slug, application.slug, webhook.uuid]), {
                     preserveScroll: true,
@@ -164,7 +168,7 @@ export default function WebhooksPanel({
     return (
         <div className="webhook-list">
             <div className="webhook-list__hint">
-                Une seule intégration peut être active à la fois : activer un autre provider désactivera l&apos;actuel.
+                {t('webhooksPanel.hint')}
             </div>
 
             {PROVIDERS.map((provider) => {
@@ -181,11 +185,11 @@ export default function WebhooksPanel({
                                 <Text type="secondary" style={{ fontSize: 12 }}>
                                     {webhook.branch_mappings.length > 0
                                         ? webhook.branch_mappings.map((m) => m.branch).join(', ')
-                                        : 'Aucun mapping configuré'}
+                                        : t('webhooksPanel.noMappingConfigured')}
                                 </Text>
                             ) : (
                                 <Text type="secondary" style={{ fontSize: 12 }}>
-                                    Non configuré
+                                    {t('webhooksPanel.notConfigured')}
                                 </Text>
                             )}
 
@@ -193,20 +197,20 @@ export default function WebhooksPanel({
 
                             {isActive ? (
                                 <Tag color="green" icon={<CheckCircle2 size={12} />}>
-                                    Active
+                                    {t('webhooksPanel.active')}
                                 </Tag>
                             ) : (
-                                <Tag>Disponible</Tag>
+                                <Tag>{t('webhooksPanel.available')}</Tag>
                             )}
 
                             {canManage && !isActive && (
                                 <Button size="small" type="primary" onClick={() => activate(provider.value)}>
-                                    Activer
+                                    {t('webhooksPanel.activate')}
                                 </Button>
                             )}
 
                             {canManage && webhook && (
-                                <a onClick={() => removeWebhook(webhook)} title="Supprimer">
+                                <a onClick={() => removeWebhook(webhook)} title={t('webhooksPanel.deleteTitle')}>
                                     <Trash2 size={14} />
                                 </a>
                             )}
@@ -219,7 +223,7 @@ export default function WebhooksPanel({
                                 ) : (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                         <Text type="secondary" style={{ fontSize: 12 }}>
-                                            URL :
+                                            {t('webhooksPanel.urlLabel')}
                                         </Text>
                                         <Text code copyable style={{ fontSize: 12 }}>
                                             {route('webhooks.receive', [webhook.provider, webhook.uuid])}
@@ -229,7 +233,7 @@ export default function WebhooksPanel({
 
                                 <div style={{ marginTop: 8 }}>
                                     <Text type="secondary" style={{ fontSize: 12 }}>
-                                        Mapping de branches → environnement :
+                                        {t('webhooksPanel.branchMappingLabel')}
                                     </Text>
                                     <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                                         {webhook.branch_mappings.map((mapping) => {
@@ -267,7 +271,7 @@ export default function WebhooksPanel({
 
             {!activeWebhook && (
                 <div className="webhook-list__hint" style={{ marginTop: 4 }}>
-                    Activer un provider révèle son URL de webhook et permet de mapper des branches à des environnements.
+                    {t('webhooksPanel.activateHint')}
                 </div>
             )}
         </div>

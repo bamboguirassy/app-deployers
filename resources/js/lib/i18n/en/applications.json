@@ -1,0 +1,284 @@
+{
+    "create": {
+        "title": "New application",
+        "cardTitle": "Create an application",
+        "cardDescription": "You'll then be able to define its targets (tiers), its deployment pipeline and its environments.",
+        "logoLabel": "Logo (optional)",
+        "logoAriaLabel": "Choose a logo",
+        "logoHint": "Click the icon to choose an image.",
+        "nameLabel": "Application name",
+        "descriptionLabel": "Description (optional)",
+        "submit": "Create application"
+    },
+    "index": {
+        "title": "Applications",
+        "eyebrow": "Workspace",
+        "heading": "Your applications",
+        "subtitle": "Each application groups its targets, environments and deployment pipeline.",
+        "newApplication": "New application",
+        "createFirst": "Create my first application"
+    },
+    "show": {
+        "breadcrumbApplications": "Applications",
+        "changeLogoAriaLabel": "Change logo",
+        "tabs": {
+            "targets": "Targets & Pipeline",
+            "environments": "Environments",
+            "members": "Members",
+            "deployments": "Deployments",
+            "details": "Details"
+        },
+        "moreActionsAriaLabel": "More actions",
+        "deleteApplication": "Delete application",
+        "confirmDelete": {
+            "title": "Delete application \"{{name}}\"?",
+            "content": "This permanently deletes its targets, environments, pipelines and webhooks.",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        }
+    },
+    "detailsPanel": {
+        "cardTitle": "Application details",
+        "changeLogoAriaLabel": "Change logo",
+        "logoLabel": "Logo",
+        "logoHint": "Click the icon to change it.",
+        "nameLabel": "Application name",
+        "descriptionLabel": "Description",
+        "save": "Save",
+        "saved": "Saved."
+    },
+    "switcher": {
+        "allApplications": "All applications",
+        "newApplication": "New application",
+        "triggerAriaLabel": "Switch application"
+    },
+    "list": {
+        "nameColumn": "Application",
+        "openRecord": "Open record",
+        "targetsColumn": "Targets",
+        "targetsUnit": "targets",
+        "environmentsColumn": "Environments",
+        "environmentsUnit": "environments",
+        "lastDeploymentColumn": "Last deployment",
+        "noDeployment": "No deployment yet",
+        "descriptionColumn": "Description",
+        "noDescription": "No description.",
+        "openColumn": "Open",
+        "kpiTitle": "Key metrics",
+        "kpiSubtitle": "Quick overview of your application portfolio",
+        "kpiTotal": "Total applications",
+        "kpiWithoutTargets": "Without a target",
+        "kpiRecentDeployments": "Deployed (last 7 days)",
+        "searchPlaceholder": "Search for an application...",
+        "sortCreatedAt": "Creation date",
+        "sortName": "Name",
+        "sortTargetsCount": "Number of targets",
+        "emptyDescription": "No application matches these criteria",
+        "allShown": "All applications are shown."
+    },
+    "createTargetModal": {
+        "title": "New target",
+        "frameworkLabel": "Framework / stack",
+        "nameLabel": "Target name",
+        "namePlaceholder": "e.g. Backend, Frontend, Worker...",
+        "submit": "Create"
+    },
+    "deploymentsPanel": {
+        "title": "Deployments",
+        "subtitle": "Track pipelines, statuses and performance",
+        "newDeployment": "New deployment",
+        "configureFirstTooltip": "First configure a target/environment pair in the Environments tab",
+        "modalTitle": "New deployment",
+        "deployOk": "Deploy",
+        "selectPlaceholder": "Choose a target × environment pair",
+        "noPairsConfigured": "No target/environment pair configured. Set one up from the Environments tab."
+    },
+    "environmentWorkspace": {
+        "notConfigured": "Not configured",
+        "configured": "Configured",
+        "noServer": "No server",
+        "varsUnit": "vars",
+        "heading": "Environments matrix",
+        "subheading": "Manage and compare your targets' configuration across environments.",
+        "addEnvironment": "Add environment",
+        "addTarget": "Add target",
+        "refresh": "Refresh",
+        "moreActionsAriaLabel": "More actions",
+        "legend": {
+            "configured": "Configured",
+            "notConfigured": "Not configured",
+            "hasSecrets": "Contains secrets"
+        },
+        "emptyNoTargets": "First create at least one target in the Targets & Pipeline tab.",
+        "emptyNoEnvironments": "No environment yet. Add e.g. \"develop\" and \"production\".",
+        "targetsColumnHeader": "Targets",
+        "customFramework": "Custom",
+        "confirmRemoveEnvironment": {
+            "title": "Delete environment \"{{name}}\"?",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        },
+        "newEnvironmentModalTitle": "New environment",
+        "newEnvironmentPlaceholder": "e.g. develop, staging, production...",
+        "create": "Create",
+        "drawer": {
+            "customStack": "Custom stack",
+            "cancel": "Cancel",
+            "save": "Save changes",
+            "generalSectionTitle": "General",
+            "serverLabel": "Server",
+            "serverPlaceholder": "Choose a workspace server",
+            "noServerHint": "No server yet. Add one in the Servers workspace.",
+            "deployPathLabel": "Deploy path",
+            "deployPathPlaceholder": "/var/www/api",
+            "browse": "Browse",
+            "chooseServerHint": "Choose a server first to browse its folders.",
+            "branchLabel": "Git branch",
+            "branchPlaceholder": "main",
+            "deploy": "Deploy",
+            "variablesSectionTitle": "Environment variables"
+        }
+    },
+    "frameworkSelect": {
+        "placeholder": "Choose a framework..."
+    },
+    "membersList": {
+        "kpiTotal": "Total",
+        "kpiOwners": "Owners",
+        "kpiManagers": "Managers",
+        "kpiDeployers": "Deployers",
+        "kpiViewers": "Viewers",
+        "searchPlaceholder": "Search by name or email...",
+        "roleFilterPlaceholder": "Role",
+        "memberColumn": "Member",
+        "roleColumn": "Role",
+        "sortName": "Name",
+        "sortEmail": "Email",
+        "sortRole": "Role",
+        "allShown": "All members are shown.",
+        "emptyResults": "No member matches these criteria."
+    },
+    "membersPanel": {
+        "title": "Members",
+        "subtitle": "Application access and team responsibilities",
+        "grantAccess": "Grant access to a member",
+        "confirmRemove": {
+            "title": "Remove {{name}}'s access to this application?",
+            "okText": "Remove",
+            "cancelText": "Cancel"
+        },
+        "modalTitle": "Grant access to a workspace member",
+        "emailLabel": "Email",
+        "emailPlaceholder": "colleague@example.com",
+        "emailHint": "Must already be a workspace member. Their role (owner, manager, deployer, viewer) is managed from the workspace's Users page.",
+        "submit": "Grant access"
+    },
+    "pipelineSteps": {
+        "variableButton": "Variable",
+        "emptyDescription": "No step defined",
+        "addStep": "Add a step",
+        "confirmDelete": {
+            "title": "Delete step \"{{label}}\"?",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        },
+        "header": {
+            "stepColumn": "Step",
+            "detailColumn": "Detail",
+            "timeoutColumn": "Timeout",
+            "continueColumn": "Continue"
+        },
+        "row": {
+            "commandTooltip": "Shell command",
+            "emailTooltip": "Email",
+            "timeoutTooltip": "Timeout",
+            "continueTooltip": "Continue on failure",
+            "yes": "Yes",
+            "no": "No",
+            "editTooltip": "Edit step",
+            "editAriaLabel": "Edit step",
+            "deleteTooltip": "Delete step",
+            "deleteAriaLabel": "Delete step"
+        },
+        "drawer": {
+            "editTitle": "Edit step",
+            "newTitle": "New step",
+            "cancel": "Cancel",
+            "close": "Close",
+            "save": "Save",
+            "addStep": "Add this step",
+            "errorTitle": "Unable to save the step",
+            "typeLabel": "Action type",
+            "commandLabel": "Command",
+            "commandPlaceholder": "npm run build && npm run deploy",
+            "labelLabel": "Step name",
+            "labelPlaceholder": "e.g. Build & deploy",
+            "recipientsLabel": "Recipients",
+            "recipientsPlaceholder": "Select one or more members",
+            "noActiveMembers": "No active member on this application",
+            "subjectLabel": "Subject",
+            "messageLabel": "Message",
+            "previewTooltip": "Preview with sample data",
+            "previewButton": "Preview",
+            "previewSubjectLabel": "Subject:",
+            "timeoutLabel": "Timeout (seconds)",
+            "timeoutPlaceholder": "default",
+            "continueOnFailureLabel": "Continue the pipeline even if this step fails"
+        }
+    },
+    "runDeployButton": {
+        "configureFirstTooltip": "First configure a target/environment pair in the Environments tab",
+        "runDeploy": "Run deploy"
+    },
+    "targetWorkspace": {
+        "modalTitle": "Edit target",
+        "frameworkLabel": "Framework / stack",
+        "nameLabel": "Target name",
+        "save": "Save",
+        "emptyDescription": "No target yet. Add e.g. \"Backend\" and \"Frontend\".",
+        "newTarget": "New target",
+        "confirmDelete": {
+            "title": "Delete target \"{{name}}\"?",
+            "content": "All its steps, linked environments and webhooks will be deleted.",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        },
+        "sidebarTitle": "Targets",
+        "add": "Add",
+        "customFramework": "Custom",
+        "stepsUnit": "steps",
+        "customStack": "Custom stack",
+        "edit": "Edit",
+        "delete": "Delete",
+        "pipelineStepsTitle": "Pipeline steps",
+        "webhookIntegrationTitle": "Webhook integration"
+    },
+    "variablesEditor": {
+        "hideValueTooltip": "Hide the value in the UI and deployment logs",
+        "deleteVariableTooltip": "Delete variable",
+        "deleteVariableAriaLabel": "Delete variable"
+    },
+    "webhooksPanel": {
+        "hint": "Only one integration can be active at a time: activating another provider will deactivate the current one.",
+        "revealSecret": "Reveal secret",
+        "hide": "Hide",
+        "urlLabel": "URL:",
+        "secretToPaste": "Secret to paste into {{provider}}:",
+        "noMappingConfigured": "No mapping configured",
+        "notConfigured": "Not configured",
+        "active": "Active",
+        "available": "Available",
+        "activate": "Activate",
+        "deleteTitle": "Delete",
+        "branchMappingLabel": "Branch → environment mapping:",
+        "environmentPlaceholder": "Environment",
+        "branchPlaceholder": "branch (e.g. main)",
+        "map": "Map",
+        "confirmRemove": {
+            "title": "Delete the {{provider}} integration?",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        },
+        "activateHint": "Activating a provider reveals its webhook URL and lets you map branches to environments."
+    }
+}

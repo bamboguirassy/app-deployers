@@ -8,13 +8,8 @@ import { Avatar, Button, Card, Popover, Spin, Table, Tag, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { CheckCircle2, ShieldAlert, ShieldCheck, ShieldOff, Users as UsersIcon } from 'lucide-react';
 import { forwardRef, useImperativeHandle } from 'react';
-
-const ROLE_LABELS: Record<string, string> = {
-    owner: 'Owner',
-    manager: 'Manager',
-    deployer: 'Deployer',
-    viewer: 'Viewer',
-};
+import { useTranslation } from 'react-i18next';
+import { dateLocale } from '@/lib/i18n';
 
 const WORKSPACE_TAGS_VISIBLE = 2;
 
@@ -28,17 +23,12 @@ export interface AdminUsersListHandle {
     refresh: () => void;
 }
 
-const STATUS_FILTER_OPTIONS = [
-    { value: 'active', label: 'Actif' },
-    { value: 'suspended', label: 'Suspendu' },
-    { value: 'super_admin', label: 'Super-admin' },
-];
-
 export default forwardRef<AdminUsersListHandle, {
     searchUrl: string;
     initialItems: User[];
     initialKpis: AdminUserKpis;
 }>(function AdminUsersList({ searchUrl, initialItems, initialKpis }, ref) {
+    const { t, i18n } = useTranslation('admin');
     const { auth } = usePage<PageProps>().props;
     const confirm = useConfirm();
     const search = useListSearch<User, AdminUserKpis>(searchUrl, initialItems, initialKpis, {
@@ -48,12 +38,18 @@ export default forwardRef<AdminUsersListHandle, {
 
     useImperativeHandle(ref, () => ({ refresh: search.refresh }), [search.refresh]);
 
+    const STATUS_FILTER_OPTIONS = [
+        { value: 'active', label: t('usersComponent.statusFilters.active') },
+        { value: 'suspended', label: t('usersComponent.statusFilters.suspended') },
+        { value: 'super_admin', label: t('usersComponent.statusFilters.superAdmin') },
+    ];
+
     const promote = (user: User) => {
         confirm.confirm({
-            title: `Accorder les droits super-admin à ${user.name} ?`,
-            content: 'Cet utilisateur pourra accéder au panneau plateforme et gérer tous les workspaces.',
-            okText: 'Promouvoir',
-            cancelText: 'Annuler',
+            title: t('usersComponent.confirmPromote.title', { name: user.name }),
+            content: t('usersComponent.confirmPromote.content'),
+            okText: t('usersComponent.confirmPromote.okText'),
+            cancelText: t('usersComponent.confirmPromote.cancelText'),
             onOk: () => {
                 router.post(route('admin.users.promote', user.uuid), {}, { onSuccess: () => search.refresh() });
             },
@@ -62,10 +58,10 @@ export default forwardRef<AdminUsersListHandle, {
 
     const demote = (user: User) => {
         confirm.confirm({
-            title: `Retirer les droits super-admin de ${user.name} ?`,
+            title: t('usersComponent.confirmDemote.title', { name: user.name }),
             okType: 'danger',
-            okText: 'Rétrograder',
-            cancelText: 'Annuler',
+            okText: t('usersComponent.confirmDemote.okText'),
+            cancelText: t('usersComponent.confirmDemote.cancelText'),
             onOk: () => {
                 router.post(route('admin.users.demote', user.uuid), {}, { onSuccess: () => search.refresh() });
             },
@@ -74,7 +70,7 @@ export default forwardRef<AdminUsersListHandle, {
 
     const columns: ColumnsType<User> = [
         {
-            title: 'Utilisateur',
+            title: t('usersComponent.columns.user'),
             key: 'user',
             fixed: 'left',
             width: 260,
@@ -89,14 +85,14 @@ export default forwardRef<AdminUsersListHandle, {
             ),
         },
         {
-            title: 'Workspaces',
+            title: t('usersComponent.columns.workspaces'),
             key: 'workspaces',
             width: 280,
             render: (_value, user) => {
                 const workspaces = user.workspaces ?? [];
 
                 if (workspaces.length === 0) {
-                    return <span className="section-hint">Aucun</span>;
+                    return <span className="section-hint">{t('usersComponent.columns.noWorkspaces')}</span>;
                 }
 
                 const visible = workspaces.slice(0, WORKSPACE_TAGS_VISIBLE);
@@ -107,7 +103,11 @@ export default forwardRef<AdminUsersListHandle, {
                         {visible.map((workspace) => (
                             <Tooltip
                                 key={workspace.id}
-                                title={workspace.role ? `Rôle : ${ROLE_LABELS[workspace.role] ?? workspace.role}` : undefined}
+                                title={
+                                    workspace.role
+                                        ? t('usersComponent.columns.roleTooltip', { role: t(`roles.${workspace.role}`, { defaultValue: workspace.role }) })
+                                        : undefined
+                                }
                             >
                                 <Tag color={workspace.role === 'owner' ? 'gold' : 'default'} style={{ marginInlineEnd: 0 }}>
                                     {workspace.name}
@@ -116,7 +116,7 @@ export default forwardRef<AdminUsersListHandle, {
                         ))}
                         {overflow.length > 0 && (
                             <Popover
-                                title="Autres workspaces"
+                                title={t('usersComponent.columns.otherWorkspaces')}
                                 content={
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: 220 }}>
                                         {overflow.map((workspace) => (
@@ -125,7 +125,7 @@ export default forwardRef<AdminUsersListHandle, {
                                                     {workspace.name}
                                                 </Tag>
                                                 <small style={{ color: 'var(--color-text-muted)' }}>
-                                                    {workspace.role ? ROLE_LABELS[workspace.role] ?? workspace.role : ''}
+                                                    {workspace.role ? t(`roles.${workspace.role}`, { defaultValue: workspace.role }) : ''}
                                                 </small>
                                             </span>
                                         ))}
@@ -140,43 +140,43 @@ export default forwardRef<AdminUsersListHandle, {
             },
         },
         {
-            title: 'Statut',
+            title: t('usersComponent.columns.status'),
             key: 'status',
             align: 'center',
             width: 120,
             render: (_value, user) =>
                 user.suspended_at ? (
                     <span className="premium-table__status premium-table__status--danger">
-                        <ShieldAlert size={16} /> Suspendu
+                        <ShieldAlert size={16} /> {t('usersComponent.columns.suspended')}
                     </span>
                 ) : (
                     <span className="premium-table__status premium-table__status--success">
-                        <CheckCircle2 size={16} /> Actif
+                        <CheckCircle2 size={16} /> {t('usersComponent.columns.active')}
                     </span>
                 ),
         },
         {
-            title: 'Super-admin',
+            title: t('usersComponent.columns.superAdmin'),
             key: 'super_admin',
             align: 'center',
             width: 130,
             render: (_value, user) =>
                 user.is_super_admin ? (
                     <span className="premium-table__status premium-table__status--success">
-                        <ShieldCheck size={16} /> Oui
+                        <ShieldCheck size={16} /> {t('usersComponent.columns.yes')}
                     </span>
                 ) : (
-                    <span className="premium-table__status premium-table__status--muted">Non</span>
+                    <span className="premium-table__status premium-table__status--muted">{t('usersComponent.columns.no')}</span>
                 ),
         },
         {
-            title: 'Inscription',
+            title: t('usersComponent.columns.registration'),
             key: 'created_at',
             width: 130,
-            render: (_value, user) => (user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '—'),
+            render: (_value, user) => (user.created_at ? new Date(user.created_at).toLocaleDateString(dateLocale(i18n.language)) : '—'),
         },
         {
-            title: 'Action',
+            title: t('usersComponent.columns.action'),
             key: 'action',
             align: 'right',
             fixed: 'right',
@@ -185,7 +185,7 @@ export default forwardRef<AdminUsersListHandle, {
                 const isSelf = user.id === auth.user.id;
 
                 return user.is_super_admin ? (
-                    <Tooltip title={isSelf ? 'Vous ne pouvez pas vous rétrograder vous-même' : undefined}>
+                    <Tooltip title={isSelf ? t('usersComponent.columns.cannotDemoteSelf') : undefined}>
                         <Button
                             size="small"
                             danger
@@ -193,12 +193,12 @@ export default forwardRef<AdminUsersListHandle, {
                             icon={<ShieldOff size={14} />}
                             onClick={() => demote(user)}
                         >
-                            Rétrograder
+                            {t('usersComponent.columns.demote')}
                         </Button>
                     </Tooltip>
                 ) : (
                     <Button size="small" icon={<ShieldCheck size={14} />} onClick={() => promote(user)}>
-                        Promouvoir
+                        {t('usersComponent.columns.promote')}
                     </Button>
                 );
             },
@@ -210,12 +210,12 @@ export default forwardRef<AdminUsersListHandle, {
     return (
         <div>
             <KpiCollapse
-                title="Indicateurs clés"
-                subtitle="Tous les utilisateurs de la plateforme, tous workspaces confondus"
+                title={t('usersComponent.kpiTitle')}
+                subtitle={t('usersComponent.kpiSubtitle')}
                 items={[
-                    { key: 'total', title: 'Utilisateurs', value: search.kpis.total, icon: <UsersIcon size={14} /> },
-                    { key: 'suspended', title: 'Suspendus', value: search.kpis.suspended, icon: <ShieldAlert size={14} /> },
-                    { key: 'super_admins', title: 'Super-admins', value: search.kpis.super_admins, icon: <ShieldCheck size={14} /> },
+                    { key: 'total', title: t('usersComponent.kpis.total'), value: search.kpis.total, icon: <UsersIcon size={14} /> },
+                    { key: 'suspended', title: t('usersComponent.kpis.suspended'), value: search.kpis.suspended, icon: <ShieldAlert size={14} /> },
+                    { key: 'super_admins', title: t('usersComponent.kpis.superAdmins'), value: search.kpis.super_admins, icon: <ShieldCheck size={14} /> },
                 ]}
             />
 
@@ -223,14 +223,14 @@ export default forwardRef<AdminUsersListHandle, {
                 <ListToolbar
                     search={search.search}
                     onSearchChange={search.setSearch}
-                    searchPlaceholder="Rechercher par nom ou email..."
-                    filters={[{ key: 'status', placeholder: 'Statut', options: STATUS_FILTER_OPTIONS, icon: <ShieldAlert size={14} /> }]}
+                    searchPlaceholder={t('usersComponent.searchPlaceholder')}
+                    filters={[{ key: 'status', placeholder: t('usersComponent.statusFilterPlaceholder'), options: STATUS_FILTER_OPTIONS, icon: <ShieldAlert size={14} /> }]}
                     filterValues={search.filters}
                     onFilterChange={search.setFilter}
                     sortOptions={[
-                        { value: 'name', label: 'Nom' },
-                        { value: 'email', label: 'Email' },
-                        { value: 'created_at', label: 'Date d\'inscription' },
+                        { value: 'name', label: t('usersComponent.sortOptions.name') },
+                        { value: 'email', label: t('usersComponent.sortOptions.email') },
+                        { value: 'created_at', label: t('usersComponent.sortOptions.createdAt') },
                     ]}
                     sort={search.sort}
                     direction={search.direction}
@@ -256,10 +256,10 @@ export default forwardRef<AdminUsersListHandle, {
             <div ref={search.sentinelRef} style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
                 {search.loading && <Spin size="small" />}
                 {!search.hasMore && !search.loading && search.items.length > 0 && (
-                    <span className="section-hint">Tous les utilisateurs sont affichés.</span>
+                    <span className="section-hint">{t('usersComponent.allShown')}</span>
                 )}
                 {!search.loading && search.items.length === 0 && (
-                    <span className="section-hint">Aucun utilisateur ne correspond à ces critères.</span>
+                    <span className="section-hint">{t('usersComponent.noResults')}</span>
                 )}
             </div>
         </div>

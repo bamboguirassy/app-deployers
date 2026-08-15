@@ -6,6 +6,8 @@ import { Deployment } from '@/types/models';
 import { Head } from '@inertiajs/react';
 import { Space, Typography } from 'antd';
 import { Boxes, Building2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { dateLocale } from '@/lib/i18n';
 
 const { Title, Text } = Typography;
 
@@ -30,6 +32,7 @@ interface AdminDeployment extends Deployment {
  * erreur repérée depuis /admin/deployments.
  */
 export default function Show({ deployment }: { deployment: AdminDeployment }) {
+    const { t, i18n } = useTranslation('admin');
     const target = deployment.target_environment.target;
     const environment = deployment.target_environment.environment;
     const application = target.application;
@@ -37,12 +40,12 @@ export default function Show({ deployment }: { deployment: AdminDeployment }) {
     return (
         <AdminLayout
             breadcrumbs={[
-                { label: 'Administration', href: route('admin.dashboard') },
-                { label: 'Déploiements', href: route('admin.deployments.index') },
-                { label: `#${deployment.id}` },
+                { label: t('layout.breadcrumbFallback'), href: route('admin.dashboard') },
+                { label: t('layout.nav.deployments'), href: route('admin.deployments.index') },
+                { label: t('deploymentsShow.breadcrumbTitle', { id: deployment.id }) },
             ]}
         >
-            <Head title={`Déploiement #${deployment.id}`} />
+            <Head title={t('deploymentsShow.headTitle', { id: deployment.id })} />
 
             <Space size={16} wrap style={{ marginBottom: 8 }}>
                 <span className="form-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -66,10 +69,10 @@ export default function Show({ deployment }: { deployment: AdminDeployment }) {
                         {target.name} → {environment.name}
                     </Title>
                     <Text type="secondary" style={{ fontSize: 13 }}>
-                        branche {deployment.branch ?? target.name} ·{' '}
-                        {deployment.trigger_source === 'manual' ? 'déclenché manuellement' : 'déclenché par webhook'}
-                        {deployment.triggered_by ? ` par ${deployment.triggered_by.name}` : ''} ·{' '}
-                        {new Date(deployment.created_at).toLocaleString('fr-FR')}
+                        {t('deploymentsShow.branch', { branch: deployment.branch ?? target.name })} ·{' '}
+                        {deployment.trigger_source === 'manual' ? t('deploymentsShow.manualTrigger') : t('deploymentsShow.webhookTrigger')}
+                        {deployment.triggered_by ? t('deploymentsShow.triggeredBy', { name: deployment.triggered_by.name }) : ''} ·{' '}
+                        {new Date(deployment.created_at).toLocaleString(dateLocale(i18n.language))}
                     </Text>
                 </div>
 

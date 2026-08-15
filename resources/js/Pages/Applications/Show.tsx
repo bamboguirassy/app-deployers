@@ -13,6 +13,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Avatar, Dropdown } from 'antd';
 import { Boxes, GitBranch, History, Layers, MoreHorizontal, Settings, Trash2, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface DeploymentKpis {
     total: number;
@@ -61,6 +62,7 @@ export default function Show({
         update: boolean;
     };
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const canCreateApplication = workspace?.role === 'owner' || workspace?.role === 'manager';
     const confirm = useConfirm();
@@ -91,24 +93,24 @@ export default function Show({
 
     const destroy = () => {
         confirm.confirm({
-            title: `Supprimer l'application "${application.name}" ?`,
-            content: 'Cette action supprime définitivement ses targets, environnements, pipelines et webhooks.',
+            title: t('show.confirmDelete.title', { name: application.name }),
+            content: t('show.confirmDelete.content'),
             okType: 'danger',
-            okText: 'Supprimer',
-            cancelText: 'Annuler',
+            okText: t('show.confirmDelete.okText'),
+            cancelText: t('show.confirmDelete.cancelText'),
             onOk: () => router.delete(route('applications.destroy', [workspace!.slug, application.slug])),
         });
     };
 
     return (
         <AuthenticatedLayout
-            breadcrumbs={[{ label: 'Applications', href: route('applications.index', workspace!.slug) }, { label: application.name }]}
+            breadcrumbs={[{ label: t('show.breadcrumbApplications'), href: route('applications.index', workspace!.slug) }, { label: application.name }]}
             appSwitcher={
                 <div className="app-switcher">
                     <div
                         role={can.update ? 'button' : undefined}
                         tabIndex={can.update ? 0 : undefined}
-                        aria-label={can.update ? 'Changer le logo' : undefined}
+                        aria-label={can.update ? t('show.changeLogoAriaLabel') : undefined}
                         style={{ cursor: can.update ? 'pointer' : 'default' }}
                         onClick={() => {
                             if (!can.update) return;
@@ -149,11 +151,11 @@ export default function Show({
                 </div>
             }
             tabs={[
-                { key: 'targets', label: 'Targets & Pipeline', icon: <GitBranch size={14} />, onClick: () => setActiveTab('targets') },
-                { key: 'environments', label: 'Environnements', icon: <Layers size={14} />, onClick: () => setActiveTab('environments') },
-                { key: 'members', label: 'Membres', icon: <Users size={14} />, onClick: () => setActiveTab('members') },
-                { key: 'deployments', label: 'Déploiements', icon: <History size={14} />, onClick: () => setActiveTab('deployments') },
-                { key: 'details', label: 'Détails', icon: <Settings size={14} />, onClick: () => setActiveTab('details') },
+                { key: 'targets', label: t('show.tabs.targets'), icon: <GitBranch size={14} />, onClick: () => setActiveTab('targets') },
+                { key: 'environments', label: t('show.tabs.environments'), icon: <Layers size={14} />, onClick: () => setActiveTab('environments') },
+                { key: 'members', label: t('show.tabs.members'), icon: <Users size={14} />, onClick: () => setActiveTab('members') },
+                { key: 'deployments', label: t('show.tabs.deployments'), icon: <History size={14} />, onClick: () => setActiveTab('deployments') },
+                { key: 'details', label: t('show.tabs.details'), icon: <Settings size={14} />, onClick: () => setActiveTab('details') },
             ]}
             activeTab={activeTab}
             actions={
@@ -167,14 +169,14 @@ export default function Show({
                                         key: 'delete',
                                         danger: true,
                                         icon: <Trash2 size={14} />,
-                                        label: "Supprimer l'application",
+                                        label: t('show.deleteApplication'),
                                         onClick: destroy,
                                     },
                                 ],
                             }}
                             trigger={['click']}
                         >
-                            <button type="button" className="env-matrix-overflow-btn" aria-label="Plus d'actions">
+                            <button type="button" className="env-matrix-overflow-btn" aria-label={t('show.moreActionsAriaLabel')}>
                                 <MoreHorizontal size={16} />
                             </button>
                         </Dropdown>

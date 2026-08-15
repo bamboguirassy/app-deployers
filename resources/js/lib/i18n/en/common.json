@@ -15,5 +15,25 @@
     "languageSwitch": {
         "viewInFrench": "Voir en français",
         "viewInEnglish": "View in English"
+    },
+    "theme": {
+        "switchToLight": "Switch to light mode",
+        "switchToDark": "Switch to dark mode",
+        "toggle": "Toggle theme"
+    },
+    "kpi": {
+        "defaultTitle": "Key metrics"
+    },
+    "listToolbar": {
+        "searchPlaceholder": "Search...",
+        "all": "All",
+        "sort": "Sort",
+        "ascending": "Ascending order",
+        "descending": "Descending order",
+        "reset": "Reset"
+    },
+    "activeDeployments": {
+        "title": "Active deployments",
+        "empty": "No active deployments"
     }
 }

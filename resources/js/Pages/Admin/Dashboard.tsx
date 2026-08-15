@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Card, Empty, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { AlertTriangle, Building2, CheckCircle2, History, ShieldAlert, XOctagon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -36,14 +37,16 @@ export default function Dashboard({
     planDistribution: PlanDistributionRow[];
     topWorkspaces: TopWorkspaceRow[];
 }) {
+    const { t } = useTranslation('admin');
+
     const planColumns: ColumnsType<PlanDistributionRow> = [
-        { title: 'Plan', dataIndex: 'plan_name', key: 'plan_name' },
-        { title: 'Workspaces', dataIndex: 'total', key: 'total', align: 'right' },
+        { title: t('dashboard.planDistribution.planColumn'), dataIndex: 'plan_name', key: 'plan_name' },
+        { title: t('dashboard.planDistribution.workspacesColumn'), dataIndex: 'total', key: 'total', align: 'right' },
     ];
 
     const topColumns: ColumnsType<TopWorkspaceRow> = [
         {
-            title: 'Workspace',
+            title: t('dashboard.topWorkspaces.workspaceColumn'),
             key: 'name',
             render: (_value, workspace) => (
                 <Link href={route('admin.workspaces.show', workspace.slug)} className="applications-table__action">
@@ -51,40 +54,40 @@ export default function Dashboard({
                 </Link>
             ),
         },
-        { title: 'Déploiements', dataIndex: 'deployments_count', key: 'deployments_count', align: 'right' },
+        { title: t('dashboard.topWorkspaces.deploymentsColumn'), dataIndex: 'deployments_count', key: 'deployments_count', align: 'right' },
     ];
 
     return (
-        <AdminLayout breadcrumbs={[{ label: 'Administration' }]}>
-            <Head title="Administration — Tableau de bord" />
+        <AdminLayout breadcrumbs={[{ label: t('layout.breadcrumbFallback') }]}>
+            <Head title={t('dashboard.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Plateforme</div>
+                    <div className="premium-list-eyebrow">{t('dashboard.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Tableau de bord super-admin
+                        {t('dashboard.heading')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Vue d'ensemble de tous les workspaces, abonnements et déploiements de la plateforme.
+                        {t('dashboard.subtitle')}
                     </Paragraph>
                 </div>
             </div>
 
             <KpiCollapse
-                title="Indicateurs plateforme"
-                subtitle="Chiffres agrégés sur l'ensemble des workspaces"
+                title={t('dashboard.kpiTitle')}
+                subtitle={t('dashboard.kpiSubtitle')}
                 items={[
-                    { key: 'total_workspaces', title: 'Workspaces', value: kpis.total_workspaces, icon: <Building2 size={14} /> },
-                    { key: 'active_workspaces', title: 'Actifs / avec abonnement', value: kpis.active_workspaces, icon: <CheckCircle2 size={14} /> },
-                    { key: 'deployments_24h', title: 'Déploiements (24h)', value: kpis.deployments_24h, icon: <History size={14} /> },
-                    { key: 'failed_deployments_24h', title: 'Échecs (24h)', value: kpis.failed_deployments_24h, icon: <XOctagon size={14} /> },
-                    { key: 'failed_jobs', title: 'Jobs en échec', value: kpis.failed_jobs, icon: <ShieldAlert size={14} /> },
+                    { key: 'total_workspaces', title: t('dashboard.kpis.totalWorkspaces'), value: kpis.total_workspaces, icon: <Building2 size={14} /> },
+                    { key: 'active_workspaces', title: t('dashboard.kpis.activeWorkspaces'), value: kpis.active_workspaces, icon: <CheckCircle2 size={14} /> },
+                    { key: 'deployments_24h', title: t('dashboard.kpis.deployments24h'), value: kpis.deployments_24h, icon: <History size={14} /> },
+                    { key: 'failed_deployments_24h', title: t('dashboard.kpis.failedDeployments24h'), value: kpis.failed_deployments_24h, icon: <XOctagon size={14} /> },
+                    { key: 'failed_jobs', title: t('dashboard.kpis.failedJobs'), value: kpis.failed_jobs, icon: <ShieldAlert size={14} /> },
                 ]}
             />
 
             <div className="admin-dashboard-grid">
                 <Card
-                    title="Répartition par plan"
+                    title={t('dashboard.planDistribution.cardTitle')}
                     className="premium-table-card"
                     styles={{ body: { padding: 0 } }}
                 >
@@ -98,11 +101,11 @@ export default function Dashboard({
                             scroll={{ x: 'max-content' }}
                         />
                     ) : (
-                        <Empty description="Aucune donnée d'abonnement" style={{ padding: 24 }} />
+                        <Empty description={t('dashboard.planDistribution.empty')} style={{ padding: 24 }} />
                     )}
                 </Card>
 
-                <Card title="Top 5 workspaces (déploiements)" className="premium-table-card" styles={{ body: { padding: 0 } }}>
+                <Card title={t('dashboard.topWorkspaces.cardTitle')} className="premium-table-card" styles={{ body: { padding: 0 } }}>
                     {topWorkspaces.length > 0 ? (
                         <Table
                             rowKey="id"
@@ -113,7 +116,7 @@ export default function Dashboard({
                             scroll={{ x: 'max-content' }}
                         />
                     ) : (
-                        <Empty description="Aucun déploiement enregistré" style={{ padding: 24 }} />
+                        <Empty description={t('dashboard.topWorkspaces.empty')} style={{ padding: 24 }} />
                     )}
                 </Card>
             </div>
@@ -122,7 +125,7 @@ export default function Dashboard({
                 <Card className="premium-table-card" style={{ marginTop: 16 }}>
                     <span className="premium-table__status premium-table__status--danger">
                         <AlertTriangle size={16} />
-                        {kpis.failed_jobs} job(s) en échec dans la file d'attente — vérifiez Horizon.
+                        {t('dashboard.failedJobsWarning', { count: kpis.failed_jobs })}
                     </span>
                 </Card>
             )}

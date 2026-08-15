@@ -5,6 +5,7 @@ import { Application } from '@/types/models';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Typography } from 'antd';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -15,28 +16,29 @@ export default function Index({
     applications: { data: Application[] };
     kpis: ApplicationKpis;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const canCreate = workspace?.role === 'owner' || workspace?.role === 'manager';
 
     return (
-        <AuthenticatedLayout header="Applications">
-            <Head title="Applications" />
+        <AuthenticatedLayout header={t('index.title')}>
+            <Head title={t('index.title')} />
 
             <div className="applications-hero">
                 <div>
-                    <div className="applications-eyebrow">Workspace</div>
+                    <div className="applications-eyebrow">{t('index.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Vos applications
+                        {t('index.heading')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Chaque application regroupe ses targets, ses environnements et son pipeline de déploiement.
+                        {t('index.subtitle')}
                     </Paragraph>
                 </div>
 
                 {canCreate && (
                     <Link href={route('applications.create', workspace!.slug)}>
                         <Button className="applications-hero__action" type="primary" icon={<Plus size={16} />}>
-                            Nouvelle application
+                            {t('index.newApplication')}
                         </Button>
                     </Link>
                 )}
@@ -50,7 +52,7 @@ export default function Index({
                     canCreate ? (
                         <Link href={route('applications.create', workspace!.slug)}>
                             <Button type="primary" icon={<Plus size={16} />}>
-                                Créer ma première application
+                                {t('index.createFirst')}
                             </Button>
                         </Link>
                     ) : undefined

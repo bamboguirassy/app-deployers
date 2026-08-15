@@ -37,6 +37,7 @@ import {
 } from 'antd';
 import { Eye, GripVertical, Pencil, Plus, Trash2, Variable } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const persistOptions = { preserveScroll: true, preserveState: true } as const;
 
@@ -64,6 +65,8 @@ function deriveLabelFromCommand(command: string): string {
 
 /** Petit menu "Insérer une variable" réutilisé pour l'objet et le corps du mail. */
 function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }) {
+    const { t } = useTranslation('applications');
+
     return (
         <Dropdown
             trigger={['click']}
@@ -81,7 +84,7 @@ function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }
             }}
         >
             <Button size="small" icon={<Variable size={13} />}>
-                Variable
+                {t('pipelineSteps.variableButton')}
             </Button>
         </Dropdown>
     );
@@ -105,6 +108,7 @@ function StepEditorDrawer({
     submitting: boolean;
     activeMembers: { id: number; name: string; email: string }[];
 }) {
+    const { t } = useTranslation('applications');
     const [type, setType] = useState<StepType>('command');
     const [label, setLabel] = useState('');
     const [config, setConfig] = useState<DraftConfig>(defaultConfigFor('command'));
@@ -187,11 +191,11 @@ function StepEditorDrawer({
             open={open}
             onClose={onClose}
             width="min(560px, 92vw)"
-            title={step ? "Modifier l'étape" : 'Nouvelle étape'}
+            title={step ? t('pipelineSteps.drawer.editTitle') : t('pipelineSteps.drawer.newTitle')}
             destroyOnClose
             footer={
                 <div className="form-actions form-actions--end">
-                    <Button onClick={onClose}>{step ? 'Annuler' : 'Fermer'}</Button>
+                    <Button onClick={onClose}>{step ? t('pipelineSteps.drawer.cancel') : t('pipelineSteps.drawer.close')}</Button>
                     <Button
                         type="primary"
                         loading={submitting}
@@ -209,7 +213,7 @@ function StepEditorDrawer({
                             )
                         }
                     >
-                        {step ? 'Enregistrer' : 'Ajouter cette étape'}
+                        {step ? t('pipelineSteps.drawer.save') : t('pipelineSteps.drawer.addStep')}
                     </Button>
                 </div>
             }
@@ -219,7 +223,7 @@ function StepEditorDrawer({
                     <Alert
                         type="error"
                         showIcon
-                        message="Impossible d'enregistrer l'étape"
+                        message={t('pipelineSteps.drawer.errorTitle')}
                         description={
                             <ul className="step-editor__error-list">
                                 {validationErrors.map(([key, message]) => (
@@ -231,7 +235,7 @@ function StepEditorDrawer({
                 )}
 
                 <div>
-                    <label className="step-editor__field-label">Type d&apos;action</label>
+                    <label className="step-editor__field-label">{t('pipelineSteps.drawer.typeLabel')}</label>
                     <Segmented
                         block
                         value={type}
@@ -249,7 +253,7 @@ function StepEditorDrawer({
 
                 {type === 'command' && (
                     <div>
-                        <label className="step-editor__field-label">Commande</label>
+                        <label className="step-editor__field-label">{t('pipelineSteps.drawer.commandLabel')}</label>
                         <Input.TextArea
                             className="step-editor__mono"
                             rows={6}
@@ -262,13 +266,13 @@ function StepEditorDrawer({
                                     setLabel(deriveLabelFromCommand(command));
                                 }
                             }}
-                            placeholder="npm run build && npm run deploy"
+                            placeholder={t('pipelineSteps.drawer.commandPlaceholder')}
                         />
                     </div>
                 )}
 
                 <div>
-                    <label className="step-editor__field-label">Nom de l&apos;étape</label>
+                    <label className="step-editor__field-label">{t('pipelineSteps.drawer.labelLabel')}</label>
                     <Input
                         ref={labelRef}
                         value={label}
@@ -276,32 +280,32 @@ function StepEditorDrawer({
                             labelTouchedRef.current = true;
                             setLabel(e.target.value);
                         }}
-                        placeholder="ex: Build & déploiement"
+                        placeholder={t('pipelineSteps.drawer.labelPlaceholder')}
                     />
                 </div>
 
                 {type === 'email' && (
                     <>
                         <div>
-                            <label className="step-editor__field-label">Destinataires</label>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.recipientsLabel')}</label>
                             <Select
                                 mode="multiple"
                                 className="w-full"
                                 value={(config as EmailStepConfig).to ?? []}
                                 onChange={(to) => setConfig((c) => ({ ...c, to }))}
-                                placeholder="Sélectionner un ou plusieurs membres"
+                                placeholder={t('pipelineSteps.drawer.recipientsPlaceholder')}
                                 optionFilterProp="label"
                                 options={activeMembers.map((member) => ({
                                     value: member.email,
                                     label: `${member.name} (${member.email})`,
                                 }))}
-                                notFoundContent="Aucun membre actif sur cette application"
+                                notFoundContent={t('pipelineSteps.drawer.noActiveMembers')}
                             />
                         </div>
 
                         <div>
                             <div className="step-editor__field-header">
-                                <label className="step-editor__field-label">Objet</label>
+                                <label className="step-editor__field-label">{t('pipelineSteps.drawer.subjectLabel')}</label>
                                 <VariableInsertButton onInsert={insertIntoSubject} />
                             </div>
                             <Input
@@ -314,12 +318,12 @@ function StepEditorDrawer({
 
                         <div>
                             <div className="step-editor__field-header">
-                                <label className="step-editor__field-label">Message</label>
+                                <label className="step-editor__field-label">{t('pipelineSteps.drawer.messageLabel')}</label>
                                 <div className="step-editor__field-actions">
                                     <VariableInsertButton onInsert={insertIntoBody} />
-                                    <Tooltip title="Prévisualiser avec des données d'exemple">
+                                    <Tooltip title={t('pipelineSteps.drawer.previewTooltip')}>
                                         <Button size="small" icon={<Eye size={13} />} onClick={() => setShowPreview((v) => !v)}>
-                                            Aperçu
+                                            {t('pipelineSteps.drawer.previewButton')}
                                         </Button>
                                     </Tooltip>
                                 </div>
@@ -338,7 +342,7 @@ function StepEditorDrawer({
                                     message={
                                         <div>
                                             <div>
-                                                <strong>Objet :</strong> {interpolatePreview((config as EmailStepConfig).subject ?? '')}
+                                                <strong>{t('pipelineSteps.drawer.previewSubjectLabel')}</strong> {interpolatePreview((config as EmailStepConfig).subject ?? '')}
                                             </div>
                                             <div className="step-editor__preview-body">
                                                 {interpolatePreview((config as EmailStepConfig).body ?? '')}
@@ -353,11 +357,11 @@ function StepEditorDrawer({
 
                 <div className="step-editor__row">
                     <div>
-                        <label className="step-editor__field-label">Timeout (secondes)</label>
+                        <label className="step-editor__field-label">{t('pipelineSteps.drawer.timeoutLabel')}</label>
                         <InputNumber
                             min={1}
                             max={3600}
-                            placeholder="défaut"
+                            placeholder={t('pipelineSteps.drawer.timeoutPlaceholder')}
                             value={timeoutSeconds}
                             onChange={setTimeoutSeconds}
                             controls={false}
@@ -365,7 +369,7 @@ function StepEditorDrawer({
                     </div>
                     <div className="step-editor__continue-toggle">
                         <Switch checked={continueOnFailure} onChange={setContinueOnFailure} />
-                        <span>Continuer le pipeline même si cette étape échoue</span>
+                        <span>{t('pipelineSteps.drawer.continueOnFailureLabel')}</span>
                     </div>
                 </div>
             </div>
@@ -386,6 +390,7 @@ function SortableStepRow({
     onEdit: () => void;
     onDelete: () => void;
 }) {
+    const { t } = useTranslation('applications');
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: step.id,
     });
@@ -409,7 +414,7 @@ function SortableStepRow({
 
             <span className="step-row__order">{index + 1}</span>
 
-            <Tooltip title={step.type === 'command' ? 'Commande shell' : 'Email'}>
+            <Tooltip title={step.type === 'command' ? t('pipelineSteps.row.commandTooltip') : t('pipelineSteps.row.emailTooltip')}>
                 <span className={`step-row__type step-row__type--${step.type}`}>{stepTypeIcon(step.type)}</span>
             </Tooltip>
 
@@ -419,25 +424,25 @@ function SortableStepRow({
                 {stepSummary(step)}
             </span>
 
-            <Tooltip title="Timeout">
+            <Tooltip title={t('pipelineSteps.row.timeoutTooltip')}>
                 <span className="step-row__timeout">{step.timeout_seconds ? `${step.timeout_seconds}s` : '—'}</span>
             </Tooltip>
 
-            <Tooltip title="Continue en cas d'échec">
+            <Tooltip title={t('pipelineSteps.row.continueTooltip')}>
                 <span className={`step-row__continue ${step.continue_on_failure ? 'step-row__continue--active' : ''}`}>
-                    {step.continue_on_failure ? 'Oui' : 'Non'}
+                    {step.continue_on_failure ? t('pipelineSteps.row.yes') : t('pipelineSteps.row.no')}
                 </span>
             </Tooltip>
 
             {canManage && (
                 <>
-                    <Tooltip title="Modifier l'étape">
-                        <button type="button" className="step-row__edit" onClick={onEdit} aria-label="Modifier l'étape">
+                    <Tooltip title={t('pipelineSteps.row.editTooltip')}>
+                        <button type="button" className="step-row__edit" onClick={onEdit} aria-label={t('pipelineSteps.row.editAriaLabel')}>
                             <Pencil size={14} />
                         </button>
                     </Tooltip>
-                    <Tooltip title="Supprimer l'étape">
-                        <button type="button" className="step-row__delete" onClick={onDelete} aria-label="Supprimer l'étape">
+                    <Tooltip title={t('pipelineSteps.row.deleteTooltip')}>
+                        <button type="button" className="step-row__delete" onClick={onDelete} aria-label={t('pipelineSteps.row.deleteAriaLabel')}>
                             <Trash2 size={14} />
                         </button>
                     </Tooltip>
@@ -458,6 +463,7 @@ export default function PipelineStepsPanel({
     canManage: boolean;
     activeMembers: { id: number; name: string; email: string }[];
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const [steps, setSteps] = useState(target.pipeline_steps);
     const [editingStep, setEditingStep] = useState<PipelineStep | null>(null);
@@ -486,10 +492,10 @@ export default function PipelineStepsPanel({
 
     const deleteStep = (step: PipelineStep) => {
         confirm.confirm({
-            title: `Supprimer l'étape "${step.label}" ?`,
+            title: t('pipelineSteps.confirmDelete.title', { label: step.label }),
             okType: 'danger',
-            okText: 'Supprimer',
-            cancelText: 'Annuler',
+            okText: t('pipelineSteps.confirmDelete.okText'),
+            cancelText: t('pipelineSteps.confirmDelete.cancelText'),
             onOk: () => {
                 router.delete(
                     route('pipeline-steps.destroy', [workspace!.slug, application.slug, target.uuid, step.uuid]),
@@ -549,17 +555,17 @@ export default function PipelineStepsPanel({
     return (
         <div className="step-list">
             {steps.length === 0 && !canManage ? (
-                <Empty description="Aucune étape définie" />
+                <Empty description={t('pipelineSteps.emptyDescription')} />
             ) : (
                 <>
                     <div className="step-row step-row--header">
                         <span className="step-row__handle" />
                         <span className="step-row__order">#</span>
                         <span className="step-row__type" />
-                        <span className="step-row__label">Étape</span>
-                        <span className="step-row__command">Détail</span>
-                        <span className="step-row__timeout">Timeout</span>
-                        <span className="step-row__continue">Continue</span>
+                        <span className="step-row__label">{t('pipelineSteps.header.stepColumn')}</span>
+                        <span className="step-row__command">{t('pipelineSteps.header.detailColumn')}</span>
+                        <span className="step-row__timeout">{t('pipelineSteps.header.timeoutColumn')}</span>
+                        <span className="step-row__continue">{t('pipelineSteps.header.continueColumn')}</span>
                         <span />
                         <span />
                     </div>
@@ -584,7 +590,7 @@ export default function PipelineStepsPanel({
             {canManage && (
                 <div className="step-list__add">
                     <Button type="dashed" icon={<Plus size={14} />} onClick={openCreate} block>
-                        Ajouter une étape
+                        {t('pipelineSteps.addStep')}
                     </Button>
                 </div>
             )}

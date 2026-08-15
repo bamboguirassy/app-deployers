@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Alert, Modal, Spin } from 'antd';
 import { RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TestResult {
     success: boolean;
@@ -20,6 +21,7 @@ export default function TestConnectionModal({
     server: Server | null;
     onClose: () => void;
 }) {
+    const { t } = useTranslation('servers');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<TestResult | null>(null);
 
@@ -33,7 +35,7 @@ export default function TestConnectionModal({
             .post(route('servers.test-existing', [workspaceSlug, server.uuid]))
             .then((res) => setResult(res.data))
             .catch((err) =>
-                setResult(err.response?.data ?? { success: false, message: 'Erreur inattendue lors du test.', latency_ms: null }),
+                setResult(err.response?.data ?? { success: false, message: t('testConnection.unexpectedError'), latency_ms: null }),
             )
             .finally(() => setLoading(false));
     };
@@ -47,16 +49,16 @@ export default function TestConnectionModal({
 
     return (
         <Modal
-            title={server ? `Tester la connexion — ${server.name}` : 'Tester la connexion'}
+            title={server ? t('testConnection.titleWithServer', { name: server.name }) : t('testConnection.title')}
             open={!!server}
             onCancel={onClose}
             footer={
                 <div className="form-actions form-actions--end">
                     <SecondaryButton htmlType="button" icon={<RefreshCcw size={14} />} onClick={runTest} disabled={loading}>
-                        Relancer le test
+                        {t('testConnection.retry')}
                     </SecondaryButton>
                     <SecondaryButton htmlType="button" onClick={onClose}>
-                        Fermer
+                        {t('testConnection.close')}
                     </SecondaryButton>
                 </div>
             }
@@ -71,7 +73,7 @@ export default function TestConnectionModal({
             {loading && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 0' }}>
                     <Spin size="small" />
-                    <span>Connexion en cours...</span>
+                    <span>{t('testConnection.connecting')}</span>
                 </div>
             )}
 
@@ -80,7 +82,7 @@ export default function TestConnectionModal({
                     type={result.success ? 'success' : 'error'}
                     showIcon
                     message={result.message}
-                    description={result.success && result.latency_ms !== null ? `Temps de réponse : ${result.latency_ms} ms` : undefined}
+                    description={result.success && result.latency_ms !== null ? t('testConnection.responseTime', { ms: result.latency_ms }) : undefined}
                 />
             )}
         </Modal>

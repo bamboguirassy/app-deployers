@@ -12,6 +12,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Select } from 'antd';
 import { CheckCircle2, FolderSearch, Layers, MoreHorizontal, Plus, RefreshCcw, Rocket, Trash2 } from 'lucide-react';
 import { FormEventHandler, Fragment, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function EnvironmentCell({
     target,
@@ -24,13 +25,14 @@ function EnvironmentCell({
     selected: boolean;
     onOpen: () => void;
 }) {
+    const { t } = useTranslation('applications');
     const link = target.target_environments.find((te) => te.environment_id === environment.id);
 
     if (!link) {
         return (
             <button type="button" className={`env-cell env-cell--empty ${selected ? 'env-cell--selected' : ''}`} onClick={onOpen}>
                 <span className="env-cell__dot env-cell__dot--muted" />
-                Non configuré
+                {t('environmentWorkspace.notConfigured')}
             </button>
         );
     }
@@ -46,7 +48,7 @@ function EnvironmentCell({
             </div>
             <div className="env-cell__path">{link.deploy_path}</div>
             <div className="env-cell__meta">
-                {link.server ? link.server.name : 'Aucun serveur'} · {link.variables.length} vars
+                {link.server ? link.server.name : t('environmentWorkspace.noServer')} · {link.variables.length} {t('environmentWorkspace.varsUnit')}
                 <span>›</span>
             </div>
         </button>
@@ -70,6 +72,7 @@ function ConfigDrawer({
     canDeploy: boolean;
     onClose: () => void;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const existing = target.target_environments.find((te) => te.environment_id === environment.id);
     const [browsing, setBrowsing] = useState(false);
@@ -124,11 +127,11 @@ function ConfigDrawer({
                         </strong>
                         <span className={`drawer-status ${existing ? 'drawer-status--configured' : 'drawer-status--empty'}`}>
                             {existing && <CheckCircle2 size={12} />}
-                            {existing ? 'Configured' : 'Non configuré'}
+                            {existing ? t('environmentWorkspace.configured') : t('environmentWorkspace.notConfigured')}
                         </span>
                     </div>
                     <div className="drawer-tags-row">
-                        <span className="drawer-tag">{target.framework?.name ?? 'Stack personnalisée'}</span>
+                        <span className="drawer-tag">{target.framework?.name ?? t('environmentWorkspace.drawer.customStack')}</span>
                         <span className="drawer-tag">{environment.name}</span>
                     </div>
                 </div>
@@ -142,7 +145,7 @@ function ConfigDrawer({
                         icon={<Rocket size={14} />}
                         onClick={() => router.post(route('deployments.store', [workspace!.slug, application.slug, existing.uuid]))}
                     >
-                        Déployer
+                        {t('environmentWorkspace.drawer.deploy')}
                     </PrimaryButton>
                 )
             }
@@ -150,38 +153,38 @@ function ConfigDrawer({
                 canManage && (
                     <div className="drawer-footer">
                         <SecondaryButton htmlType="button" onClick={onClose}>
-                            Cancel
+                            {t('environmentWorkspace.drawer.cancel')}
                         </SecondaryButton>
                         <PrimaryButton htmlType="button" disabled={processing} onClick={save}>
-                            Save changes
+                            {t('environmentWorkspace.drawer.save')}
                         </PrimaryButton>
                     </div>
                 )
             }
         >
             <h4 className="target-workspace__section-title" style={{ marginTop: 0 }}>
-                Général
+                {t('environmentWorkspace.drawer.generalSectionTitle')}
             </h4>
             <form onSubmit={onSubmit} className="form-stack">
                 <div>
-                    <InputLabel value="Serveur" />
+                    <InputLabel value={t('environmentWorkspace.drawer.serverLabel')} />
                     <Select
                         className="w-full"
-                        placeholder="Choisir un serveur du workspace"
+                        placeholder={t('environmentWorkspace.drawer.serverPlaceholder')}
                         value={data.server_id ?? undefined}
                         onChange={handleServerChange}
                         disabled={!canManage}
                         status={errors.server_id ? 'error' : undefined}
                         options={servers.map((s) => ({ value: s.id, label: `${s.name} (${s.host})` }))}
-                        notFoundContent={<Empty description="Aucun serveur. Ajoutez-en un dans l'espace Serveurs." />}
+                        notFoundContent={<Empty description={t('environmentWorkspace.drawer.noServerHint')} />}
                     />
                     <InputError message={errors.server_id} />
                 </div>
                 <div>
-                    <InputLabel value="Chemin de déploiement" />
+                    <InputLabel value={t('environmentWorkspace.drawer.deployPathLabel')} />
                     <div style={{ display: 'flex', gap: 8 }}>
                         <Input
-                            placeholder="/var/www/api"
+                            placeholder={t('environmentWorkspace.drawer.deployPathPlaceholder')}
                             value={data.deploy_path}
                             readOnly
                             status={errors.deploy_path ? 'error' : undefined}
@@ -192,18 +195,18 @@ function ConfigDrawer({
                             onClick={() => setBrowsing(true)}
                             disabled={!canManage || !selectedServer}
                         >
-                            Parcourir
+                            {t('environmentWorkspace.drawer.browse')}
                         </SecondaryButton>
                     </div>
                     {!selectedServer && (
-                        <span className="section-hint">Choisissez d&apos;abord un serveur pour parcourir ses dossiers.</span>
+                        <span className="section-hint">{t('environmentWorkspace.drawer.chooseServerHint')}</span>
                     )}
                     <InputError message={errors.deploy_path} />
                 </div>
                 <div>
-                    <InputLabel value="Branche git" />
+                    <InputLabel value={t('environmentWorkspace.drawer.branchLabel')} />
                     <Input
-                        placeholder="main"
+                        placeholder={t('environmentWorkspace.drawer.branchPlaceholder')}
                         value={data.git_branch}
                         onChange={(e) => setData('git_branch', e.target.value)}
                         disabled={!canManage}
@@ -224,7 +227,7 @@ function ConfigDrawer({
 
             {existing && (
                 <>
-                    <h4 className="target-workspace__section-title">Variables d&apos;environnement</h4>
+                    <h4 className="target-workspace__section-title">{t('environmentWorkspace.drawer.variablesSectionTitle')}</h4>
                     <VariablesEditor application={application} targetEnvironment={existing as TargetEnvironmentLink} canManage={canManage} />
                 </>
             )}
@@ -245,6 +248,7 @@ export default function EnvironmentWorkspace({
     canManage: boolean;
     canDeploy: boolean;
 }) {
+    const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
     const [creatingEnv, setCreatingEnv] = useState(false);
     const [creatingTarget, setCreatingTarget] = useState(false);
@@ -264,35 +268,35 @@ export default function EnvironmentWorkspace({
 
     const removeEnvironment = (environment: Environment) => {
         confirm.confirm({
-            title: `Supprimer l'environnement "${environment.name}" ?`,
+            title: t('environmentWorkspace.confirmRemoveEnvironment.title', { name: environment.name }),
             okType: 'danger',
-            okText: 'Supprimer',
-            cancelText: 'Annuler',
+            okText: t('environmentWorkspace.confirmRemoveEnvironment.okText'),
+            cancelText: t('environmentWorkspace.confirmRemoveEnvironment.cancelText'),
             onOk: () => router.delete(route('environments.destroy', [workspace!.slug, application.slug, environment.uuid])),
         });
     };
 
     if (application.targets.length === 0) {
-        return <Empty description="Créez d'abord au moins un target dans l'onglet Targets & Pipeline." />;
+        return <Empty description={t('environmentWorkspace.emptyNoTargets')} />;
     }
 
     return (
         <div className="env-matrix-wrapper">
             <div className="env-matrix-toolbar">
                 <div className="env-matrix-heading">
-                    <h3>Matrice des environnements</h3>
-                    <p>Gérez et comparez la configuration de vos targets à travers les environnements.</p>
+                    <h3>{t('environmentWorkspace.heading')}</h3>
+                    <p>{t('environmentWorkspace.subheading')}</p>
                 </div>
 
                 <div className="env-matrix-toolbar-actions">
                     {canManage && (
                         <PrimaryButton size="small" icon={<Plus size={14} />} onClick={() => setCreatingEnv(true)}>
-                            Ajouter un environnement
+                            {t('environmentWorkspace.addEnvironment')}
                         </PrimaryButton>
                     )}
                     {canManage && (
                         <SecondaryButton size="small" icon={<Plus size={14} />} onClick={() => setCreatingTarget(true)}>
-                            Ajouter un target
+                            {t('environmentWorkspace.addTarget')}
                         </SecondaryButton>
                     )}
                     <Dropdown
@@ -300,7 +304,7 @@ export default function EnvironmentWorkspace({
                             items: [
                                 {
                                     key: 'refresh',
-                                    label: 'Actualiser',
+                                    label: t('environmentWorkspace.refresh'),
                                     icon: <RefreshCcw size={14} />,
                                     onClick: () => router.reload(),
                                 },
@@ -308,7 +312,7 @@ export default function EnvironmentWorkspace({
                         }}
                         trigger={['click']}
                     >
-                        <button type="button" className="env-matrix-overflow-btn" aria-label="Plus d'actions">
+                        <button type="button" className="env-matrix-overflow-btn" aria-label={t('environmentWorkspace.moreActionsAriaLabel')}>
                             <MoreHorizontal size={16} />
                         </button>
                     </Dropdown>
@@ -317,22 +321,22 @@ export default function EnvironmentWorkspace({
 
             <div className="env-matrix-legend">
                 <span>
-                    <span className="env-cell__dot env-cell__dot--ok" /> Configuré
+                    <span className="env-cell__dot env-cell__dot--ok" /> {t('environmentWorkspace.legend.configured')}
                 </span>
                 <span>
-                    <span className="env-cell__dot env-cell__dot--muted" /> Non configuré
+                    <span className="env-cell__dot env-cell__dot--muted" /> {t('environmentWorkspace.legend.notConfigured')}
                 </span>
                 <span>
-                    <span className="env-cell__dot env-cell__dot--secret" /> Contient des secrets
+                    <span className="env-cell__dot env-cell__dot--secret" /> {t('environmentWorkspace.legend.hasSecrets')}
                 </span>
             </div>
 
             {application.environments.length === 0 ? (
-                <Empty description="Aucun environnement. Ajoutez par exemple « develop » et « production »." />
+                <Empty description={t('environmentWorkspace.emptyNoEnvironments')} />
             ) : (
                 <div className="env-matrix">
                     <div className="env-matrix__table" style={{ gridTemplateColumns: `220px repeat(${application.environments.length}, 1fr)` }}>
-                        <div className="env-matrix__header env-matrix__corner">Targets</div>
+                        <div className="env-matrix__header env-matrix__corner">{t('environmentWorkspace.targetsColumnHeader')}</div>
                         {application.environments.map((environment) => (
                             <div key={environment.id} className="env-matrix__header">
                                 <span>{environment.name}</span>
@@ -355,7 +359,7 @@ export default function EnvironmentWorkspace({
                                     />
                                     <div>
                                         <strong>{target.name}</strong>
-                                        <small>{target.framework?.name ?? 'Personnalisé'}</small>
+                                        <small>{target.framework?.name ?? t('environmentWorkspace.customFramework')}</small>
                                     </div>
                                 </div>
 
@@ -401,17 +405,17 @@ export default function EnvironmentWorkspace({
                 onCreated={() => undefined}
             />
 
-            <Modal title="Nouvel environnement" open={creatingEnv} onCancel={() => setCreatingEnv(false)} footer={null} destroyOnClose>
+            <Modal title={t('environmentWorkspace.newEnvironmentModalTitle')} open={creatingEnv} onCancel={() => setCreatingEnv(false)} footer={null} destroyOnClose>
                 <form onSubmit={submit} className="form-stack">
                     <Input
-                        placeholder="ex: develop, staging, production..."
+                        placeholder={t('environmentWorkspace.newEnvironmentPlaceholder')}
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         autoFocus
                     />
                     {errors.name && <div className="field-error">{errors.name}</div>}
                     <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
-                        <PrimaryButton disabled={processing}>Créer</PrimaryButton>
+                        <PrimaryButton disabled={processing}>{t('environmentWorkspace.create')}</PrimaryButton>
                     </div>
                 </form>
             </Modal>

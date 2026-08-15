@@ -1,0 +1,78 @@
+{
+    "meta": {
+        "headerTitle": "Facturation",
+        "eyebrow": "Workspace",
+        "title": "Facturation",
+        "subtitle": "Choisissez le plan adapté à votre équipe. Changez à tout moment."
+    },
+    "errors": {
+        "notConfigured": "La facturation en ligne n'est pas encore configurée. Contactez le support.",
+        "checkoutFailed": "Impossible de lancer le paiement pour le moment."
+    },
+    "pastDue": {
+        "title": "Échec de paiement",
+        "descriptionWithDays": "Votre dernier paiement a échoué. Vous gardez votre plan actuel encore {{days}} jour(s) avant un retour automatique au plan Free.",
+        "description": "Votre dernier paiement a échoué."
+    },
+    "interval": {
+        "monthly": "Mensuel",
+        "yearly": "Annuel — 2 mois offerts",
+        "monthlyLabel": "mensuelle",
+        "yearlyLabel": "annuelle"
+    },
+    "tooltip": {
+        "ownerOnly": "Seul le owner du workspace peut changer de plan",
+        "notConfigured": "La facturation {{interval}} n'est pas encore configurée pour ce plan"
+    },
+    "units": {
+        "application": "application",
+        "applications": "applications",
+        "deployment": "déploiement simultané",
+        "deployments": "déploiements simultanés"
+    },
+    "features": {
+        "unlimited": "{{unit}} illimité(e)s",
+        "count": "{{count}} {{unit}}"
+    },
+    "plans": {
+        "currentPlan": "Plan actuel",
+        "free": {
+            "name": "Free",
+            "perMonth": "/ mois",
+            "tagline": "Pour découvrir la plateforme et déployer votre premier projet.",
+            "currentButton": "Plan actuel",
+            "includedButton": "Inclus dans votre plan",
+            "webhooks": "Webhooks Git (GitHub, GitLab, Bitbucket)",
+            "history": "Historique de déploiement",
+            "logs": "Logs en direct"
+        },
+        "pro": {
+            "name": "Pro",
+            "recommended": "Recommandé",
+            "perMonth": "/ mois",
+            "perMonthYearlySuffix": ", facturé annuellement",
+            "yearlyNote": "{{price}}€ facturés une fois par an — économisez {{savings}}€ vs mensuel",
+            "tagline": "Pour les équipes qui déploient en production, sans limite.",
+            "allFreeFeatures": "Toutes les fonctionnalités du plan Free",
+            "unlimitedApplications": "Applications illimitées",
+            "prioritySupport": "Support prioritaire",
+            "upgradeButton": "Passer à {{name}}",
+            "compedButton": "Plan actuel — offert par notre équipe",
+            "currentButton": "Plan actuel",
+            "renewsAt": " — renouvellement le {{date}}"
+        }
+    },
+    "usage": {
+        "title": "Utilisation actuelle",
+        "applications": "Applications",
+        "deploymentsAllowed": "Déploiements simultanés autorisés",
+        "unlimited": "Illimité"
+    },
+    "footer": {
+        "prefix": "Le passage à un plan payant est facturé par notre partenaire Paddle. En souscrivant, vous acceptez nos ",
+        "termsLink": "conditions d'utilisation",
+        "middle": " et notre ",
+        "refundsLink": "politique de remboursement",
+        "suffix": "."
+    }
+}

@@ -6,10 +6,12 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { Typography } from 'antd';
 import { FormEventHandler } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Paragraph } = Typography;
 
 export default function Create() {
+    const { t } = useTranslation('workspaces');
     const { data, setData, post, processing, errors } = useForm({ name: '' });
 
     const submit: FormEventHandler = (e) => {
@@ -19,20 +21,19 @@ export default function Create() {
 
     return (
         <GuestLayout>
-            <Head title="Nouveau workspace" />
+            <Head title={t('create.title')} />
 
             <Paragraph type="secondary" style={{ marginBottom: 16 }}>
-                Un workspace regroupe vos applications, vos serveurs et les membres de votre
-                équipe. Vous pourrez en créer d&apos;autres et basculer entre eux à tout moment.
+                {t('create.description')}
             </Paragraph>
 
             <form onSubmit={submit} className="form-stack">
                 <div>
-                    <InputLabel htmlFor="name" value="Nom du workspace" />
+                    <InputLabel htmlFor="name" value={t('create.nameLabel')} />
                     <TextInput
                         id="name"
                         className="w-full"
-                        placeholder="ex : Mon entreprise"
+                        placeholder={t('create.namePlaceholder')}
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         isFocused
@@ -42,7 +43,7 @@ export default function Create() {
                 </div>
 
                 <div className="form-actions form-actions--end">
-                    <PrimaryButton disabled={processing}>Créer le workspace</PrimaryButton>
+                    <PrimaryButton disabled={processing}>{t('create.submit')}</PrimaryButton>
                 </div>
             </form>
         </GuestLayout>

@@ -10,6 +10,7 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Modal, Select, Typography } from 'antd';
 import { Plus } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -22,6 +23,7 @@ export default function Index({
     kpis: UserKpis;
     canManage: boolean;
 }) {
+    const { t } = useTranslation('users');
     const { workspace } = usePage<PageProps>().props;
     const listRef = useRef<UsersListHandle>(null);
     const [creating, setCreating] = useState(false);
@@ -43,23 +45,23 @@ export default function Index({
     };
 
     return (
-        <AuthenticatedLayout header="Utilisateurs">
-            <Head title="Utilisateurs" />
+        <AuthenticatedLayout header={t('index.pageTitle')}>
+            <Head title={t('index.pageTitle')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Workspace</div>
+                    <div className="premium-list-eyebrow">{t('index.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Membres du workspace
+                        {t('index.heading')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Les accès, rôles et statuts sont regroupés dans une vue claire et rapide à parcourir.
+                        {t('index.description')}
                     </Paragraph>
                 </div>
 
                 {canManage && (
                     <PrimaryButton className="premium-list-hero__action" onClick={() => setCreating(true)} icon={<Plus size={14} />}>
-                        Inviter un membre
+                        {t('index.inviteMember')}
                     </PrimaryButton>
                 )}
             </div>
@@ -73,7 +75,7 @@ export default function Index({
             />
 
             <Modal
-                title="Inviter un membre"
+                title={t('index.modal.title')}
                 open={creating}
                 onCancel={() => setCreating(false)}
                 footer={null}
@@ -81,7 +83,7 @@ export default function Index({
             >
                 <form onSubmit={submit} className="form-stack">
                     <div>
-                        <InputLabel htmlFor="name" value="Nom" />
+                        <InputLabel htmlFor="name" value={t('index.modal.nameLabel')} />
                         <TextInput
                             id="name"
                             className="w-full"
@@ -92,7 +94,7 @@ export default function Index({
                         <InputError message={errors.name} />
                     </div>
                     <div>
-                        <InputLabel htmlFor="email" value="Email" />
+                        <InputLabel htmlFor="email" value={t('index.modal.emailLabel')} />
                         <TextInput
                             id="email"
                             type="email"
@@ -104,15 +106,15 @@ export default function Index({
                         <InputError message={errors.email} />
                     </div>
                     <div>
-                        <InputLabel value="Rôle dans le workspace" />
+                        <InputLabel value={t('index.modal.roleLabel')} />
                         <Select className="w-full" value={data.role} onChange={(value) => setData('role', value)} options={ROLE_OPTIONS} />
                         <InputError message={errors.role} />
                     </div>
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                        Si cette adresse n&apos;a pas encore de compte, un email lui sera envoyé pour définir son mot de passe.
+                        {t('index.modal.noAccountNotice')}
                     </Text>
                     <div className="form-actions form-actions--end">
-                        <PrimaryButton disabled={processing}>Inviter</PrimaryButton>
+                        <PrimaryButton disabled={processing}>{t('index.modal.submit')}</PrimaryButton>
                     </div>
                 </form>
             </Modal>

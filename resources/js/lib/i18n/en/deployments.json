@@ -1,0 +1,131 @@
+{
+    "status": {
+        "pending": "Pending",
+        "running": "Running",
+        "succes": "Success",
+        "echec": "Failed",
+        "annule": "Cancelled"
+    },
+    "source": {
+        "manual": "Manual",
+        "webhook": "Webhook",
+        "scheduled": "Scheduled"
+    },
+    "index": {
+        "header": "Deployments",
+        "eyebrow": "Application",
+        "title": "Deployments",
+        "description": "Each run is shown with its target, source, and status for immediate readability."
+    },
+    "all": {
+        "header": "Deployments",
+        "eyebrow": "Global view",
+        "title": "Deployments",
+        "description": "A global history to browse every run, with the same visual hierarchy.",
+        "newDeployment": "New deployment"
+    },
+    "show": {
+        "header": "Deployment",
+        "pageTitle": "Deployment #{{id}}",
+        "nav": {
+            "label": "Deployment navigation",
+            "history": "Deployment history",
+            "viewApplication": "View application",
+            "editPipeline": "Edit pipeline"
+        },
+        "eyebrow": "DEPLOYMENT #{{id}}",
+        "branch": "branch",
+        "triggeredManually": "triggered manually",
+        "triggeredByWebhook": "triggered by webhook",
+        "triggeredBy": "by {{name}}",
+        "actionsLabel": "Deployment actions",
+        "currentStatus": "Current status",
+        "cancel": {
+            "button": "Cancel",
+            "tooltip": "Stop the current step and cancel the remaining ones",
+            "ariaLabel": "Cancel deployment",
+            "confirmTitle": "Cancel this deployment?",
+            "confirmContent": "The running step will be stopped and the remaining steps will not run.",
+            "okText": "Cancel deployment",
+            "cancelText": "Close"
+        },
+        "retry": {
+            "button": "Retry",
+            "tooltip": "Retry a new deployment with the same branch",
+            "ariaLabel": "Retry deployment",
+            "confirmTitle": "Retry this deployment?",
+            "confirmContent": "A new deployment will be created on {{target}} → {{environment}} with the same branch.",
+            "okText": "Retry",
+            "cancelText": "Cancel"
+        },
+        "rollback": {
+            "button": "Roll back to this version",
+            "tooltip": "Redeploy this known-good version",
+            "ariaLabel": "Roll back to this version",
+            "confirmTitle": "Roll back to this version?",
+            "confirmContent": "A new deployment will be created on {{target}} → {{environment}} with the same branch/commit as this successful deployment.",
+            "okText": "Roll back to this version",
+            "cancelText": "Cancel"
+        },
+        "summary": {
+            "pipeline": "Pipeline",
+            "step_one": "step",
+            "step_other": "steps",
+            "duration": "Duration",
+            "source": "Source",
+            "manual": "Manual",
+            "webhook": "Webhook"
+        },
+        "pipeline": {
+            "eyebrow": "EXECUTION",
+            "title": "Pipeline steps",
+            "completed": "{{done}}/{{total}} completed",
+            "commandType": "Shell command",
+            "emailType": "Email",
+            "hideLogs": "Hide logs",
+            "showLogs": "View logs"
+        }
+    },
+    "list": {
+        "kpisTitle": "Key metrics",
+        "columns": {
+            "application": "Application",
+            "target": "Target → Environment",
+            "branch": "Branch",
+            "source": "Source",
+            "date": "Date",
+            "status": "Status",
+            "duration": "Duration",
+            "open": "Open"
+        },
+        "kpis": {
+            "total": "Total",
+            "running": "Running",
+            "succes": "Successful",
+            "echec": "Failed",
+            "successRate": "Success rate",
+            "avgDuration": "Average duration"
+        },
+        "toolbar": {
+            "searchPlaceholder": "Search by branch or commit...",
+            "statusPlaceholder": "Status",
+            "sourcePlaceholder": "Source",
+            "sortDate": "Date",
+            "sortDuration": "Duration",
+            "sortStatus": "Status"
+        },
+        "emptyDescription": "No deployment matches these criteria",
+        "loadingMore": "Loading more deployments...",
+        "allShown": "All deployments are shown."
+    },
+    "newModal": {
+        "title": "New deployment",
+        "okText": "Deploy",
+        "applicationLabel": "Application",
+        "applicationPlaceholder": "Choose an application",
+        "targetLabel": "Target / Environment",
+        "targetPlaceholder": "Choose a target",
+        "targetPlaceholderNoApp": "Choose an application first",
+        "noTargetConfigured": "No target/environment configured for this application."
+    }
+}

@@ -9,6 +9,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { Typography } from 'antd';
 import { Rocket } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -24,27 +25,28 @@ export default function All({
     deployableApplications: DeployableApplication[];
 }) {
     const { workspace } = usePage<PageProps>().props;
+    const { t } = useTranslation('deployments');
     const [creating, setCreating] = useState(false);
     const listRef = useRef<DeploymentsListHandle>(null);
 
     return (
-        <AuthenticatedLayout header="Déploiements">
-            <Head title="Déploiements" />
+        <AuthenticatedLayout header={t('all.header')}>
+            <Head title={t('all.title')} />
 
             <div className="premium-list-hero">
                 <div>
-                    <div className="premium-list-eyebrow">Vue globale</div>
+                    <div className="premium-list-eyebrow">{t('all.eyebrow')}</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Déploiements
+                        {t('all.title')}
                     </Title>
                     <Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
-                        Un historique global pour parcourir l’ensemble des exécutions, avec la même hiérarchie visuelle.
+                        {t('all.description')}
                     </Paragraph>
                 </div>
 
                 {can.deploy && (
                     <PrimaryButton className="premium-list-hero__action" icon={<Rocket size={14} />} onClick={() => setCreating(true)}>
-                        Nouveau déploiement
+                        {t('all.newDeployment')}
                     </PrimaryButton>
                 )}
             </div>

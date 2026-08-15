@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Alert, Breadcrumb, Empty, Input, Modal, Spin } from 'antd';
 import { Folder, FolderOpen, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
@@ -26,6 +27,7 @@ export default function DirectoryBrowserModal({
     onClose: () => void;
     onSelect: (path: string) => void;
 }) {
+    const { t } = useTranslation('servers');
     const [path, setPath] = useState('/');
     const [entries, setEntries] = useState<DirectoryEntry[]>([]);
     const [loading, setLoading] = useState(false);
@@ -44,7 +46,7 @@ export default function DirectoryBrowserModal({
                 setPath(res.data.path);
                 setEntries(res.data.entries);
             })
-            .catch((err) => setError(err.response?.data?.message ?? 'Impossible de parcourir ce dossier.'))
+            .catch((err) => setError(err.response?.data?.message ?? t('directoryBrowser.loadError')))
             .finally(() => setLoading(false));
     };
 
@@ -78,14 +80,14 @@ export default function DirectoryBrowserModal({
 
     return (
         <Modal
-            title={server ? `Parcourir ${server.name}` : 'Parcourir'}
+            title={server ? t('directoryBrowser.titleWithServer', { name: server.name }) : t('directoryBrowser.title')}
             open={open}
             onCancel={onClose}
             width="min(560px, 92vw)"
             footer={
                 <div className="form-actions form-actions--end">
                     <SecondaryButton htmlType="button" onClick={onClose}>
-                        Annuler
+                        {t('directoryBrowser.cancel')}
                     </SecondaryButton>
                     <PrimaryButton
                         htmlType="button"
@@ -96,7 +98,7 @@ export default function DirectoryBrowserModal({
                         }}
                         disabled={loading || !!error}
                     >
-                        Sélectionner ce dossier
+                        {t('directoryBrowser.select')}
                     </PrimaryButton>
                 </div>
             }
@@ -110,7 +112,7 @@ export default function DirectoryBrowserModal({
                 <Input
                     className="directory-browser-search"
                     prefix={<Search size={14} />}
-                    placeholder="Rechercher un dossier..."
+                    placeholder={t('directoryBrowser.searchPlaceholder')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     allowClear
@@ -120,16 +122,16 @@ export default function DirectoryBrowserModal({
             {loading && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '24px 0' }}>
                     <Spin size="small" />
-                    <span>Chargement du contenu du dossier...</span>
+                    <span>{t('directoryBrowser.loading')}</span>
                 </div>
             )}
 
             {!loading && error && <Alert type="error" showIcon message={error} />}
 
-            {!loading && !error && entries.length === 0 && <Empty description="Aucun sous-dossier ici" />}
+            {!loading && !error && entries.length === 0 && <Empty description={t('directoryBrowser.noSubfolders')} />}
 
             {!loading && !error && entries.length > 0 && visibleEntries.length === 0 && (
-                <Empty description="Aucun dossier ne correspond à cette recherche" />
+                <Empty description={t('directoryBrowser.noMatch')} />
             )}
 
             {!loading && !error && visibleEntries.length > 0 && (

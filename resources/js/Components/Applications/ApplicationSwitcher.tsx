@@ -2,6 +2,7 @@ import { Application } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { Avatar, Dropdown, type MenuProps } from 'antd';
 import { Boxes, Check, ChevronDown, LayoutGrid, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ApplicationSwitcher({
     workspaceSlug,
@@ -14,6 +15,7 @@ export default function ApplicationSwitcher({
     applications: Pick<Application, 'id' | 'name' | 'slug' | 'logo_url'>[];
     canCreate: boolean;
 }) {
+    const { t } = useTranslation('applications');
     const items: MenuProps['items'] = [
         ...applications.map((app) => ({
             key: `app-${app.slug}`,
@@ -29,14 +31,14 @@ export default function ApplicationSwitcher({
         {
             key: 'all-applications',
             icon: <LayoutGrid size={14} />,
-            label: <Link href={route('applications.index', workspaceSlug)}>Toutes les applications</Link>,
+            label: <Link href={route('applications.index', workspaceSlug)}>{t('switcher.allApplications')}</Link>,
         },
         ...(canCreate
             ? [
                   {
                       key: 'create-application',
                       icon: <Plus size={14} />,
-                      label: <Link href={route('applications.create', workspaceSlug)}>Nouvelle application</Link>,
+                      label: <Link href={route('applications.create', workspaceSlug)}>{t('switcher.newApplication')}</Link>,
                   },
               ]
             : []),
@@ -44,7 +46,7 @@ export default function ApplicationSwitcher({
 
     return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomLeft" getPopupContainer={() => document.body}>
-            <button type="button" className="app-switcher__trigger" aria-label="Changer d'application">
+            <button type="button" className="app-switcher__trigger" aria-label={t('switcher.triggerAriaLabel')}>
                 <span className="app-switcher__name">{current.name}</span>
                 <ChevronDown size={14} />
             </button>
