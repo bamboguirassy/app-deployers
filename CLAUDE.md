@@ -247,12 +247,17 @@ public/SEO-relevant pages — currently `Welcome`, `Legal/Terms`, `Legal/Privacy
 - Requires `php artisan inertia:start-ssr` running (Node process) — add it alongside
   Horizon/Reverb/schedule:work in whatever process supervisor runs those in production (see
   `app-deployer-supervisor.ini`'s `[program:inertia-ssr]` block). The command has no `--port`
-  option: **`INERTIA_SSR_URL` (PHP side — where Laravel sends render requests) and
-  `INERTIA_SSR_PORT` (Node side — read from `process.env` in `resources/js/ssr.tsx`, what the
-  server actually binds to, default `13714`) are two separate env vars that must be kept in sync
-  manually** if you ever need a non-default port (e.g. running multiple Inertia apps on one
-  server) — there's no single source of truth enforcing that, so double-check both when changing
-  either.
+  option: the server's actual listen port comes from `INERTIA_SSR_PORT`, read from
+  `process.env` in `resources/js/ssr.tsx` (default `13714`). **This app's `.env` is *not* where
+  that variable lives in production** — Supervisor starts the Node process with its own
+  `environment=` line, which never reads the project's `.env` file, so `INERTIA_SSR_PORT` is set
+  directly in `app-deployer-supervisor.ini` (currently `13711`). `INERTIA_SSR_URL` is a separate
+  concern entirely: it's read by PHP (Apache/PHP-FPM — a different process from the one Supervisor
+  manages here) to know where to send render requests, so it **does** belong in `.env`, and must
+  be kept manually in sync with whatever port Supervisor actually binds to — there's no mechanism
+  enforcing that, so double-check both if either one changes. Locally (running
+  `php artisan inertia:start-ssr` by hand, outside Supervisor), `INERTIA_SSR_PORT` can be exported
+  in your shell or set in your local `.env` — that only matters when nothing else is providing it.
 - If you add a new page and want it SSR'd for SEO, just give it real crawlable content/meta (see
   the meta-tag conventions above) — no per-page opt-in needed, it'll be attempted automatically.
   Conversely, don't rely on SSR output for anything user-specific/authenticated: those pages are
