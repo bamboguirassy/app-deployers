@@ -276,7 +276,16 @@
     "variablesEditor": {
         "hideValueTooltip": "Masquer la valeur dans l'interface et les journaux de déploiement",
         "deleteVariableTooltip": "Supprimer la variable",
-        "deleteVariableAriaLabel": "Supprimer la variable"
+        "deleteVariableAriaLabel": "Supprimer la variable",
+        "newKeyPlaceholder": "Nouvelle clé",
+        "newValuePlaceholder": "Nouvelle valeur",
+        "addVariable": "Ajouter une variable",
+        "columns": {
+            "key": "Clé",
+            "value": "Valeur",
+            "secret": "Secret",
+            "actions": "Actions"
+        }
     },
     "webhooksPanel": {
         "hint": "Une seule intégration peut être active à la fois : activer un autre provider désactivera l'actuel.",

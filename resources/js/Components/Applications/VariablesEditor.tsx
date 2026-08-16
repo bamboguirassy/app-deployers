@@ -79,6 +79,7 @@ function VariableRow({
 
 function AddVariableRow({ application, targetEnvironment }: { application: Application; targetEnvironment: TargetEnvironmentLink }) {
     const { workspace } = usePage<PageProps>().props;
+    const { t } = useTranslation('applications');
     const { data, setData, post, processing, reset } = useForm({
         key: '',
         value: '',
@@ -105,14 +106,14 @@ function AddVariableRow({ application, targetEnvironment }: { application: Appli
                 <Input
                     ref={keyRef}
                     className="var-row__key-input"
-                    placeholder="New key"
+                    placeholder={t('variablesEditor.newKeyPlaceholder')}
                     value={data.key}
                     onChange={(e) => setData('key', e.target.value.toUpperCase())}
                     variant="borderless"
                 />
                 <Input
                     className="var-row__value"
-                    placeholder="New value"
+                    placeholder={t('variablesEditor.newValuePlaceholder')}
                     value={data.value}
                     onChange={(e) => setData('value', e.target.value)}
                     variant="borderless"
@@ -125,7 +126,7 @@ function AddVariableRow({ application, targetEnvironment }: { application: Appli
                 />
             </div>
             <button type="submit" className="var-row__add-btn" disabled={processing || !data.key.trim() || !data.value.trim()}>
-                <Plus size={14} /> Add variable
+                <Plus size={14} /> {t('variablesEditor.addVariable')}
             </button>
         </form>
     );
@@ -140,13 +141,15 @@ export default function VariablesEditor({
     targetEnvironment: TargetEnvironmentLink;
     canManage: boolean;
 }) {
+    const { t } = useTranslation('applications');
+
     return (
         <div className="var-table">
             <div className="var-row var-row--header">
-                <span>Key</span>
-                <span>Value</span>
-                <span>Secret</span>
-                <span>Actions</span>
+                <span>{t('variablesEditor.columns.key')}</span>
+                <span>{t('variablesEditor.columns.value')}</span>
+                <span>{t('variablesEditor.columns.secret')}</span>
+                <span>{t('variablesEditor.columns.actions')}</span>
             </div>
 
             {targetEnvironment.variables.map((variable) => (

@@ -276,7 +276,16 @@
     "variablesEditor": {
         "hideValueTooltip": "Hide the value in the UI and deployment logs",
         "deleteVariableTooltip": "Delete variable",
-        "deleteVariableAriaLabel": "Delete variable"
+        "deleteVariableAriaLabel": "Delete variable",
+        "newKeyPlaceholder": "New key",
+        "newValuePlaceholder": "New value",
+        "addVariable": "Add variable",
+        "columns": {
+            "key": "Key",
+            "value": "Value",
+            "secret": "Secret",
+            "actions": "Actions"
+        }
     },
     "webhooksPanel": {
         "hint": "Only one integration can be active at a time: activating another provider will deactivate the current one.",
