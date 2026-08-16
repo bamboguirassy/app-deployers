@@ -1,4 +1,5 @@
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export interface Trend {
     type: 'count' | 'percent' | 'percent_point';
@@ -6,8 +7,10 @@ export interface Trend {
 }
 
 export default function TrendHint({ trend }: { trend: Trend | null }) {
+    const { t } = useTranslation('common');
+
     if (!trend) {
-        return <span className="trend-hint trend-hint--neutral">En direct</span>;
+        return <span className="trend-hint trend-hint--neutral">{t('trendHint.live')}</span>;
     }
 
     const { type, value } = trend;
@@ -17,7 +20,7 @@ export default function TrendHint({ trend }: { trend: Trend | null }) {
     return (
         <span className={`trend-hint ${value > 0 ? 'trend-hint--up' : value < 0 ? 'trend-hint--down' : 'trend-hint--neutral'}`}>
             {value > 0 ? <TrendingUp size={12} /> : value < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
-            {label} vs 30 derniers jours
+            {t('trendHint.vsLast30Days', { label })}
         </span>
     );
 }

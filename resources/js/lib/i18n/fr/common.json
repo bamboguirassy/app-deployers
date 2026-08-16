@@ -3,6 +3,10 @@
     "deployOptions": {
         "noServerReason": "Configurez un serveur pour cet environnement avant de déployer."
     },
+    "trendHint": {
+        "live": "En direct",
+        "vsLast30Days": "{{label}} vs 30 derniers jours"
+    },
     "roles": {
         "owner": "Owner",
         "manager": "Manager",
