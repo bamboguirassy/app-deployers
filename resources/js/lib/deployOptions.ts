@@ -1,4 +1,5 @@
 import { Application } from '@/types/models';
+import { TFunction } from 'i18next';
 
 export interface DeployOption {
     value: string;
@@ -6,8 +7,6 @@ export interface DeployOption {
     disabled?: boolean;
     disabledReason?: string;
 }
-
-const NO_SERVER_REASON = 'Configurez un serveur pour cet environnement avant de déployer.';
 
 /**
  * Construit la liste des cibles de déploiement disponibles pour une
@@ -17,7 +16,9 @@ const NO_SERVER_REASON = 'Configurez un serveur pour cet environnement avant de 
  * de serveur configuré est incluse mais désactivée (le pipeline ne doit
  * jamais pouvoir s'exécuter sans cible SSH — voir DeploymentService::trigger()).
  */
-export function buildDeployOptions(application: Pick<Application, 'targets'>): DeployOption[] {
+export function buildDeployOptions(application: Pick<Application, 'targets'>, t: TFunction): DeployOption[] {
+    const noServerReason = t('common:deployOptions.noServerReason');
+
     const byEnvironment = new Map<
         string,
         { name: string; targets: { name: string; targetEnvironmentId: string; hasServer: boolean }[] }
@@ -33,23 +34,23 @@ export function buildDeployOptions(application: Pick<Application, 'targets'>): D
 
     const options: DeployOption[] = [];
     byEnvironment.forEach((group, environmentId) => {
-        group.targets.forEach((t) =>
+        group.targets.forEach((target) =>
             options.push({
-                value: `te-${t.targetEnvironmentId}`,
-                label: `${t.name} → ${group.name}`,
-                disabled: !t.hasServer,
-                disabledReason: t.hasServer ? undefined : NO_SERVER_REASON,
+                value: `te-${target.targetEnvironmentId}`,
+                label: `${target.name} → ${group.name}`,
+                disabled: !target.hasServer,
+                disabledReason: target.hasServer ? undefined : noServerReason,
             }),
         );
 
         if (group.targets.length > 1) {
-            const missingServer = group.targets.some((t) => !t.hasServer);
+            const missingServer = group.targets.some((target) => !target.hasServer);
 
             options.push({
                 value: `env-${environmentId}`,
-                label: `${group.targets.map((t) => t.name).join(' + ')} → ${group.name}`,
+                label: `${group.targets.map((target) => target.name).join(' + ')} → ${group.name}`,
                 disabled: missingServer,
-                disabledReason: missingServer ? NO_SERVER_REASON : undefined,
+                disabledReason: missingServer ? noServerReason : undefined,
             });
         }
     });

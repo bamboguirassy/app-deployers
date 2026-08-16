@@ -1,5 +1,8 @@
 {
     "tagline": "Deployment supervision and automation",
+    "deployOptions": {
+        "noServerReason": "Configure a server for this environment before deploying."
+    },
     "roles": {
         "owner": "Owner",
         "manager": "Manager",

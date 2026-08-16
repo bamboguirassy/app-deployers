@@ -177,6 +177,26 @@
         "variableButton": "Variable",
         "emptyDescription": "Aucune étape définie",
         "addStep": "Ajouter une étape",
+        "stepTypes": {
+            "command": "Commande shell",
+            "email": "Email"
+        },
+        "emptyCommand": "(commande vide)",
+        "noRecipient": "(aucun destinataire)",
+        "noSubject": "(sans objet)",
+        "emailSummary": "À : {{to}} — {{subject}}",
+        "templateVariables": {
+            "application.name": "Nom de l'application",
+            "environment.name": "Nom de l'environnement",
+            "target.name": "Nom du target",
+            "deployment.status": "Statut du déploiement",
+            "deployment.trigger_source": "Origine du déclenchement",
+            "deployment.triggered_by": "Déclenché par",
+            "deployment.branch": "Branche git",
+            "deployment.commit_sha": "Commit",
+            "deployment.started_at": "Heure de démarrage",
+            "step.label": "Nom de l'étape"
+        },
         "confirmDelete": {
             "title": "Supprimer l'étape \"{{label}}\" ?",
             "okText": "Supprimer",

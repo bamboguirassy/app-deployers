@@ -1,5 +1,8 @@
 {
     "tagline": "Supervision et automatisation de vos déploiements",
+    "deployOptions": {
+        "noServerReason": "Configurez un serveur pour cet environnement avant de déployer."
+    },
     "roles": {
         "owner": "Owner",
         "manager": "Manager",

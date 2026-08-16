@@ -28,7 +28,7 @@ export default function NewDeploymentModal({
     const [submitting, setSubmitting] = useState(false);
 
     const application = applications.find((a) => a.id === applicationId) ?? null;
-    const options = application ? buildDeployOptions(application) : [];
+    const options = application ? buildDeployOptions(application, t) : [];
 
     const reset = () => {
         setApplicationId(null);

@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 export default function RunDeployButton({ application }: { application: Application }) {
     const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
-    const options = buildDeployOptions(application);
+    const options = buildDeployOptions(application, t);
 
     const items: MenuProps['items'] = options.map((option) => ({
         key: option.value,

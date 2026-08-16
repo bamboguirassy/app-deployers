@@ -1,5 +1,5 @@
-import { STEP_TYPE_OPTIONS, defaultConfigFor, stepSummary, stepTypeIcon } from '@/constants/stepTypes';
-import { TEMPLATE_VARIABLES, interpolatePreview } from '@/constants/templateVariables';
+import { defaultConfigFor, getStepTypeOptions, stepSummary, stepTypeIcon } from '@/constants/stepTypes';
+import { getTemplateVariables, interpolatePreview } from '@/constants/templateVariables';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
 import { Application, CommandStepConfig, EmailStepConfig, PipelineStep, StepType, Target } from '@/types/models';
@@ -71,7 +71,7 @@ function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }
         <Dropdown
             trigger={['click']}
             menu={{
-                items: TEMPLATE_VARIABLES.map((v) => ({
+                items: getTemplateVariables(t).map((v) => ({
                     key: v.path,
                     label: (
                         <div>
@@ -240,7 +240,7 @@ function StepEditorDrawer({
                         block
                         value={type}
                         onChange={(v) => changeType(v as StepType)}
-                        options={STEP_TYPE_OPTIONS.map((o) => ({
+                        options={getStepTypeOptions(t).map((o) => ({
                             value: o.value,
                             label: (
                                 <span className="step-editor__segment">
@@ -420,8 +420,8 @@ function SortableStepRow({
 
             <span className="step-row__label">{step.label}</span>
 
-            <span className="step-row__command" title={stepSummary(step)}>
-                {stepSummary(step)}
+            <span className="step-row__command" title={stepSummary(step, t)}>
+                {stepSummary(step, t)}
             </span>
 
             <Tooltip title={t('pipelineSteps.row.timeoutTooltip')}>

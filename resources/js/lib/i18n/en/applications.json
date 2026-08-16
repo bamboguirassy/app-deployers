@@ -177,6 +177,26 @@
         "variableButton": "Variable",
         "emptyDescription": "No step defined",
         "addStep": "Add a step",
+        "stepTypes": {
+            "command": "Shell command",
+            "email": "Email"
+        },
+        "emptyCommand": "(empty command)",
+        "noRecipient": "(no recipient)",
+        "noSubject": "(no subject)",
+        "emailSummary": "To: {{to}} — {{subject}}",
+        "templateVariables": {
+            "application.name": "Application name",
+            "environment.name": "Environment name",
+            "target.name": "Target name",
+            "deployment.status": "Deployment status",
+            "deployment.trigger_source": "Trigger source",
+            "deployment.triggered_by": "Triggered by",
+            "deployment.branch": "Git branch",
+            "deployment.commit_sha": "Commit",
+            "deployment.started_at": "Start time",
+            "step.label": "Step name"
+        },
         "confirmDelete": {
             "title": "Delete step \"{{label}}\"?",
             "okText": "Delete",
