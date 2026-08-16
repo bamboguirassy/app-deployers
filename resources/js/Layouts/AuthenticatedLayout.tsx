@@ -1,6 +1,7 @@
 import ActiveDeploymentBanner from '@/Components/ActiveDeploymentBanner';
 import ActiveDeploymentsBell from '@/Components/ActiveDeploymentsBell';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -340,6 +341,8 @@ export default function Authenticated({
                                 <HelpCircle size={18} />
                             </button>
                         </Tooltip>
+
+                        <LanguageSwitcher />
 
                         <ThemeToggle />
 

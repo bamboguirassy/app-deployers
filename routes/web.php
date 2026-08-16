@@ -250,4 +250,16 @@ Route::get('/sitemap.xml', function () {
         ->header('Content-Type', 'application/xml');
 })->name('sitemap');
 
+// Sélecteur de langue explicite (dashboard) — pose le cookie `locale` que
+// App\Http\Middleware\SetLocale lira ensuite pour toutes les pages sans
+// locale fixe (dashboard, login/register). Redirige vers la page d'origine ;
+// Inertia traite ça comme une visite normale, donc la prop partagée `locale`
+// se met à jour et LocaleSync (resources/js/lib/i18n/LocaleSync.tsx)
+// resynchronise i18next automatiquement.
+Route::post('/locale', function (\Illuminate\Http\Request $request) {
+    $locale = $request->validate(['locale' => 'required|in:en,fr'])['locale'];
+
+    return redirect()->back()->withCookie(cookie('locale', $locale, 60 * 24 * 365));
+})->name('locale.set');
+
 require __DIR__.'/auth.php';

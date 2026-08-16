@@ -53,20 +53,28 @@ class SetLocale
      * explicitement FR ou EN, cf. listes ci-dessus) > cookie déjà posé
      * (choix explicite précédent de l'utilisateur, pour le reste de l'app :
      * dashboard, login/register) > en-tête Accept-Language > défaut anglais.
+     *
+     * Le cookie est repositionné sur CHAQUE requête (y compris les pages
+     * fixes) pour que consulter une page marketing dans une langue donnée
+     * (ex: la home anglaise) mette aussi à jour la préférence utilisée
+     * ensuite dans le dashboard après connexion — sans ça, visiter '/' en
+     * anglais n'avait aucun effet sur la langue du workspace.
      */
     public function handle(Request $request, Closure $next): Response
     {
         $routeName = $request->route()?->getName();
-        $isFixedRoute = in_array($routeName, self::FIXED_FRENCH_ROUTES, true)
-            || in_array($routeName, self::FIXED_ENGLISH_ROUTES, true);
-
         $locale = $this->resolveLocale($request, $routeName);
 
         App::setLocale($locale);
 
         $response = $next($request);
 
-        if (! $isFixedRoute) {
+        // La route `locale.set` pose elle-même le cookie avec la NOUVELLE
+        // valeur choisie par l'utilisateur sur sa réponse de redirection —
+        // si on le réécrivait ici avec `$locale` (résolu depuis l'ANCIEN
+        // cookie de la requête), on écraserait ce changement avant même
+        // qu'il atteigne le navigateur.
+        if ($routeName !== 'locale.set') {
             $response->headers->setCookie(
                 cookie(self::COOKIE_NAME, $locale, 60 * 24 * 365)
             );

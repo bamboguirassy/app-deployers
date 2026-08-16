@@ -7,6 +7,9 @@
         "live": "Live",
         "vsLast30Days": "{{label}} vs last 30 days"
     },
+    "languageSwitcher": {
+        "label": "Change language"
+    },
     "roles": {
         "owner": "Owner",
         "manager": "Manager",
