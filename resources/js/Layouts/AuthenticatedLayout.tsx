@@ -62,7 +62,7 @@ export default function Authenticated({
     appSwitcher?: ReactNode;
     actions?: ReactNode;
 }>) {
-    const { auth, workspace, workspaces, flash, locale } = usePage<PageProps>().props;
+    const { auth, workspace, workspaces, flash, locale, canCreateWorkspace } = usePage<PageProps>().props;
     const marketingHomeHref = locale === 'fr' ? '/fr' : '/';
     const { t } = useTranslation('dashboard');
     const user = auth.user;
@@ -136,7 +136,12 @@ export default function Authenticated({
         {
             key: 'ws-create',
             icon: <Plus size={14} />,
-            label: <Link href={route('workspaces.create')}>{t('nav.newWorkspace')}</Link>,
+            disabled: !canCreateWorkspace,
+            label: canCreateWorkspace
+                ? <Link href={route('workspaces.create')}>{t('nav.newWorkspace')}</Link>
+                : <Tooltip title={t('nav.newWorkspaceLocked')} placement="right">
+                    <span style={{ opacity: 0.45 }}>{t('nav.newWorkspace')}</span>
+                  </Tooltip>,
         },
     ];
 

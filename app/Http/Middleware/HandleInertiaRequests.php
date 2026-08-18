@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
             'workspaces' => $user
                 ? $user->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
                 : [],
+            'canCreateWorkspace' => $user ? app(\App\Services\QuotaGuard::class)->canCreateWorkspace($user) : false,
             // Connexions Git du workspace (GitHub, ...) — partagées globalement plutôt
             // que threadées prop par prop jusqu'à WebhooksPanel, pour lui permettre de
             // proposer un sélecteur de dépôt/branche fiable dès qu'un compte est

@@ -161,6 +161,7 @@ export type PageProps<
     };
     workspace: Workspace | null;
     workspaces: Workspace[];
+    canCreateWorkspace: boolean;
     gitConnections: GitConnection[];
     gitProvidersConfigured: { github: boolean };
     flash: {

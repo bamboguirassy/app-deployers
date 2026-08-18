@@ -7,6 +7,7 @@
         "users": "Users",
         "backToWorkspace": "Back to workspace",
         "newWorkspace": "New workspace",
+        "newWorkspaceLocked": "Upgrade to a paid plan to create multiple workspaces",
         "newApplication": "New application",
         "openMenu": "Open menu",
         "closeMenu": "Close menu"

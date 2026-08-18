@@ -16,6 +16,7 @@ export const NAV_LINKS = [
 ];
 
 export const FREE_FEATURES = [
+    '1 workspace',
     '1 application, to validate your first pipeline',
     '1 deployment at a time',
     'GitHub, GitLab, Bitbucket webhooks',
@@ -24,6 +25,7 @@ export const FREE_FEATURES = [
 ];
 
 export const PRO_FEATURES = [
+    'Unlimited workspaces',
     'Unlimited applications',
     'Up to 5 concurrent deployments',
     'Everything included in Free',

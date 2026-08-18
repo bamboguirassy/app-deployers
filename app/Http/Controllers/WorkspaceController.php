@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use App\Models\Workspace;
+use App\Services\QuotaGuard;
+use App\Services\WorkspaceQuotaExceededException;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -38,11 +40,18 @@ class WorkspaceController extends Controller
         return Inertia::render('Workspaces/Create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, QuotaGuard $quotaGuard): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
         ]);
+
+        try {
+            $quotaGuard->assertCanCreateWorkspace($request->user());
+        } catch (WorkspaceQuotaExceededException $e) {
+            return redirect()->route('workspaces.create')
+                ->with('error', $e->getMessage());
+        }
 
         $workspace = DB::transaction(function () use ($data) {
             $workspace = Workspace::create([
