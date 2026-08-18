@@ -86,7 +86,7 @@ class RunDeploymentJob implements ShouldQueue
 
         try {
             $deployment->update(['status' => 'running', 'started_at' => now()]);
-            broadcast(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+            event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
 
             $env = $this->buildEnv($targetEnvironment);
 
@@ -157,7 +157,7 @@ class RunDeploymentJob implements ShouldQueue
                     ? (int) $deployment->started_at->diffInMilliseconds($finishedAt)
                     : null,
             ]);
-            broadcast(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+            event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
             Cache::forget($cancelKey);
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
             $quotaGuard->releaseDeploymentSlot($workspace);
@@ -302,7 +302,7 @@ class RunDeploymentJob implements ShouldQueue
     private function cancelWhileQueued(Deployment $deployment, TargetEnvironment $targetEnvironment, int $applicationId, int $workspaceId, string $cancelKey): void
     {
         $deployment->update(['status' => 'annule', 'finished_at' => now()]);
-        broadcast(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+        event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
         Cache::forget($cancelKey);
         Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }
@@ -327,7 +327,7 @@ class RunDeploymentJob implements ShouldQueue
 
         $targetEnvironment = $deployment->targetEnvironment;
         $deployment->update(['status' => 'echec', 'finished_at' => now()]);
-        broadcast(new DeploymentStatusUpdated(
+        event(new DeploymentStatusUpdated(
             $targetEnvironment->target->application_id,
             $targetEnvironment->target->application->workspace_id,
             $deployment,

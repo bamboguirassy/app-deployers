@@ -54,7 +54,7 @@ class ReconcileStuckDeployments extends Command
 
             $deployment->update(['status' => 'echec', 'finished_at' => now()]);
 
-            broadcast(new DeploymentStatusUpdated($target->application_id, $workspace->id, $deployment));
+            event(new DeploymentStatusUpdated($target->application_id, $workspace->id, $deployment));
 
             Cache::forget(RunDeploymentJob::cancelKey($deployment->id));
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
