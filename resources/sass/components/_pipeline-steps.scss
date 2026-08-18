@@ -995,29 +995,30 @@
 .env-cell__url-row {
     display: flex;
     align-items: center;
-    gap: space('1');
+    gap: 4px;
     overflow: hidden;
+    cursor: pointer;
+    width: fit-content;
+    max-width: 100%;
+
+    &:hover .env-cell__url-text {
+        text-decoration: underline;
+    }
+}
+
+.env-cell__url-icon {
+    flex-shrink: 0;
+    color: theme('color-primary');
+    opacity: 0.7;
 }
 
 .env-cell__url-text {
-    font-size: 10px;
+    font-size: 11px;
     color: theme('color-primary');
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    flex: 1;
     min-width: 0;
-}
-
-.env-cell__url-link {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
-    color: theme('color-text-muted');
-
-    &:hover {
-        color: theme('color-primary');
-    }
 }
 
 .app-switcher {
@@ -1059,15 +1060,34 @@
     gap: space('2');
 }
 
+.drawer-header {
+    // Compense le padding-right qu'Ant Design injecte dans .ant-drawer-title
+    // pour laisser de la place au bouton de fermeture — on reprend tout l'espace.
+    margin-right: -8px;
+}
+
 .drawer-title-row {
     display: flex;
     align-items: center;
     gap: space('2');
+}
+
+.drawer-title-row__text {
+    flex: 1;
+    min-width: 0;
 
     strong {
-        font-size: 16px;
+        font-size: 15px;
         color: theme('color-text');
+        display: block;
     }
+}
+
+.drawer-title-row__actions {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    flex-shrink: 0;
 }
 
 .drawer-tags-row {

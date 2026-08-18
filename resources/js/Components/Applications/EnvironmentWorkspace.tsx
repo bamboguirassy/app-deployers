@@ -50,30 +50,28 @@ function EnvironmentCell({
                 <span className="env-cell__branch">{link.git_branch}</span>
                 {hasSecrets && <span className="env-cell__dot env-cell__dot--secret" />}
             </div>
+            <div className="env-cell__path">{link.deploy_path}</div>
             {link.url && (
-                <div className="env-cell__url-row">
-                    <span className="env-cell__url-text">{link.url.replace(/^https?:\/\//, '')}</span>
-                    <span
-                        role="link"
-                        tabIndex={0}
-                        className="env-cell__url-link"
-                        aria-label={t('environmentWorkspace.openUrlAriaLabel')}
-                        onClick={(e) => {
+                <span
+                    role="link"
+                    tabIndex={0}
+                    className="env-cell__url-row"
+                    aria-label={t('environmentWorkspace.openUrlAriaLabel')}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(link.url!, '_blank', 'noopener,noreferrer');
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
                             e.stopPropagation();
                             window.open(link.url!, '_blank', 'noopener,noreferrer');
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.stopPropagation();
-                                window.open(link.url!, '_blank', 'noopener,noreferrer');
-                            }
-                        }}
-                    >
-                        <ExternalLink size={11} />
-                    </span>
-                </div>
+                        }
+                    }}
+                >
+                    <ExternalLink size={10} className="env-cell__url-icon" />
+                    <span className="env-cell__url-text">{link.url}</span>
+                </span>
             )}
-            <div className="env-cell__path">{link.deploy_path}</div>
             <div className="env-cell__meta">
                 {link.server ? link.server.name : t('environmentWorkspace.noServer')} · {link.variables.length} {t('environmentWorkspace.varsUnit')}
                 <span>›</span>
@@ -171,34 +169,33 @@ function ConfigDrawer({
             onClose={onClose}
             width="min(420px, 92vw)"
             title={
-                <div>
+                <div className="drawer-header">
                     <div className="drawer-title-row">
-                        <strong>
-                            {target.name} • {environment.name}
-                        </strong>
-                        <span className={`drawer-status ${existing ? 'drawer-status--configured' : 'drawer-status--empty'}`}>
-                            {existing && <CheckCircle2 size={12} />}
-                            {existing ? t('environmentWorkspace.configured') : t('environmentWorkspace.notConfigured')}
-                        </span>
-                    </div>
-                    <div className="drawer-tags-row">
-                        <span className="drawer-tag">{target.framework?.name ?? t('environmentWorkspace.drawer.customStack')}</span>
-                        <span className="drawer-tag">{environment.name}</span>
+                        <div className="drawer-title-row__text">
+                            <strong>{target.name} • {environment.name}</strong>
+                            <div className="drawer-tags-row">
+                                <span className="drawer-tag">{target.framework?.name ?? t('environmentWorkspace.drawer.customStack')}</span>
+                                <span className="drawer-tag">{environment.name}</span>
+                            </div>
+                        </div>
+                        <div className="drawer-title-row__actions">
+                            <span className={`drawer-status ${existing ? 'drawer-status--configured' : 'drawer-status--empty'}`}>
+                                {existing && <CheckCircle2 size={12} />}
+                                {existing ? t('environmentWorkspace.configured') : t('environmentWorkspace.notConfigured')}
+                            </span>
+                            {existing && canDeploy && (
+                                <PrimaryButton
+                                    size="small"
+                                    htmlType="button"
+                                    icon={<Rocket size={14} />}
+                                    onClick={() => router.post(route('deployments.store', [workspace!.slug, application.slug, existing.uuid]))}
+                                >
+                                    {t('environmentWorkspace.drawer.deploy')}
+                                </PrimaryButton>
+                            )}
+                        </div>
                     </div>
                 </div>
-            }
-            extra={
-                existing &&
-                canDeploy && (
-                    <PrimaryButton
-                        size="small"
-                        htmlType="button"
-                        icon={<Rocket size={14} />}
-                        onClick={() => router.post(route('deployments.store', [workspace!.slug, application.slug, existing.uuid]))}
-                    >
-                        {t('environmentWorkspace.drawer.deploy')}
-                    </PrimaryButton>
-                )
             }
             footer={
                 canManage && (
