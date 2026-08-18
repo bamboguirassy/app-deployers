@@ -6,6 +6,7 @@ use App\Events\DeploymentStatusUpdated;
 use App\Models\User;
 use App\Notifications\DeploymentFailedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -35,6 +36,10 @@ class NotifyOnDeploymentFailure implements ShouldQueue
         $settings    = $application->getOrCreateNotificationSettings();
 
         if (! $settings->notify_on_failure) {
+            return;
+        }
+
+        if (! Cache::add("notify:failure:{$deployment->id}", true, now()->addHour())) {
             return;
         }
 

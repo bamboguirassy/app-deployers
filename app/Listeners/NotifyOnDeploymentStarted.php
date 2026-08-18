@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\DeploymentStatusUpdated;
 use App\Notifications\DeploymentStartedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 
 class NotifyOnDeploymentStarted implements ShouldQueue
@@ -31,6 +32,12 @@ class NotifyOnDeploymentStarted implements ShouldQueue
         }
 
         if (! $deployment->triggeredBy) {
+            return;
+        }
+
+        // Cache::add() returns false if the key already exists — prevents double-send
+        // if the event is somehow dispatched twice (retry, duplicate dispatch, etc.).
+        if (! Cache::add("notify:started:{$deployment->id}", true, now()->addHour())) {
             return;
         }
 

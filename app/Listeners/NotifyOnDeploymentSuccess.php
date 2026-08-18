@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\DeploymentStatusUpdated;
 use App\Notifications\DeploymentSucceededNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -36,6 +37,10 @@ class NotifyOnDeploymentSuccess implements ShouldQueue
         }
 
         if (! $deployment->triggeredBy) {
+            return;
+        }
+
+        if (! Cache::add("notify:success:{$deployment->id}", true, now()->addHour())) {
             return;
         }
 
