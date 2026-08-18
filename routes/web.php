@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDeploymentController;
 use App\Http\Controllers\Admin\AdminPlanController;
 use App\Http\Controllers\Admin\AdminSubscriptionController;
+use App\Http\Controllers\Admin\AdminSystemHealthController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\ApplicationController;
@@ -20,6 +22,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\TargetController;
 use App\Http\Controllers\TargetEnvironmentController;
+use App\Http\Controllers\ApplicationNotificationSettingController;
 use App\Http\Controllers\TargetVariableController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebhookConfigController;
@@ -160,7 +163,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('/target-variables/{targetVariable}', [TargetVariableController::class, 'destroy'])->name('target-variables.destroy');
             Route::post('/targets/{target}/variables/reorder', [TargetVariableController::class, 'reorder'])->name('target-variables.reorder');
 
+            Route::patch('/notification-settings', [ApplicationNotificationSettingController::class, 'update'])->name('notification-settings.update');
             Route::post('/target-environments/{targetEnvironment}/variables', [EnvironmentVariableController::class, 'upsert'])->name('environment-variables.upsert');
+            Route::post('/target-environments/{targetEnvironment}/variables/{environmentVariable}/reveal', [EnvironmentVariableController::class, 'reveal'])->name('environment-variables.reveal');
 
             Route::post('/targets/{target}/webhooks', [WebhookConfigController::class, 'store'])->name('webhook-configs.store');
             Route::post('/webhooks/{webhookConfig}/reveal-secret', [WebhookConfigController::class, 'revealSecret'])->name('webhook-configs.reveal-secret');
@@ -203,10 +208,17 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('admin')->name('a
 
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::post('/users/search', [AdminUserController::class, 'search'])->name('users.search');
+    Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/promote', [AdminUserController::class, 'promote'])->name('users.promote');
     Route::post('/users/{user}/demote', [AdminUserController::class, 'demote'])->name('users.demote');
+    Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
+    Route::post('/users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/horizon', fn () => inertia('Admin/Horizon'))->name('horizon');
+
+    Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit-log');
+    Route::get('/system-health', [AdminSystemHealthController::class, 'index'])->name('system-health');
 
     // Monitoring cross-workspace des déploiements — lecture seule uniquement,
     // voir AdminDeploymentController pour le raisonnement sur l'isolation vis-à-vis

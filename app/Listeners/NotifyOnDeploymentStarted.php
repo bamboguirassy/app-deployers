@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Listeners;
+
+use App\Events\DeploymentStatusUpdated;
+use App\Notifications\DeploymentStartedNotification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Notification;
+
+class NotifyOnDeploymentStarted implements ShouldQueue
+{
+    public function handle(DeploymentStatusUpdated $event): void
+    {
+        $deployment = $event->deployment;
+
+        if ($deployment->status !== 'running') {
+            return;
+        }
+
+        $deployment->loadMissing([
+            'targetEnvironment.target.application.workspace',
+            'targetEnvironment.environment',
+            'triggeredBy',
+        ]);
+
+        $application = $deployment->targetEnvironment->target->application;
+        $settings    = $application->getOrCreateNotificationSettings();
+
+        if (! $settings->notify_on_start) {
+            return;
+        }
+
+        if (! $deployment->triggeredBy) {
+            return;
+        }
+
+        Notification::send($deployment->triggeredBy, new DeploymentStartedNotification($deployment));
+    }
+}

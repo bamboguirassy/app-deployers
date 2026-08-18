@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Events\DeploymentStatusUpdated;
 use App\Listeners\ClearPendingInvitationsOnLogin;
 use App\Listeners\NotifyOnDeploymentFailure;
+use App\Listeners\NotifyOnDeploymentStarted;
+use App\Listeners\NotifyOnDeploymentSuccess;
 use App\Policies\PlatformAdminPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
@@ -43,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
         // (WorkspaceController::redirectToDefault choisit un workspace par défaut).
         RedirectIfAuthenticated::redirectUsing(fn () => route('home'));
 
+        Event::listen(DeploymentStatusUpdated::class, NotifyOnDeploymentStarted::class);
+        Event::listen(DeploymentStatusUpdated::class, NotifyOnDeploymentSuccess::class);
         Event::listen(DeploymentStatusUpdated::class, NotifyOnDeploymentFailure::class);
         Event::listen(Login::class, ClearPendingInvitationsOnLogin::class);
 

@@ -72,6 +72,23 @@ class Application extends Model
         return $this->hasMany(AuditLog::class);
     }
 
+    public function notificationSettings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ApplicationNotificationSetting::class);
+    }
+
+    /**
+     * Retourne les settings de notification, en créant une ligne avec les
+     * valeurs par défaut si elle n'existe pas encore.
+     */
+    public function getOrCreateNotificationSettings(): ApplicationNotificationSetting
+    {
+        return $this->notificationSettings()->firstOrCreate(
+            ['application_id' => $this->id],
+            ['notify_on_start' => true, 'notify_on_success' => true, 'notify_on_failure' => true],
+        );
+    }
+
     public function resolveWorkspaceId(): ?int
     {
         return $this->workspace_id;

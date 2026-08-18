@@ -32,6 +32,22 @@ class EnvironmentVariable extends Model
         ];
     }
 
+    /**
+     * Masque la valeur déchiffrée dans toute sérialisation JSON/array quand la variable
+     * est marquée secrète — évite l'exposition dans les props Inertia.
+     * Nécessite que la relation targetVariable soit chargée au moment de la sérialisation.
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        if ($this->relationLoaded('targetVariable') && $this->targetVariable?->is_secret) {
+            $array['value'] = null;
+        }
+
+        return $array;
+    }
+
     public function targetEnvironment(): BelongsTo
     {
         return $this->belongsTo(TargetEnvironment::class);

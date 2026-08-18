@@ -25,6 +25,7 @@
             "targets": "Targets & Pipeline",
             "environments": "Environments",
             "members": "Members",
+            "notifications": "Notifications",
             "deployments": "Deployments",
             "details": "Details"
         },
@@ -162,22 +163,24 @@
         "sortEmail": "Email",
         "sortRole": "Role",
         "allShown": "All members are shown.",
-        "emptyResults": "No member matches these criteria."
+        "emptyResults": "No member matches these criteria.",
+        "invitationPending": "Invitation pending"
     },
     "membersPanel": {
         "title": "Members",
         "subtitle": "Application access and team responsibilities",
-        "grantAccess": "Grant access to a member",
+        "grantAccess": "Invite a member",
         "confirmRemove": {
             "title": "Remove {{name}}'s access to this application?",
             "okText": "Remove",
             "cancelText": "Cancel"
         },
-        "modalTitle": "Grant access to a workspace member",
+        "modalTitle": "Invite a member",
         "emailLabel": "Email",
         "emailPlaceholder": "colleague@example.com",
-        "emailHint": "Must already be a workspace member. Their role (owner, manager, deployer, viewer) is managed from the workspace's Users page.",
-        "submit": "Grant access"
+        "roleLabel": "Role in the workspace",
+        "roleHint": "Only applies to new users or those not yet workspace members.",
+        "submit": "Invite"
     },
     "pipelineSteps": {
         "variableButton": "Variable",
@@ -343,12 +346,47 @@
         "requiredPlaceholder": "Required value",
         "secretValue": "Hidden value",
         "visibleValue": "Visible value",
+        "reveal": "Reveal",
+        "hide": "Hide",
         "save": "Save variables",
         "columns": {
             "key": "Key",
             "value": "Value",
             "secret": "Type"
         }
+    },
+    "notificationsPanel": {
+        "title": "Notifications",
+        "subtitle": "Automatic alerts and email pipeline steps configured on this application",
+        "system": {
+            "title": "Automatic system notifications",
+            "hint": "Enable or disable each notification to match your preferences. These settings apply to all deployments for this application.",
+            "activeCount": "{{count}}/{{total}} active",
+            "startEvent": "Deployment started",
+            "startRecipients": "Triggering user",
+            "successEvent": "Deployment succeeded",
+            "successRecipients": "Triggering user",
+            "failureEvent": "Deployment failed",
+            "failureRecipients": "Workspace owners + Triggering user"
+        },
+        "emailSteps": {
+            "title": "Pipeline email steps",
+            "hint": "Email-type steps configured on this application's targets. These steps run during the pipeline, at the position where they were placed.",
+            "empty": "No email steps configured on this application."
+        },
+        "columns": {
+            "event": "Event",
+            "recipients": "Recipients",
+            "channel": "Channel",
+            "enabled": "Enabled",
+            "target": "Target / Step",
+            "to": "Recipients",
+            "subject": "Subject"
+        },
+        "editStepTooltip": "Go to this target",
+        "editStepAriaLabel": "Go to target to edit this step",
+        "noPermission": "Only owners and managers can change these settings.",
+        "saveFailed": "Unable to save notification settings."
     },
     "webhooksPanel": {
         "hint": "Only one integration can be active at a time: activating another provider will deactivate the current one.",

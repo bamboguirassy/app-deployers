@@ -195,7 +195,7 @@ class ApplicationController extends Controller
         $this->authorize('view', $application);
 
         $application->load([
-            'targets' => fn ($q) => $q->with(['framework', 'variables', 'pipelineSteps', 'webhookConfigs', 'targetEnvironments.environment', 'targetEnvironments.variables', 'targetEnvironments.server']),
+            'targets' => fn ($q) => $q->with(['framework', 'variables', 'pipelineSteps', 'webhookConfigs', 'targetEnvironments.environment', 'targetEnvironments.variables.targetVariable', 'targetEnvironments.server']),
             'environments',
         ]);
 
@@ -253,6 +253,7 @@ class ApplicationController extends Controller
                 'success_rate' => $deploymentsFinished > 0 ? round(($deploymentsSucces / $deploymentsFinished) * 100) : 0,
                 'avg_duration_ms' => (int) (clone $deploymentsKpisQuery)->whereNotNull('duration_ms')->avg('duration_ms'),
             ],
+            'notificationSettings' => $application->getOrCreateNotificationSettings()->only('notify_on_start', 'notify_on_success', 'notify_on_failure'),
             'frameworks' => Framework::orderBy('order')->get(['id', 'name', 'slug', 'category', 'logo_url']),
             'servers' => $workspace->servers()->orderBy('name')->get(['id', 'uuid', 'name', 'host', 'port', 'username', 'auth_method', 'default_path']),
             'workspaceApplications' => $workspace->visibleApplicationsFor($user)

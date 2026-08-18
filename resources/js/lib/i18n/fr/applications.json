@@ -25,6 +25,7 @@
             "targets": "Targets & Pipeline",
             "environments": "Environnements",
             "members": "Membres",
+            "notifications": "Notifications",
             "deployments": "Déploiements",
             "details": "Détails"
         },
@@ -345,12 +346,47 @@
         "requiredPlaceholder": "Valeur requise",
         "secretValue": "Valeur masquée",
         "visibleValue": "Valeur visible",
+        "reveal": "Afficher",
+        "hide": "Masquer",
         "save": "Enregistrer les variables",
         "columns": {
             "key": "Clé",
             "value": "Valeur",
             "secret": "Type"
         }
+    },
+    "notificationsPanel": {
+        "title": "Notifications",
+        "subtitle": "Alertes automatiques et étapes Email configurées sur cette application",
+        "system": {
+            "title": "Notifications automatiques du système",
+            "hint": "Activez ou désactivez chaque notification selon vos préférences. Ces réglages s'appliquent à tous les déploiements de cette application.",
+            "activeCount": "{{count}}/{{total}} actives",
+            "startEvent": "Déploiement démarré",
+            "startRecipients": "Utilisateur déclencheur",
+            "successEvent": "Déploiement réussi",
+            "successRecipients": "Utilisateur déclencheur",
+            "failureEvent": "Déploiement en échec",
+            "failureRecipients": "Owners du workspace + Utilisateur déclencheur"
+        },
+        "emailSteps": {
+            "title": "Étapes Email du pipeline",
+            "hint": "Étapes de type Email configurées sur les targets de cette application. Ces étapes s'exécutent pendant le pipeline, à l'endroit où elles ont été placées.",
+            "empty": "Aucune étape Email configurée sur cette application."
+        },
+        "columns": {
+            "event": "Événement",
+            "recipients": "Destinataires",
+            "channel": "Canal",
+            "enabled": "Activée",
+            "target": "Target / Étape",
+            "to": "Destinataires",
+            "subject": "Objet"
+        },
+        "editStepTooltip": "Aller à ce target",
+        "editStepAriaLabel": "Aller au target pour modifier cette étape",
+        "noPermission": "Seuls les owners et managers peuvent modifier ces paramètres.",
+        "saveFailed": "Impossible d'enregistrer les paramètres de notification."
     },
     "webhooksPanel": {
         "hint": "Une seule intégration peut être active à la fois : activer un autre provider désactivera l'actuel.",

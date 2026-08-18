@@ -41,7 +41,7 @@ export interface EnvironmentVariable {
     uuid: string;
     target_environment_id: number;
     target_variable_id: number;
-    value: string;
+    value: string | null; // null quand is_secret=true (masqué côté serveur)
 }
 
 export interface TargetEnvironmentLink {

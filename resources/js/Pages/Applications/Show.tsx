@@ -3,6 +3,7 @@ import ApplicationSwitcher from '@/Components/Applications/ApplicationSwitcher';
 import DeploymentsPanel from '@/Components/Applications/DeploymentsPanel';
 import EnvironmentWorkspace from '@/Components/Applications/EnvironmentWorkspace';
 import MembersPanel from '@/Components/Applications/MembersPanel';
+import NotificationsPanel from '@/Components/Applications/NotificationsPanel';
 import RunDeployButton from '@/Components/Applications/RunDeployButton';
 import TargetWorkspace from '@/Components/Applications/TargetWorkspace';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -11,7 +12,7 @@ import { ApplicationMember, PageProps } from '@/types';
 import { Application, Deployment, Framework, Server } from '@/types/models';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Avatar, Dropdown } from 'antd';
-import { Boxes, GitBranch, History, Layers, MoreHorizontal, Settings, Trash2, Users } from 'lucide-react';
+import { Bell, Boxes, GitBranch, History, Layers, MoreHorizontal, Settings, Trash2, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -32,7 +33,7 @@ interface MembersKpis {
     viewer: number;
 }
 
-type TabKey = 'targets' | 'environments' | 'members' | 'deployments' | 'details';
+type TabKey = 'targets' | 'environments' | 'members' | 'notifications' | 'deployments' | 'details';
 
 export default function Show({
     application,
@@ -44,6 +45,7 @@ export default function Show({
     frameworks,
     servers,
     workspaceApplications,
+    notificationSettings,
     can,
 }: {
     application: Application;
@@ -55,6 +57,11 @@ export default function Show({
     frameworks: Framework[];
     servers: Server[];
     workspaceApplications: Pick<Application, 'id' | 'name' | 'slug' | 'logo_url'>[];
+    notificationSettings: {
+        notify_on_start: boolean;
+        notify_on_success: boolean;
+        notify_on_failure: boolean;
+    };
     can: {
         manageTargetsAndPipeline: boolean;
         manageEnvironments: boolean;
@@ -73,7 +80,7 @@ export default function Show({
     const initialTabParam = initialParams.get('tab') as TabKey | null;
     const initialTargetId = initialParams.get('target');
 
-    const validTabs: TabKey[] = ['targets', 'environments', 'members', 'deployments', 'details'];
+    const validTabs: TabKey[] = ['targets', 'environments', 'members', 'notifications', 'deployments', 'details'];
     const resolvedInitialTab: TabKey =
         initialTabParam && validTabs.includes(initialTabParam) ? initialTabParam : 'targets';
 
@@ -167,6 +174,7 @@ export default function Show({
                 { key: 'targets', label: t('show.tabs.targets'), icon: <GitBranch size={14} />, onClick: () => switchTab('targets') },
                 { key: 'environments', label: t('show.tabs.environments'), icon: <Layers size={14} />, onClick: () => switchTab('environments') },
                 { key: 'members', label: t('show.tabs.members'), icon: <Users size={14} />, onClick: () => switchTab('members') },
+                { key: 'notifications', label: t('show.tabs.notifications'), icon: <Bell size={14} />, onClick: () => switchTab('notifications') },
                 { key: 'deployments', label: t('show.tabs.deployments'), icon: <History size={14} />, onClick: () => switchTab('deployments') },
                 { key: 'details', label: t('show.tabs.details'), icon: <Settings size={14} />, onClick: () => switchTab('details') },
             ]}
@@ -227,6 +235,14 @@ export default function Show({
 
             {activeTab === 'members' && (
                 <MembersPanel application={application} members={members} kpis={membersKpis} canManage={can.update} />
+            )}
+
+            {activeTab === 'notifications' && (
+                <NotificationsPanel
+                    application={application}
+                    notificationSettings={notificationSettings}
+                    canManage={can.manageTargetsAndPipeline}
+                />
             )}
 
             {activeTab === 'deployments' && (

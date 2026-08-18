@@ -31,9 +31,15 @@ class NotifyOnDeploymentFailure implements ShouldQueue
             'triggeredBy',
         ]);
 
-        $workspace = $deployment->targetEnvironment->target->application->workspace;
+        $application = $deployment->targetEnvironment->target->application;
+        $settings    = $application->getOrCreateNotificationSettings();
 
-        $ownerIds = $workspace->members()->where('role', 'owner')->pluck('id');
+        if (! $settings->notify_on_failure) {
+            return;
+        }
+
+        $workspace  = $application->workspace;
+        $ownerIds   = $workspace->members()->where('role', 'owner')->pluck('id');
         $recipients = User::whereIn('id', $ownerIds)->get();
 
         if ($deployment->triggeredBy && ! $recipients->contains('id', $deployment->triggeredBy->id)) {
