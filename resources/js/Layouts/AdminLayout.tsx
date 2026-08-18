@@ -3,16 +3,18 @@ import { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Avatar, Drawer, Dropdown, Layout, Menu, message, type MenuProps } from 'antd';
 import {
+    Activity,
     ChevronLeft,
     CreditCard,
+    HeartPulse,
     LayoutDashboard,
     LogOut,
     Menu as MenuIcon,
     PackageCheck,
     Rocket,
+    ScrollText,
     ShieldCheck,
     Users,
-    Activity,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -79,6 +81,16 @@ export default function AdminLayout({
             icon: <Activity size={16} />,
             label: <Link href={route('admin.horizon')}>{t('layout.nav.horizon')}</Link>,
         },
+        {
+            key: 'audit-log',
+            icon: <ScrollText size={16} />,
+            label: <Link href={route('admin.audit-log')}>{t('layout.nav.auditLog')}</Link>,
+        },
+        {
+            key: 'system-health',
+            icon: <HeartPulse size={16} />,
+            label: <Link href={route('admin.system-health')}>{t('layout.nav.systemHealth')}</Link>,
+        },
     ];
 
     const selectedKey = route().current('admin.workspaces.*')
@@ -91,7 +103,11 @@ export default function AdminLayout({
               ? 'deployments'
               : route().current('admin.horizon')
                 ? 'horizon'
-                : 'dashboard';
+                : route().current('admin.audit-log')
+                  ? 'audit-log'
+                  : route().current('admin.system-health')
+                    ? 'system-health'
+                    : 'dashboard';
 
     const userMenuItems: MenuProps['items'] = [
         {

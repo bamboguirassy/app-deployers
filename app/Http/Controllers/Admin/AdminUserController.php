@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\FiltersLists;
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
 use App\Support\PlatformAuditLogger;
 use Illuminate\Http\JsonResponse;
@@ -146,6 +147,93 @@ class AdminUserController extends Controller
             ],
             'kpis' => $this->kpis(),
         ]);
+    }
+
+    public function show(User $user): Response
+    {
+        $this->authorize('platform-admin.access');
+
+        $this->attachWorkspaces([$user]);
+        $this->attachLastActivity([$user]);
+
+        $deployments = DB::table('deployments')
+            ->join('target_environments', 'target_environments.id', '=', 'deployments.target_environment_id')
+            ->join('targets', 'targets.id', '=', 'target_environments.target_id')
+            ->join('applications', 'applications.id', '=', 'targets.application_id')
+            ->join('workspaces', 'workspaces.id', '=', 'applications.workspace_id')
+            ->where('deployments.triggered_by_user_id', $user->id)
+            ->select(
+                'deployments.uuid',
+                'deployments.status',
+                'deployments.created_at',
+                'applications.name as application_name',
+                'workspaces.name as workspace_name',
+                'workspaces.slug as workspace_slug',
+            )
+            ->orderByDesc('deployments.created_at')
+            ->limit(20)
+            ->get();
+
+        // Actions des admins plateforme portant sur cet utilisateur (suspend, promote…)
+        $auditLogs = AuditLog::where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->where('context', 'platform_admin')
+            ->with('user:id,name,email')
+            ->latest()
+            ->limit(30)
+            ->get(['action', 'user_id', 'subject_type', 'subject_id', 'changes', 'ip_address', 'created_at']);
+
+        return Inertia::render('Admin/Users/Show', [
+            'user' => $user,
+            'recentDeployments' => $deployments,
+            'auditLogs' => $auditLogs,
+        ]);
+    }
+
+    public function suspend(User $user): RedirectResponse
+    {
+        $this->authorize('platform-admin.manageUsers');
+
+        abort_if($user->id === auth()->id(), 403, 'Vous ne pouvez pas suspendre votre propre compte.');
+
+        $user->update(['suspended_at' => now()]);
+
+        PlatformAuditLogger::log('user.suspend', $user);
+
+        return back()->with('status', "{$user->name} a été suspendu.");
+    }
+
+    public function reactivate(User $user): RedirectResponse
+    {
+        $this->authorize('platform-admin.manageUsers');
+
+        $user->update(['suspended_at' => null]);
+
+        PlatformAuditLogger::log('user.reactivate', $user);
+
+        return back()->with('status', "{$user->name} a été réactivé.");
+    }
+
+    public function destroy(User $user): RedirectResponse
+    {
+        $this->authorize('platform-admin.manageUsers');
+
+        abort_if($user->id === auth()->id(), 403, 'Vous ne pouvez pas supprimer votre propre compte.');
+
+        $name = $user->name;
+
+        PlatformAuditLogger::log('user.delete', $user, [
+            'email' => $user->email,
+            'workspaces_count' => $user->workspaces()->count(),
+        ]);
+
+        // Purge des pivots Spatie (pas de FK) avant suppression de l'utilisateur
+        DB::table('model_has_roles')->where('model_id', $user->id)->where('model_type', User::class)->delete();
+        DB::table('model_has_permissions')->where('model_id', $user->id)->where('model_type', User::class)->delete();
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')->with('status', "Le compte de \"{$name}\" a été supprimé définitivement.");
     }
 
     public function promote(User $user): RedirectResponse

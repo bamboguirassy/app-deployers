@@ -6,7 +6,9 @@
       "users": "Utilisateurs",
       "plans": "Plans",
       "deployments": "Déploiements",
-      "horizon": "File de jobs"
+      "horizon": "File de jobs",
+      "auditLog": "Journal d'audit",
+      "systemHealth": "Santé système"
     },
     "brand": "Administration",
     "superAdminBadge": "Super Admin",
@@ -41,7 +43,76 @@
       "deploymentsColumn": "Déploiements",
       "empty": "Aucun déploiement enregistré"
     },
-    "failedJobsWarning": "{{count}} job(s) en échec dans la file d'attente — vérifiez Horizon."
+    "failedJobsWarning": "{{count}} job(s) en échec dans la file d'attente — vérifiez Horizon.",
+    "signupChart": {
+      "cardTitle": "Inscriptions par semaine (12 dernières semaines)",
+      "empty": "Aucune inscription enregistrée sur cette période"
+    }
+  },
+  "auditLog": {
+    "title": "Administration — Journal d'audit",
+    "eyebrow": "Traçabilité",
+    "heading": "Journal d'audit plateforme",
+    "subtitle": "Toutes les actions super-admin (promotion, suspension, changement de plan, suppression…), filtrables par action, administrateur et période.",
+    "breadcrumb": "Journal d'audit",
+    "total": "{{count}} entrée(s)",
+    "empty": "Aucune entrée ne correspond à ces critères.",
+    "filters": {
+      "actionPlaceholder": "Filtrer par action",
+      "adminPlaceholder": "Filtrer par administrateur"
+    },
+    "columns": {
+      "date": "Date",
+      "admin": "Administrateur",
+      "action": "Action",
+      "subject": "Sujet",
+      "changes": "Modifications",
+      "ip": "IP"
+    }
+  },
+  "systemHealth": {
+    "title": "Administration — Santé système",
+    "eyebrow": "Monitoring",
+    "heading": "Santé système",
+    "subtitle": "Vue agrégée : statut Reverb, files d'attente, déploiements bloqués et jobs en échec.",
+    "breadcrumb": "Santé système",
+    "allGood": "Tout semble fonctionner normalement.",
+    "reverb": {
+      "cardTitle": "Reverb (WebSockets)",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "address": "Écoute sur {{host}}:{{port}}",
+      "offlineHint": "Reverb semble inaccessible. Vérifiez que le processus `php artisan reverb:start` tourne et que le port est ouvert."
+    },
+    "queues": {
+      "cardTitle": "Files d'attente (jobs en attente)",
+      "empty": "Aucun job en attente.",
+      "columns": {
+        "queue": "File",
+        "pending": "En attente",
+        "oldestAt": "Plus ancien"
+      }
+    },
+    "stuckDeployments": {
+      "cardTitle": "Déploiements bloqués (running > {{minutes}} min)",
+      "none": "Aucun",
+      "empty": "Aucun déploiement bloqué.",
+      "columns": {
+        "application": "Application / Target → Env",
+        "startedAt": "Démarré le",
+        "duration": "Durée"
+      }
+    },
+    "failedJobs": {
+      "cardTitle": "Jobs en échec (20 derniers)",
+      "none": "Aucun",
+      "empty": "Aucun job en échec.",
+      "columns": {
+        "failedAt": "Échoué le",
+        "queue": "File",
+        "exception": "Erreur"
+      }
+    }
   },
   "plans": {
     "title": "Administration — Plans",
@@ -255,7 +326,8 @@
       "demote": "Rétrograder",
       "promote": "Promouvoir",
       "cannotDemoteSelf": "Vous ne pouvez pas vous rétrograder vous-même",
-      "lastActive": "Dernière activité"
+      "lastActive": "Dernière activité",
+      "viewProfile": "Voir le profil"
     },
     "kpiTitle": "Indicateurs clés",
     "kpiSubtitle": "Tous les utilisateurs de la plateforme, tous workspaces confondus",
@@ -273,7 +345,24 @@
       "lastActive": "Dernière activité"
     },
     "allShown": "Tous les utilisateurs sont affichés.",
-    "noResults": "Aucun utilisateur ne correspond à ces critères."
+    "noResults": "Aucun utilisateur ne correspond à ces critères.",
+    "confirmSuspend": {
+      "title": "Suspendre {{name}} ?",
+      "content": "L'utilisateur ne pourra plus se connecter.",
+      "okText": "Suspendre",
+      "cancelText": "Annuler"
+    },
+    "confirmReactivate": {
+      "title": "Réactiver {{name}} ?",
+      "okText": "Réactiver",
+      "cancelText": "Annuler"
+    },
+    "confirmDelete": {
+      "title": "Supprimer définitivement {{name}} ?",
+      "content": "Cette action est irréversible.",
+      "okText": "Supprimer",
+      "cancelText": "Annuler"
+    }
   },
   "deploymentsIndex": {
     "title": "Administration — Déploiements",
@@ -335,5 +424,63 @@
     "active": "Actif",
     "past_due": "Paiement en retard",
     "canceled": "Annulé"
+  },
+  "usersShow": {
+    "title": "Utilisateur — {{name}}",
+    "eyebrow": "Compte utilisateur",
+    "tabProfile": "Profil",
+    "tabDeployments": "Déploiements récents",
+    "tabAudit": "Journal d'audit admin",
+    "profile": {
+      "name": "Nom",
+      "email": "Email",
+      "status": "Statut",
+      "superAdmin": "Super-admin",
+      "registration": "Inscription",
+      "lastActive": "Dernière activité",
+      "provider": "Authentification",
+      "providerPassword": "Mot de passe",
+      "providerGoogle": "Google",
+      "workspaces": "Workspaces",
+      "noWorkspaces": "Aucun workspace"
+    },
+    "actions": {
+      "suspend": "Suspendre",
+      "reactivate": "Réactiver",
+      "promote": "Promouvoir super-admin",
+      "demote": "Rétrograder",
+      "delete": "Supprimer le compte"
+    },
+    "confirmSuspend": {
+      "title": "Suspendre {{name}} ?",
+      "content": "L'utilisateur ne pourra plus se connecter.",
+      "okText": "Suspendre",
+      "cancelText": "Annuler"
+    },
+    "confirmReactivate": {
+      "title": "Réactiver {{name}} ?",
+      "okText": "Réactiver",
+      "cancelText": "Annuler"
+    },
+    "confirmDelete": {
+      "title": "Supprimer définitivement {{name}} ?",
+      "content": "Cette action est irréversible. Le compte et toutes ses données seront supprimés.",
+      "okText": "Supprimer",
+      "cancelText": "Annuler"
+    },
+    "deployments": {
+      "noDeployments": "Aucun déploiement récent déclenché par cet utilisateur.",
+      "colDate": "Date",
+      "colWorkspace": "Workspace",
+      "colApplication": "Application",
+      "colStatus": "Statut"
+    },
+    "audit": {
+      "noLogs": "Aucune action admin enregistrée pour cet utilisateur.",
+      "colDate": "Date",
+      "colAction": "Action",
+      "colIp": "IP",
+      "colBy": "Par"
+    }
   }
 }

@@ -6,7 +6,7 @@ import { PageProps, User } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { Avatar, Button, Card, Popover, Spin, Table, Tag, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckCircle2, ShieldAlert, ShieldCheck, ShieldOff, Users as UsersIcon } from 'lucide-react';
+import { CheckCircle2, ExternalLink, ShieldAlert, ShieldCheck, Users as UsersIcon } from 'lucide-react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dateLocale } from '@/lib/i18n';
@@ -44,26 +44,26 @@ export default forwardRef<AdminUsersListHandle, {
         { value: 'super_admin', label: t('usersComponent.statusFilters.superAdmin') },
     ];
 
-    const promote = (user: User) => {
+    const suspend = (user: User) => {
         confirm.confirm({
-            title: t('usersComponent.confirmPromote.title', { name: user.name }),
-            content: t('usersComponent.confirmPromote.content'),
-            okText: t('usersComponent.confirmPromote.okText'),
-            cancelText: t('usersComponent.confirmPromote.cancelText'),
+            title: t('usersComponent.confirmSuspend.title', { name: user.name }),
+            content: t('usersComponent.confirmSuspend.content'),
+            okType: 'danger',
+            okText: t('usersComponent.confirmSuspend.okText'),
+            cancelText: t('usersComponent.confirmSuspend.cancelText'),
             onOk: () => {
-                router.post(route('admin.users.promote', user.uuid), {}, { onSuccess: () => search.refresh() });
+                router.post(route('admin.users.suspend', user.uuid), {}, { onSuccess: () => search.refresh() });
             },
         });
     };
 
-    const demote = (user: User) => {
+    const reactivate = (user: User) => {
         confirm.confirm({
-            title: t('usersComponent.confirmDemote.title', { name: user.name }),
-            okType: 'danger',
-            okText: t('usersComponent.confirmDemote.okText'),
-            cancelText: t('usersComponent.confirmDemote.cancelText'),
+            title: t('usersComponent.confirmReactivate.title', { name: user.name }),
+            okText: t('usersComponent.confirmReactivate.okText'),
+            cancelText: t('usersComponent.confirmReactivate.cancelText'),
             onOk: () => {
-                router.post(route('admin.users.demote', user.uuid), {}, { onSuccess: () => search.refresh() });
+                router.post(route('admin.users.reactivate', user.uuid), {}, { onSuccess: () => search.refresh() });
             },
         });
     };
@@ -194,22 +194,30 @@ export default forwardRef<AdminUsersListHandle, {
             render: (_value, user) => {
                 const isSelf = user.id === auth.user.id;
 
-                return user.is_super_admin ? (
-                    <Tooltip title={isSelf ? t('usersComponent.columns.cannotDemoteSelf') : undefined}>
-                        <Button
-                            size="small"
-                            danger
-                            disabled={isSelf}
-                            icon={<ShieldOff size={14} />}
-                            onClick={() => demote(user)}
-                        >
-                            {t('usersComponent.columns.demote')}
-                        </Button>
-                    </Tooltip>
-                ) : (
-                    <Button size="small" icon={<ShieldCheck size={14} />} onClick={() => promote(user)}>
-                        {t('usersComponent.columns.promote')}
-                    </Button>
+                return (
+                    <span style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end' }}>
+                        <Tooltip title={t('usersComponent.columns.viewProfile')}>
+                            <Button
+                                size="small"
+                                icon={<ExternalLink size={14} />}
+                                onClick={() => router.visit(route('admin.users.show', user.uuid))}
+                            />
+                        </Tooltip>
+
+                        {user.suspended_at ? (
+                            <Tooltip title={isSelf ? t('usersComponent.columns.cannotDemoteSelf') : undefined}>
+                                <Button size="small" icon={<ShieldCheck size={14} />} onClick={() => reactivate(user)} disabled={isSelf}>
+                                    {t('usersComponent.confirmReactivate.okText')}
+                                </Button>
+                            </Tooltip>
+                        ) : (
+                            <Tooltip title={isSelf ? t('usersComponent.columns.cannotDemoteSelf') : undefined}>
+                                <Button size="small" danger icon={<ShieldAlert size={14} />} onClick={() => suspend(user)} disabled={isSelf}>
+                                    {t('usersComponent.confirmSuspend.okText')}
+                                </Button>
+                            </Tooltip>
+                        )}
+                    </span>
                 );
             },
         },

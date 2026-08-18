@@ -6,7 +6,9 @@
       "users": "Users",
       "plans": "Plans",
       "deployments": "Deployments",
-      "horizon": "Queue monitor"
+      "horizon": "Queue monitor",
+      "auditLog": "Audit log",
+      "systemHealth": "System health"
     },
     "brand": "Administration",
     "superAdminBadge": "Super Admin",
@@ -41,7 +43,76 @@
       "deploymentsColumn": "Deployments",
       "empty": "No deployments recorded"
     },
-    "failedJobsWarning": "{{count}} job(s) failed in the queue — check Horizon."
+    "failedJobsWarning": "{{count}} job(s) failed in the queue — check Horizon.",
+    "signupChart": {
+      "cardTitle": "Signups per week (last 12 weeks)",
+      "empty": "No signups recorded in this period"
+    }
+  },
+  "auditLog": {
+    "title": "Administration — Audit log",
+    "eyebrow": "Traceability",
+    "heading": "Platform audit log",
+    "subtitle": "All super-admin actions (promotions, suspensions, plan changes, deletions…), filterable by action, administrator, and date range.",
+    "breadcrumb": "Audit log",
+    "total": "{{count}} entry/entries",
+    "empty": "No entries match these criteria.",
+    "filters": {
+      "actionPlaceholder": "Filter by action",
+      "adminPlaceholder": "Filter by administrator"
+    },
+    "columns": {
+      "date": "Date",
+      "admin": "Administrator",
+      "action": "Action",
+      "subject": "Subject",
+      "changes": "Changes",
+      "ip": "IP"
+    }
+  },
+  "systemHealth": {
+    "title": "Administration — System health",
+    "eyebrow": "Monitoring",
+    "heading": "System health",
+    "subtitle": "Aggregated view: Reverb status, queues, stuck deployments, and failed jobs.",
+    "breadcrumb": "System health",
+    "allGood": "Everything looks healthy.",
+    "reverb": {
+      "cardTitle": "Reverb (WebSockets)",
+      "online": "Online",
+      "offline": "Offline",
+      "address": "Listening on {{host}}:{{port}}",
+      "offlineHint": "Reverb appears unreachable. Make sure the `php artisan reverb:start` process is running and the port is open."
+    },
+    "queues": {
+      "cardTitle": "Queues (pending jobs)",
+      "empty": "No pending jobs.",
+      "columns": {
+        "queue": "Queue",
+        "pending": "Pending",
+        "oldestAt": "Oldest"
+      }
+    },
+    "stuckDeployments": {
+      "cardTitle": "Stuck deployments (running > {{minutes}} min)",
+      "none": "None",
+      "empty": "No stuck deployments.",
+      "columns": {
+        "application": "Application / Target → Env",
+        "startedAt": "Started at",
+        "duration": "Duration"
+      }
+    },
+    "failedJobs": {
+      "cardTitle": "Failed jobs (last 20)",
+      "none": "None",
+      "empty": "No failed jobs.",
+      "columns": {
+        "failedAt": "Failed at",
+        "queue": "Queue",
+        "exception": "Error"
+      }
+    }
   },
   "plans": {
     "title": "Administration — Plans",
@@ -255,7 +326,8 @@
       "demote": "Demote",
       "promote": "Promote",
       "cannotDemoteSelf": "You cannot demote yourself",
-      "lastActive": "Last active"
+      "lastActive": "Last active",
+      "viewProfile": "View profile"
     },
     "kpiTitle": "Key metrics",
     "kpiSubtitle": "All users on the platform, across all workspaces",
@@ -273,7 +345,24 @@
       "lastActive": "Last active"
     },
     "allShown": "All users are shown.",
-    "noResults": "No users match these criteria."
+    "noResults": "No users match these criteria.",
+    "confirmSuspend": {
+      "title": "Suspend {{name}}?",
+      "content": "The user will no longer be able to log in.",
+      "okText": "Suspend",
+      "cancelText": "Cancel"
+    },
+    "confirmReactivate": {
+      "title": "Reactivate {{name}}?",
+      "okText": "Reactivate",
+      "cancelText": "Cancel"
+    },
+    "confirmDelete": {
+      "title": "Permanently delete {{name}}?",
+      "content": "This action is irreversible.",
+      "okText": "Delete",
+      "cancelText": "Cancel"
+    }
   },
   "deploymentsIndex": {
     "title": "Administration — Deployments",
@@ -335,5 +424,63 @@
     "active": "Active",
     "past_due": "Past due",
     "canceled": "Canceled"
+  },
+  "usersShow": {
+    "title": "User — {{name}}",
+    "eyebrow": "User account",
+    "tabProfile": "Profile",
+    "tabDeployments": "Recent deployments",
+    "tabAudit": "Admin audit log",
+    "profile": {
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "superAdmin": "Super-admin",
+      "registration": "Signed up",
+      "lastActive": "Last active",
+      "provider": "Auth provider",
+      "providerPassword": "Password",
+      "providerGoogle": "Google",
+      "workspaces": "Workspaces",
+      "noWorkspaces": "No workspaces"
+    },
+    "actions": {
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "promote": "Promote to super-admin",
+      "demote": "Demote",
+      "delete": "Delete account"
+    },
+    "confirmSuspend": {
+      "title": "Suspend {{name}}?",
+      "content": "The user will no longer be able to log in.",
+      "okText": "Suspend",
+      "cancelText": "Cancel"
+    },
+    "confirmReactivate": {
+      "title": "Reactivate {{name}}?",
+      "okText": "Reactivate",
+      "cancelText": "Cancel"
+    },
+    "confirmDelete": {
+      "title": "Permanently delete {{name}}?",
+      "content": "This action is irreversible. The account and all its data will be removed.",
+      "okText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "deployments": {
+      "noDeployments": "No recent deployments triggered by this user.",
+      "colDate": "Date",
+      "colWorkspace": "Workspace",
+      "colApplication": "Application",
+      "colStatus": "Status"
+    },
+    "audit": {
+      "noLogs": "No admin actions recorded for this user.",
+      "colDate": "Date",
+      "colAction": "Action",
+      "colIp": "IP",
+      "colBy": "By"
+    }
   }
 }

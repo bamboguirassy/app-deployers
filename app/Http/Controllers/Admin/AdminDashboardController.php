@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Deployment;
 use App\Models\Plan;
+use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -55,6 +56,18 @@ class AdminDashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Inscriptions sur les 12 dernières semaines (groupe par semaine ISO, PostgreSQL)
+        $signupTimeseries = User::query()
+            ->where('created_at', '>=', now()->subWeeks(12)->startOfWeek())
+            ->select(
+                DB::raw("to_char(created_at, 'IYYY-IW') as week"),
+                DB::raw('count(*) as count')
+            )
+            ->groupBy('week')
+            ->orderBy('week')
+            ->get()
+            ->map(fn ($row) => ['week' => $row->week, 'count' => (int) $row->count]);
+
         return Inertia::render('Admin/Dashboard', [
             'kpis' => [
                 'total_workspaces' => $totalWorkspaces,
@@ -65,6 +78,7 @@ class AdminDashboardController extends Controller
             ],
             'planDistribution' => $planDistribution,
             'topWorkspaces' => $topWorkspaces,
+            'signupTimeseries' => $signupTimeseries,
         ]);
     }
 }

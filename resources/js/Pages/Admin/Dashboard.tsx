@@ -1,7 +1,7 @@
 import KpiCollapse from '@/Components/KpiCollapse';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link } from '@inertiajs/react';
-import { Card, Empty, Table, Tag, Typography } from 'antd';
+import { Card, Empty, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { AlertTriangle, Building2, CheckCircle2, History, ShieldAlert, XOctagon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -28,14 +28,83 @@ interface TopWorkspaceRow {
     deployments_count: number;
 }
 
+interface SignupPoint {
+    week: string;
+    count: number;
+}
+
+function SignupBarChart({ data }: { data: SignupPoint[] }) {
+    const max = Math.max(...data.map((d) => d.count), 1);
+    const barWidth = 24;
+    const gap = 8;
+    const chartH = 100;
+    const totalW = data.length * (barWidth + gap);
+
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <svg
+                viewBox={`0 0 ${totalW} ${chartH + 24}`}
+                width={totalW}
+                height={chartH + 24}
+                style={{ display: 'block' }}
+                aria-label="Inscriptions par semaine"
+            >
+                {data.map((d, i) => {
+                    const barH = Math.max(2, Math.round((d.count / max) * chartH));
+                    const x = i * (barWidth + gap);
+                    const y = chartH - barH;
+                    return (
+                        <g key={d.week}>
+                            <title>
+                                {d.week} : {d.count} inscription{d.count > 1 ? 's' : ''}
+                            </title>
+                            <rect
+                                x={x}
+                                y={y}
+                                width={barWidth}
+                                height={barH}
+                                rx={3}
+                                fill="var(--color-primary)"
+                                opacity={0.8}
+                            />
+                            {d.count > 0 && (
+                                <text
+                                    x={x + barWidth / 2}
+                                    y={y - 4}
+                                    fontSize={9}
+                                    textAnchor="middle"
+                                    fill="var(--color-text-muted)"
+                                >
+                                    {d.count}
+                                </text>
+                            )}
+                            <text
+                                x={x + barWidth / 2}
+                                y={chartH + 14}
+                                fontSize={8}
+                                textAnchor="middle"
+                                fill="var(--color-text-muted)"
+                            >
+                                {d.week.slice(5)}
+                            </text>
+                        </g>
+                    );
+                })}
+            </svg>
+        </div>
+    );
+}
+
 export default function Dashboard({
     kpis,
     planDistribution,
     topWorkspaces,
+    signupTimeseries,
 }: {
     kpis: DashboardKpis;
     planDistribution: PlanDistributionRow[];
     topWorkspaces: TopWorkspaceRow[];
+    signupTimeseries: SignupPoint[];
 }) {
     const { t } = useTranslation('admin');
 
@@ -120,6 +189,14 @@ export default function Dashboard({
                     )}
                 </Card>
             </div>
+
+            <Card title={t('dashboard.signupChart.cardTitle')} className="premium-table-card" style={{ marginTop: 16 }}>
+                {signupTimeseries.length > 0 ? (
+                    <SignupBarChart data={signupTimeseries} />
+                ) : (
+                    <Empty description={t('dashboard.signupChart.empty')} style={{ padding: 24 }} />
+                )}
+            </Card>
 
             {kpis.failed_jobs > 0 && (
                 <Card className="premium-table-card" style={{ marginTop: 16 }}>
