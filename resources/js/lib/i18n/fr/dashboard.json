@@ -22,7 +22,21 @@
     "header": {
         "search": "Rechercher...",
         "globalSearchSoon": "Recherche globale (bientôt disponible)",
-        "help": "Aide (bientôt disponible)"
+        "help": "Aide"
+    },
+    "help": {
+        "title": "Centre d'aide",
+        "subtitle": "Retrouvez la documentation ou contactez le support.",
+        "docsSection": "Documentation",
+        "supportSection": "Support",
+        "howItWorks": "Comment ça marche",
+        "howItWorksDescription": "De la création du workspace à votre premier déploiement",
+        "features": "Fonctionnalités",
+        "featuresDescription": "Pipelines, webhooks, variables d'environnement, audit...",
+        "security": "Sécurité",
+        "securityDescription": "Chiffrement, rôles et permissions, isolation des workspaces",
+        "contactSupport": "Contacter le support",
+        "contactSupportDescription": "Une question, un problème ? Écrivez-nous"
     },
     "page": {
         "header": "Dashboard",

@@ -43,17 +43,10 @@ export interface TargetEnvironmentLink {
     server_id: number | null;
     deploy_path: string;
     git_branch: string;
+    url: string | null;
     environment: Environment;
     variables: EnvironmentVariable[];
     server?: Server | null;
-}
-
-export interface WebhookBranchMapping {
-    id: number;
-    uuid: string;
-    webhook_config_id: number;
-    environment_id: number;
-    branch: string;
 }
 
 export interface WebhookConfig {
@@ -62,7 +55,6 @@ export interface WebhookConfig {
     target_id: number;
     provider: 'github' | 'gitlab' | 'bitbucket';
     enabled: boolean;
-    branch_mappings: WebhookBranchMapping[];
 }
 
 export interface Server {
@@ -94,6 +86,8 @@ export interface Target {
     name: string;
     slug: string;
     order: number;
+    repository: string | null;
+    repository_provider: 'github' | 'gitlab' | 'bitbucket' | null;
     pipeline_steps: PipelineStep[];
     target_environments: TargetEnvironmentLink[];
     webhook_configs: WebhookConfig[];

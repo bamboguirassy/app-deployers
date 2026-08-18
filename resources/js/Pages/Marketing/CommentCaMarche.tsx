@@ -1,5 +1,5 @@
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { STEPS } from '@/constants/marketing';
+import { HOW_IT_WORKS_FAQ, STEPS } from '@/constants/marketing';
 import { Link } from '@inertiajs/react';
 import { Button } from 'antd';
 import { ArrowRight } from 'lucide-react';
@@ -46,6 +46,11 @@ export default function CommentCaMarche() {
                             <span className="landing-step__number">{index + 1}</span>
                             <h2>{step.title}</h2>
                             <p>{step.detail}</p>
+                            <ul className="landing-step__bullets">
+                                {step.bullets.map((bullet) => (
+                                    <li key={bullet}>{bullet}</li>
+                                ))}
+                            </ul>
                         </div>
                     ))}
                 </div>
@@ -57,6 +62,20 @@ export default function CommentCaMarche() {
                             <ArrowRight size={16} />
                         </Button>
                     </Link>
+                </div>
+            </section>
+
+            <section className="landing-section">
+                <div className="landing-page-header">
+                    <h2>Questions fréquentes</h2>
+                </div>
+                <div className="landing-faq">
+                    {HOW_IT_WORKS_FAQ.map((item) => (
+                        <div className="landing-faq__item" key={item.question}>
+                            <h3>{item.question}</h3>
+                            <p>{item.answer}</p>
+                        </div>
+                    ))}
                 </div>
             </section>
         </MarketingLayout>

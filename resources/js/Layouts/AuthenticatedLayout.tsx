@@ -1,6 +1,7 @@
 import ActiveDeploymentBanner from '@/Components/ActiveDeploymentBanner';
 import ActiveDeploymentsBell from '@/Components/ActiveDeploymentsBell';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import HelpModal from '@/Components/HelpModal';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { PageProps } from '@/types';
@@ -61,10 +62,12 @@ export default function Authenticated({
     appSwitcher?: ReactNode;
     actions?: ReactNode;
 }>) {
-    const { auth, workspace, workspaces, flash } = usePage<PageProps>().props;
+    const { auth, workspace, workspaces, flash, locale } = usePage<PageProps>().props;
+    const marketingHomeHref = locale === 'fr' ? '/fr' : '/';
     const { t } = useTranslation('dashboard');
     const user = auth.user;
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [helpOpen, setHelpOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1');
 
     useEffect(() => {
@@ -199,7 +202,7 @@ export default function Authenticated({
     const sidebarContent = (isDesktop: boolean) => (
         <>
             <div className="app-shell__brand">
-                <Link href="/">
+                <Link href={marketingHomeHref}>
                     <ApplicationLogo />
                 </Link>
                 {(!isDesktop || !collapsed) && <span>App Deployer</span>}
@@ -337,10 +340,17 @@ export default function Authenticated({
                         <ActiveDeploymentsBell />
 
                         <Tooltip title={t('header.help')}>
-                            <button type="button" className="app-shell__icon-btn" aria-label={t('header.help')} disabled>
+                            <button
+                                type="button"
+                                className="app-shell__icon-btn"
+                                aria-label={t('header.help')}
+                                onClick={() => setHelpOpen(true)}
+                            >
                                 <HelpCircle size={18} />
                             </button>
                         </Tooltip>
+
+                        <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
                         <LanguageSwitcher />
 

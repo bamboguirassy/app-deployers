@@ -43,20 +43,6 @@ class WebhookReceiverController extends Controller
             return response('No branch found in payload', 422);
         }
 
-        $mapping = $webhookConfig->branchMappings()->where('branch', $branch)->first();
-
-        if (! $mapping) {
-            return response()->json(['message' => "Aucun mapping pour la branche {$branch}, ignoré."]);
-        }
-
-        // Clé de dédoublonnage basée sur l'ID de livraison du provider quand il
-        // est fourni (identifie une requête HTTP précise, pas juste son
-        // contenu) — TTL long (24h) : au-delà de couvrir les retries légitimes
-        // du provider, ça empêche qu'une requête signée capturée (logs, proxy)
-        // ne puisse être rejouée pour déclencher un nouveau déploiement une
-        // fois la fenêtre de dédoublonnage précédente (30s) écoulée. À défaut
-        // d'ID de livraison (Bitbucket sans en-tête dédié), on retombe sur
-        // branche+commit avec le même TTL.
         $deliveryId = $this->extractDeliveryId($provider, $request) ?? $branch.':'.$commitSha;
         $dedupeKey = 'webhook:dedupe:'.$webhookConfig->id.':'.md5($deliveryId);
 
@@ -64,12 +50,14 @@ class WebhookReceiverController extends Controller
             return response()->json(['message' => 'Doublon ignoré (même livraison déjà traitée).']);
         }
 
+        // La branche poussée est comparée directement à git_branch dans la matrice
+        // des environnements — pas besoin d'un mapping manuel séparé.
         $targetEnvironment = $webhookConfig->target->targetEnvironments()
-            ->where('environment_id', $mapping->environment_id)
+            ->where('git_branch', $branch)
             ->first();
 
         if (! $targetEnvironment) {
-            return response('Target/environnement non configuré', 422);
+            return response()->json(['message' => "Aucun environnement configuré pour la branche {$branch}, ignoré."]);
         }
 
         try {

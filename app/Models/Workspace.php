@@ -49,6 +49,11 @@ class Workspace extends Model
         return $this->hasMany(Server::class);
     }
 
+    public function gitConnections(): HasMany
+    {
+        return $this->hasMany(GitConnection::class);
+    }
+
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class);

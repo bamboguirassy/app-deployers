@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Concerns\BelongsToWorkspace;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class WebhookConfig extends Model
@@ -49,11 +48,6 @@ class WebhookConfig extends Model
     public function target(): BelongsTo
     {
         return $this->belongsTo(Target::class);
-    }
-
-    public function branchMappings(): HasMany
-    {
-        return $this->hasMany(WebhookBranchMapping::class);
     }
 
     public function resolveWorkspaceId(): ?int

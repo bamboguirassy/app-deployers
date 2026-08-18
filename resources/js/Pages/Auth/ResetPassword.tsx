@@ -9,9 +9,11 @@ import { FormEventHandler } from 'react';
 export default function ResetPassword({
     token,
     email,
+    firstLogin = false,
 }: {
     token: string;
     email: string;
+    firstLogin?: boolean;
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         token: token,
@@ -30,7 +32,7 @@ export default function ResetPassword({
 
     return (
         <GuestLayout>
-            <Head title="Réinitialiser le mot de passe" />
+            <Head title={firstLogin ? 'Définir mon mot de passe' : 'Réinitialiser le mot de passe'} />
 
             <form onSubmit={submit} className="form-stack">
                 <div>
@@ -89,7 +91,7 @@ export default function ResetPassword({
 
                 <div className="form-actions form-actions--end">
                     <PrimaryButton disabled={processing}>
-                        Réinitialiser le mot de passe
+                        {firstLogin ? 'Enregistrer et se connecter' : 'Réinitialiser le mot de passe'}
                     </PrimaryButton>
                 </div>
             </form>

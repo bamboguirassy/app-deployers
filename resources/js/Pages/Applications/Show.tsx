@@ -74,7 +74,18 @@ export default function Show({
     const initialTabParam = initialParams.get('tab') as TabKey | null;
     const initialTargetId = initialParams.get('target');
 
-    const [activeTab, setActiveTab] = useState<TabKey>(initialTabParam ?? 'targets');
+    const storageKey = `app-tab:${application.id}`;
+    const validTabs: TabKey[] = ['targets', 'environments', 'members', 'deployments', 'details'];
+    const storedTab = localStorage.getItem(storageKey) as TabKey | null;
+    const resolvedInitialTab: TabKey =
+        initialTabParam ?? (storedTab && validTabs.includes(storedTab) ? storedTab : 'targets');
+
+    const [activeTab, setActiveTab] = useState<TabKey>(resolvedInitialTab);
+
+    const switchTab = (tab: TabKey) => {
+        setActiveTab(tab);
+        localStorage.setItem(storageKey, tab);
+    };
 
     useEffect(() => {
         if (initialTabParam || initialTargetId) {
@@ -151,11 +162,11 @@ export default function Show({
                 </div>
             }
             tabs={[
-                { key: 'targets', label: t('show.tabs.targets'), icon: <GitBranch size={14} />, onClick: () => setActiveTab('targets') },
-                { key: 'environments', label: t('show.tabs.environments'), icon: <Layers size={14} />, onClick: () => setActiveTab('environments') },
-                { key: 'members', label: t('show.tabs.members'), icon: <Users size={14} />, onClick: () => setActiveTab('members') },
-                { key: 'deployments', label: t('show.tabs.deployments'), icon: <History size={14} />, onClick: () => setActiveTab('deployments') },
-                { key: 'details', label: t('show.tabs.details'), icon: <Settings size={14} />, onClick: () => setActiveTab('details') },
+                { key: 'targets', label: t('show.tabs.targets'), icon: <GitBranch size={14} />, onClick: () => switchTab('targets') },
+                { key: 'environments', label: t('show.tabs.environments'), icon: <Layers size={14} />, onClick: () => switchTab('environments') },
+                { key: 'members', label: t('show.tabs.members'), icon: <Users size={14} />, onClick: () => switchTab('members') },
+                { key: 'deployments', label: t('show.tabs.deployments'), icon: <History size={14} />, onClick: () => switchTab('deployments') },
+                { key: 'details', label: t('show.tabs.details'), icon: <Settings size={14} />, onClick: () => switchTab('details') },
             ]}
             activeTab={activeTab}
             actions={

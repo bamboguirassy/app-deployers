@@ -58,6 +58,7 @@ class TargetEnvironmentController extends Controller
             ],
             'deploy_path' => ['required', 'string', 'max:255'],
             'git_branch' => ['required', 'string', 'max:255'],
+            'url' => ['nullable', 'url', 'max:255'],
         ]);
     }
 }

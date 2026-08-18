@@ -12,7 +12,7 @@ class Target extends Model
 {
     use BelongsToWorkspace;
 
-    protected $fillable = ['application_id', 'framework_id', 'name', 'slug', 'order'];
+    protected $fillable = ['application_id', 'framework_id', 'name', 'slug', 'order', 'repository', 'repository_provider'];
 
     protected static function booted(): void
     {

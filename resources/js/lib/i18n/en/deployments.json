@@ -34,6 +34,10 @@
             "editPipeline": "Edit pipeline"
         },
         "eyebrow": "DEPLOYMENT #{{id}}",
+        "applicationBanner": {
+            "label": "Application"
+        },
+        "openEnvironmentUrl": "Open the deployed application",
         "branch": "branch",
         "triggeredManually": "triggered manually",
         "triggeredByWebhook": "triggered by webhook",

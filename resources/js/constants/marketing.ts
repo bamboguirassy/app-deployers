@@ -97,6 +97,11 @@ export const STEPS = [
             "Inscrivez-vous et donnez un nom à votre équipe. C'est l'espace qui regroupe vos applications, vos serveurs et vos membres.",
         detail:
             "L'inscription crée votre compte et un premier workspace — l'espace qui regroupe vos applications, vos environnements et les membres de votre équipe. Vous pouvez inviter des collègues immédiatement et leur attribuer un rôle (owner, manager, deployer ou viewer) adapté à ce qu'ils doivent pouvoir faire.",
+        bullets: [
+            "Un workspace par équipe ou par client, avec ses propres applications et son propre historique",
+            "Quatre rôles prédéfinis (owner, manager, deployer, viewer) pour séparer qui configure et qui déploie",
+            "Invitation par email : le membre rejoint le workspace dès qu'il accepte",
+        ],
     },
     {
         title: 'Configurez vos cibles',
@@ -104,6 +109,11 @@ export const STEPS = [
             'Ajoutez vos serveurs, définissez vos applications, leurs environnements et le pipeline de déploiement de chaque cible.',
         detail:
             "Ajoutez les serveurs sur lesquels vous déployez (via SSH), créez une application, puis ses environnements (Prod, Staging...) et ses cibles (API, Frontend, worker...). Pour chaque cible, définissez le pipeline : la suite d'étapes shell à exécuter, dans l'ordre, avec leurs éventuels timeouts et leur comportement en cas d'échec. Ajoutez ensuite les variables d'environnement propres à chaque environnement.",
+        bullets: [
+            "Connexion SSH à vos propres serveurs — aucune infrastructure imposée, vous gardez le contrôle",
+            "Pipeline shell entièrement personnalisable, étape par étape, avec timeout et gestion des échecs",
+            "Variables d'environnement (dont les secrets, chiffrés) propres à chaque couple cible/environnement",
+        ],
     },
     {
         title: 'Déployez et supervisez',
@@ -111,5 +121,33 @@ export const STEPS = [
             'Lancez un déploiement manuellement ou via webhook, et suivez chaque étape en direct jusqu\'au succès.',
         detail:
             "Déclenchez un premier déploiement manuellement depuis l'interface, ou configurez un webhook Git pour que chaque push sur la bonne branche en déclenche un automatiquement. Suivez la progression étape par étape en temps réel, jusqu'au succès — ou intervenez immédiatement (annulation, consultation des logs) en cas de problème. Un rollback vers une version précédente se fait en un clic.",
+        bullets: [
+            "Déclenchement manuel ou automatique via webhook GitHub, GitLab ou Bitbucket",
+            "Suivi en direct de chaque étape (sortie console incluse) grâce aux notifications temps réel",
+            "Annulation en cours d'exécution, relance après échec, ou rollback vers un déploiement antérieur",
+        ],
+    },
+];
+
+export const HOW_IT_WORKS_FAQ = [
+    {
+        question: 'Ai-je besoin de mes propres serveurs ?',
+        answer:
+            "Oui. App Deployer orchestre vos déploiements mais ne fournit pas d'hébergement : vous connectez vos serveurs existants par SSH et gardez un contrôle total sur votre infrastructure et vos données.",
+    },
+    {
+        question: 'Que se passe-t-il si une étape du pipeline échoue ?',
+        answer:
+            "Le déploiement s'arrête et les étapes restantes passent en \"annulé\", sauf si vous avez marqué une étape comme pouvant continuer malgré un échec. Vous consultez immédiatement la sortie de l'étape fautive, puis relancez le déploiement une fois le correctif appliqué.",
+    },
+    {
+        question: 'Comment fonctionne le rollback ?',
+        answer:
+            "Un rollback rejoue le pipeline sur la branche et le commit d'un déploiement passé qui s'est terminé avec succès. Il ne restaure pas automatiquement l'état du serveur : c'est le pipeline lui-même qui doit être conçu pour être rejouable (migrations réversibles, etc.).",
+    },
+    {
+        question: 'Puis-je automatiser le déploiement à chaque push Git ?',
+        answer:
+            'Oui, via les webhooks GitHub, GitLab ou Bitbucket : associez une branche à un environnement, et chaque push sur cette branche déclenche automatiquement un déploiement.',
     },
 ];

@@ -36,7 +36,7 @@ class WebhookConfigController extends Controller
                 ['secret' => Str::random(40), 'enabled' => true],
             );
 
-            if (! $webhookConfig->wasRecentlyCreated && ! $webhookConfig->enabled) {
+            if (! $webhookConfig->wasRecentlyCreated) {
                 $webhookConfig->update(['enabled' => true]);
             }
 
@@ -74,7 +74,7 @@ class WebhookConfigController extends Controller
         abort_unless($webhookConfig->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
-            'enabled' => ['required', 'boolean'],
+            'enabled' => ['sometimes', 'boolean'],
         ]);
 
         $webhookConfig->update($data);
@@ -94,35 +94,5 @@ class WebhookConfigController extends Controller
         AuditLogger::log($application, 'webhook_config.deleted', $webhookConfig);
 
         return back()->with('status', 'Webhook supprimé.');
-    }
-
-    public function storeBranchMapping(Request $request, Workspace $workspace, Application $application, WebhookConfig $webhookConfig): RedirectResponse
-    {
-        $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless($webhookConfig->belongsToWorkspace($workspace), 404);
-
-        $data = $request->validate([
-            'environment_id' => ['required', 'exists:environments,id'],
-            'branch' => ['required', 'string', 'max:255'],
-        ]);
-
-        $mapping = $webhookConfig->branchMappings()->create($data);
-
-        AuditLogger::log($application, 'webhook_branch_mapping.created', $mapping, $data);
-
-        return back()->with('status', 'Mapping de branche ajouté.');
-    }
-
-    public function destroyBranchMapping(Workspace $workspace, Application $application, WebhookConfig $webhookConfig, \App\Models\WebhookBranchMapping $branchMapping): RedirectResponse
-    {
-        $this->authorize('manageTargetsAndPipeline', $application);
-        abort_unless(
-            $webhookConfig->belongsToWorkspace($workspace) && $branchMapping->webhook_config_id === $webhookConfig->id,
-            404
-        );
-
-        $branchMapping->delete();
-
-        return back()->with('status', 'Mapping supprimé.');
     }
 }

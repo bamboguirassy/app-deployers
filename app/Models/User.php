@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'suspended_at', 'is_super_admin'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'suspended_at', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -61,6 +62,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Workspace::class, 'model_has_roles', 'model_id', 'workspace_id')
             ->wherePivot('model_type', static::class)
             ->distinct();
+    }
+
+    /**
+     * Last workspace this user visited (see App\Http\Middleware\SetPermissionsTeam),
+     * used to redirect back to it on next login rather than the most recently
+     * created workspace.
+     */
+    public function lastWorkspace(): BelongsTo
+    {
+        return $this->belongsTo(Workspace::class, 'last_workspace_id');
     }
 
     /**

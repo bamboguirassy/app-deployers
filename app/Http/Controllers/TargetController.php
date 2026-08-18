@@ -16,7 +16,7 @@ class TargetController extends Controller
         $this->authorize('manageTargetsAndPipeline', $application);
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name'         => ['required', 'string', 'max:255'],
             'framework_id' => ['nullable', 'exists:frameworks,id'],
         ]);
 
@@ -36,8 +36,10 @@ class TargetController extends Controller
         abort_unless($target->belongsToWorkspace($workspace), 404);
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'framework_id' => ['nullable', 'exists:frameworks,id'],
+            'name'                => ['sometimes', 'required', 'string', 'max:255'],
+            'framework_id'        => ['sometimes', 'nullable', 'exists:frameworks,id'],
+            'repository'          => ['sometimes', 'nullable', 'string', 'max:255'],
+            'repository_provider' => ['sometimes', 'nullable', 'in:github,gitlab,bitbucket'],
         ]);
 
         $target->update($data);

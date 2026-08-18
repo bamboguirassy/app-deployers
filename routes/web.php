@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeploymentController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\EnvironmentVariableController;
+use App\Http\Controllers\GitConnectionController;
 use App\Http\Controllers\PaddleWebhookController;
 use App\Http\Controllers\PipelineStepController;
 use App\Http\Controllers\ProfileController;
@@ -28,13 +29,12 @@ use Inertia\Inertia;
 
 // Anglais : locale par défaut, URLs sans préfixe. Ce sont les URLs
 // "nouvelles" créées pour l'i18n — voir CLAUDE.md, section i18n.
-Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('home');
-    }
-
-    return Inertia::render('Welcome');
-})->name('welcome');
+//
+// Volontairement accessible aux utilisateurs connectés (pas de redirection
+// vers `home`) : un utilisateur doit pouvoir consulter librement la home
+// publique depuis son workspace (MarketingLayout affiche alors un bouton
+// "Aller au workspace" à la place de Login/Register pour revenir facilement).
+Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 
 // Pages légales publiques, requises pour l'approbation du domaine par Paddle
 // (Checkout > Website approval) : conditions d'utilisation, confidentialité,
@@ -76,13 +76,7 @@ Route::get('/security', fn () => Inertia::render('Marketing/Security'))->name('m
 // contenu servi à '/' change (français → anglais) : '/' ne peut pas porter
 // deux contenus, donc c'est un compromis assumé et limité à cette seule page
 // — toutes les autres URLs françaises restent strictement inchangées.
-Route::get('/fr', function () {
-    if (auth()->check()) {
-        return redirect()->route('home');
-    }
-
-    return Inertia::render('WelcomeFr');
-})->name('welcome.fr');
+Route::get('/fr', fn () => Inertia::render('WelcomeFr'))->name('welcome.fr');
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [WorkspaceController::class, 'redirectToDefault'])->name('home');
@@ -92,6 +86,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Callback OAuth global (hors du préfixe /w/{workspace}) : l'URL de callback
+    // enregistrée côté provider (GitHub) est fixe et ne peut pas contenir le slug
+    // du workspace — celui-ci est retrouvé via le paramètre `state` signé généré
+    // par GitConnectionController::redirect().
+    Route::get('/git-connections/github/callback', [GitConnectionController::class, 'callback'])->name('git-connections.callback');
 
     Route::middleware('permissions.team')->prefix('w/{workspace}')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('verified')->name('dashboard');
@@ -115,6 +115,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/servers/{server}', [ServerController::class, 'destroy'])->name('servers.destroy');
         Route::post('/servers/{server}/test-connection', [ServerController::class, 'testExisting'])->name('servers.test-existing');
         Route::post('/servers/{server}/browse-directory', [ServerController::class, 'browseDirectory'])->name('servers.browse-directory');
+
+        Route::get('/git-connections/{provider}/redirect', [GitConnectionController::class, 'redirect'])->name('git-connections.redirect');
+        Route::delete('/git-connections/{gitConnection}', [GitConnectionController::class, 'destroy'])->name('git-connections.destroy');
+        Route::get('/git-connections/{gitConnection}/repositories', [GitConnectionController::class, 'repositories'])->name('git-connections.repositories');
+        Route::get('/git-connections/{gitConnection}/branches', [GitConnectionController::class, 'branches'])
+            ->name('git-connections.branches');
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users/search', [UserController::class, 'search'])->name('users.search');
@@ -155,8 +161,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/webhooks/{webhookConfig}/reveal-secret', [WebhookConfigController::class, 'revealSecret'])->name('webhook-configs.reveal-secret');
             Route::patch('/webhooks/{webhookConfig}', [WebhookConfigController::class, 'update'])->name('webhook-configs.update');
             Route::delete('/webhooks/{webhookConfig}', [WebhookConfigController::class, 'destroy'])->name('webhook-configs.destroy');
-            Route::post('/webhooks/{webhookConfig}/branch-mappings', [WebhookConfigController::class, 'storeBranchMapping'])->name('webhook-branch-mappings.store');
-            Route::delete('/webhooks/{webhookConfig}/branch-mappings/{branchMapping}', [WebhookConfigController::class, 'destroyBranchMapping'])->name('webhook-branch-mappings.destroy');
 
             Route::get('/deployments', [DeploymentController::class, 'index'])->name('deployments.index');
             Route::post('/deployments/search', [DeploymentController::class, 'search'])->name('deployments.search');

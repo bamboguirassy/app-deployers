@@ -22,7 +22,21 @@
     "header": {
         "search": "Search…",
         "globalSearchSoon": "Global search (coming soon)",
-        "help": "Help (coming soon)"
+        "help": "Help"
+    },
+    "help": {
+        "title": "Help center",
+        "subtitle": "Find documentation or contact support.",
+        "docsSection": "Documentation",
+        "supportSection": "Support",
+        "howItWorks": "How it works",
+        "howItWorksDescription": "From creating your workspace to your first deployment",
+        "features": "Features",
+        "featuresDescription": "Pipelines, webhooks, environment variables, audit trail...",
+        "security": "Security",
+        "securityDescription": "Encryption, roles and permissions, workspace isolation",
+        "contactSupport": "Contact support",
+        "contactSupportDescription": "A question or an issue? Get in touch"
     },
     "page": {
         "header": "Dashboard",

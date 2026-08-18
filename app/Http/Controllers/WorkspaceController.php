@@ -20,7 +20,11 @@ class WorkspaceController extends Controller
      */
     public function redirectToDefault(): RedirectResponse
     {
-        $workspace = auth()->user()->workspaces()->orderByDesc('workspaces.id')->first();
+        $user = auth()->user();
+
+        $workspace = $user->lastWorkspace && $user->workspaces()->whereKey($user->last_workspace_id)->exists()
+            ? $user->lastWorkspace
+            : $user->workspaces()->orderByDesc('workspaces.id')->first();
 
         if (! $workspace) {
             return redirect()->route('workspaces.create');

@@ -12,7 +12,7 @@ class TargetEnvironment extends Model
 {
     use BelongsToWorkspace;
 
-    protected $fillable = ['target_id', 'environment_id', 'server_id', 'deploy_path', 'git_branch'];
+    protected $fillable = ['target_id', 'environment_id', 'server_id', 'deploy_path', 'git_branch', 'url'];
 
     protected static function booted(): void
     {

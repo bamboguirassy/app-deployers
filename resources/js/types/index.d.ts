@@ -12,6 +12,12 @@ export interface Workspace {
     plan?: { slug: string; name: string };
 }
 
+export interface GitConnection {
+    id: number;
+    provider: 'github';
+    account_login: string;
+}
+
 export interface User {
     id: number;
     uuid: string;
@@ -149,11 +155,14 @@ export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
     locale: 'en' | 'fr';
+    supportEmail: string;
     auth: {
         user: User;
     };
     workspace: Workspace | null;
     workspaces: Workspace[];
+    gitConnections: GitConnection[];
+    gitProvidersConfigured: { github: boolean };
     flash: {
         status: string | null;
         error: string | null;

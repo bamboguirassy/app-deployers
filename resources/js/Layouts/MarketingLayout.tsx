@@ -2,9 +2,10 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { NAV_LINKS } from '@/constants/marketing';
 import { NAV_LINKS as NAV_LINKS_EN } from '@/constants/marketing.en';
-import { Head, Link } from '@inertiajs/react';
+import { PageProps } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Button, Drawer } from 'antd';
-import { Menu } from 'lucide-react';
+import { LayoutDashboard, Menu } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 
 type Breadcrumb = { label: string; href?: string };
@@ -15,6 +16,7 @@ const STRINGS = {
         breadcrumbNav: "Fil d'Ariane",
         login: 'Se connecter',
         register: 'Commencer gratuitement',
+        goToDashboard: 'Aller au workspace',
         openMenu: 'Ouvrir le menu',
         allRightsReserved: 'Tous droits réservés.',
         terms: "Conditions d'utilisation",
@@ -27,6 +29,7 @@ const STRINGS = {
         breadcrumbNav: 'Breadcrumb',
         login: 'Log in',
         register: 'Start for free',
+        goToDashboard: 'Go to workspace',
         openMenu: 'Open menu',
         allRightsReserved: 'All rights reserved.',
         terms: 'Terms of Service',
@@ -53,9 +56,36 @@ export default function MarketingLayout({
     headChildren?: ReactNode;
 }>) {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const { auth } = usePage<PageProps>().props;
+    const isAuthenticated = Boolean(auth?.user);
     const t = STRINGS[locale];
     const navLinks = locale === 'fr' ? NAV_LINKS : NAV_LINKS_EN;
     const homeHref = locale === 'fr' ? '/fr' : '/';
+    /**
+     * Pose aussi le cookie `locale` (celui lu par SetLocale pour le workspace)
+     * en plus de naviguer vers la variante FR/EN de la page marketing — sans
+     * ça, un visiteur qui bascule ici en anglais puis se connecte retrouve
+     * son workspace en français (ou vice-versa), les deux sélecteurs de
+     * langue (marketing et workspace) n'étant sinon jamais synchronisés.
+     */
+    const switchLocaleAndNavigate = (targetLocale: 'en' | 'fr', href: string) => {
+        // Pas de balise <meta name="csrf-token"> dans app.blade.php (Inertia
+        // s'appuie sur le cookie XSRF-TOKEN + axios, pas sur une meta) — on
+        // relit donc ce cookie nous-mêmes pour ce fetch manuel.
+        const xsrfToken = document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1];
+
+        fetch(route('locale.set'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(xsrfToken ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrfToken) } : {}),
+            },
+            body: JSON.stringify({ locale: targetLocale }),
+        }).finally(() => router.visit(href));
+    };
+
     const termsRoute = locale === 'fr' ? route('legal.terms') : route('legal.terms.en');
     const privacyRoute = locale === 'fr' ? route('legal.privacy') : route('legal.privacy.en');
     const refundsRoute = locale === 'fr' ? route('legal.refunds') : route('legal.refunds.en');
@@ -107,19 +137,36 @@ export default function MarketingLayout({
 
                     <div className="landing-nav__actions">
                         {altLocaleHref && (
-                            <Link href={altLocaleHref} className="form-link landing-nav__locale-switch">
+                            <a
+                                href={altLocaleHref}
+                                className="form-link landing-nav__locale-switch"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    switchLocaleAndNavigate(locale === 'fr' ? 'en' : 'fr', altLocaleHref);
+                                }}
+                            >
                                 {t.switchLabel}
-                            </Link>
+                            </a>
                         )}
                         <ThemeToggle />
-                        <Link href={route('login')} className="form-link">
-                            {t.login}
-                        </Link>
-                        <Link href={route('register')}>
-                            <Button type="primary" size="large">
-                                {t.register}
-                            </Button>
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link href={route('home')}>
+                                <Button type="primary" size="large" icon={<LayoutDashboard size={16} />}>
+                                    {t.goToDashboard}
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href={route('login')} className="form-link">
+                                    {t.login}
+                                </Link>
+                                <Link href={route('register')}>
+                                    <Button type="primary" size="large">
+                                        {t.register}
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     <button
@@ -156,23 +203,37 @@ export default function MarketingLayout({
 
                 <div className="landing-mobile-nav__actions">
                     {altLocaleHref && (
-                        <Link
+                        <a
                             href={altLocaleHref}
                             className="form-link landing-nav__locale-switch"
-                            onClick={() => setMobileNavOpen(false)}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setMobileNavOpen(false);
+                                switchLocaleAndNavigate(locale === 'fr' ? 'en' : 'fr', altLocaleHref);
+                            }}
                         >
                             {t.switchLabel}
-                        </Link>
+                        </a>
                     )}
                     <ThemeToggle />
-                    <Link href={route('login')} className="form-link" onClick={() => setMobileNavOpen(false)}>
-                        {t.login}
-                    </Link>
-                    <Link href={route('register')} onClick={() => setMobileNavOpen(false)}>
-                        <Button type="primary" size="large" block>
-                            {t.register}
-                        </Button>
-                    </Link>
+                    {isAuthenticated ? (
+                        <Link href={route('home')} onClick={() => setMobileNavOpen(false)}>
+                            <Button type="primary" size="large" block icon={<LayoutDashboard size={16} />}>
+                                {t.goToDashboard}
+                            </Button>
+                        </Link>
+                    ) : (
+                        <>
+                            <Link href={route('login')} className="form-link" onClick={() => setMobileNavOpen(false)}>
+                                {t.login}
+                            </Link>
+                            <Link href={route('register')} onClick={() => setMobileNavOpen(false)}>
+                                <Button type="primary" size="large" block>
+                                    {t.register}
+                                </Button>
+                            </Link>
+                        </>
+                    )}
                 </div>
             </Drawer>
 

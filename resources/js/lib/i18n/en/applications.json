@@ -81,6 +81,7 @@
         "frameworkLabel": "Framework / stack",
         "nameLabel": "Target name",
         "namePlaceholder": "e.g. Backend, Frontend, Worker...",
+        "repositoryLabel": "Git repository (optional)",
         "submit": "Create"
     },
     "deploymentsPanel": {
@@ -98,6 +99,7 @@
         "configured": "Configured",
         "noServer": "No server",
         "varsUnit": "vars",
+        "openUrlAriaLabel": "Open the environment URL in a new tab",
         "heading": "Environments matrix",
         "subheading": "Manage and compare your targets' configuration across environments.",
         "addEnvironment": "Add environment",
@@ -135,6 +137,10 @@
             "chooseServerHint": "Choose a server first to browse its folders.",
             "branchLabel": "Git branch",
             "branchPlaceholder": "main",
+            "repositoryReadOnly": "repository linked to this target",
+            "urlLabel": "Environment URL",
+            "urlPlaceholder": "https://example.com",
+            "openUrl": "Open",
             "deploy": "Deploy",
             "variablesSectionTitle": "Environment variables"
         }
@@ -271,7 +277,33 @@
         "edit": "Edit",
         "delete": "Delete",
         "pipelineStepsTitle": "Pipeline steps",
-        "webhookIntegrationTitle": "Webhook integration"
+        "webhookIntegrationTitle": "Webhook integration",
+        "repositoryLabel": "Git repository (optional)"
+    },
+    "gitRepository": {
+        "sectionTitle": "Git repository",
+        "drawerTitle": "Connect a git repository",
+        "providerLabel": "Provider",
+        "repositoryLabel": "Repository",
+        "repositoryHint": "Format: owner/repository-name",
+        "connect": "Connect",
+        "cancel": "Cancel",
+        "connectButton": "Connect a repository",
+        "noRepository": "No repository connected",
+        "disconnect": "Disconnect repository",
+        "githubNotConnectedHint": "Connect your GitHub account to pick a repository from your list.",
+        "connectGithub": "Connect GitHub",
+        "connectGithubTooltip": "Connect GitHub to pick a repository from your list",
+        "githubNotConfigured": "GitHub integration not configured on this server (missing GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET).",
+        "selectRepoPlaceholder": "Choose a repository...",
+        "comingSoon": "Coming soon",
+        "connected": "Connected",
+        "confirmDisconnect": {
+            "title": "Disconnect the repository?",
+            "content": "The repository will be unlinked from this target. Existing webhooks won't be deleted.",
+            "okText": "Disconnect",
+            "cancelText": "Cancel"
+        }
     },
     "variablesEditor": {
         "hideValueTooltip": "Hide the value in the UI and deployment logs",
@@ -308,6 +340,22 @@
             "okText": "Delete",
             "cancelText": "Cancel"
         },
-        "activateHint": "Activating a provider reveals its webhook URL and lets you map branches to environments."
+        "activateHint": "Activating a provider reveals its webhook URL. Branches are automatically matched from the environments matrix.",
+        "branchAutoMappingHint": "Branches are automatically matched against the git branch configured in each environment (Environments tab).",
+        "noRepository": "No repository linked",
+        "lockedByOtherProvider": "Locked — repository connected via {{provider}}",
+        "lockedTooltip": "Disconnect the current repository to activate another provider",
+        "notConnected": "Not connected — repositories and branches are entered manually",
+        "connectGithub": "Connect GitHub",
+        "githubNotConfigured": "GitHub integration isn't configured on this server (missing GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET).",
+        "connectedAs": "Connected ({{account}})",
+        "disconnect": "Disconnect",
+        "repositoryLabel": "Repository:",
+        "repositoryPlaceholder": "Choose a repository",
+        "confirmDisconnectGithub": {
+            "title": "Disconnect the GitHub account {{account}}?",
+            "okText": "Disconnect",
+            "cancelText": "Cancel"
+        }
     }
 }

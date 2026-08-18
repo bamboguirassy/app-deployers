@@ -25,6 +25,7 @@ class SetInitialPasswordNotification extends Notification implements ShouldQueue
         $url = route('password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
+            'first_login' => '1',
         ]);
 
         return (new MailMessage)

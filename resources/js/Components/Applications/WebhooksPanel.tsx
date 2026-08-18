@@ -1,12 +1,11 @@
 import ProviderLogo from '@/Components/Applications/ProviderLogo';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
-import { Application, Environment, Target, WebhookConfig } from '@/types/models';
-import { router, useForm, usePage } from '@inertiajs/react';
-import axios from 'axios';
+import { Application, Target, WebhookConfig } from '@/types/models';
+import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2, Eye, EyeOff, Trash2 } from 'lucide-react';
-import { Button, Input, Select, Tag, Typography } from 'antd';
-import { FormEventHandler, useState } from 'react';
+import { Button, Tag, Tooltip, Typography } from 'antd';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
@@ -19,8 +18,10 @@ function WebhookUrlReveal({ application, webhook }: { application: Application; 
 
     const reveal = () => {
         setLoading(true);
-        axios
-            .post(route('webhook-configs.reveal-secret', [workspace!.slug, application.slug, webhook.uuid]))
+        import('axios')
+            .then(({ default: axios }) =>
+                axios.post(route('webhook-configs.reveal-secret', [workspace!.slug, application.slug, webhook.uuid]))
+            )
             .then((res) => setRevealed(res.data))
             .finally(() => setLoading(false));
     };
@@ -74,67 +75,13 @@ const PROVIDERS: { value: WebhookConfig['provider']; label: string }[] = [
     { value: 'bitbucket', label: 'Bitbucket' },
 ];
 
-function BranchMappingForm({
-    application,
-    webhookConfig,
-    environments,
-}: {
-    application: Application;
-    webhookConfig: WebhookConfig;
-    environments: Environment[];
-}) {
-    const { t } = useTranslation('applications');
-    const { workspace } = usePage<PageProps>().props;
-    const { data, setData, post, processing, reset } = useForm({
-        environment_id: '' as number | '',
-        branch: '',
-    });
-
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(
-            route('webhook-branch-mappings.store', [workspace!.slug, application.slug, webhookConfig.uuid]),
-            { preserveScroll: true, onSuccess: () => reset() },
-        );
-    };
-
-    const availableEnvironments = environments.filter(
-        (env) => !webhookConfig.branch_mappings.some((m) => m.environment_id === env.id),
-    );
-
-    return (
-        <form onSubmit={submit} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-            <Select
-                size="small"
-                placeholder={t('webhooksPanel.environmentPlaceholder')}
-                style={{ width: 140, flex: '1 1 140px' }}
-                value={data.environment_id || undefined}
-                onChange={(value) => setData('environment_id', value)}
-                options={availableEnvironments.map((env) => ({ value: env.id, label: env.name }))}
-            />
-            <Input
-                size="small"
-                placeholder={t('webhooksPanel.branchPlaceholder')}
-                value={data.branch}
-                onChange={(e) => setData('branch', e.target.value)}
-                style={{ width: 140, flex: '1 1 140px' }}
-            />
-            <Button size="small" htmlType="submit" disabled={processing || !data.environment_id || !data.branch}>
-                {t('webhooksPanel.map')}
-            </Button>
-        </form>
-    );
-}
-
 export default function WebhooksPanel({
     application,
     target,
-    environments,
     canManage,
 }: {
     application: Application;
     target: Target;
-    environments: Environment[];
     canManage: boolean;
 }) {
     const { t } = useTranslation('applications');
@@ -164,6 +111,7 @@ export default function WebhooksPanel({
     };
 
     const activeWebhook = target.webhook_configs.find((w) => w.enabled);
+    const lockedProvider = target.repository_provider ?? null;
 
     return (
         <div className="webhook-list">
@@ -174,18 +122,25 @@ export default function WebhooksPanel({
             {PROVIDERS.map((provider) => {
                 const webhook = target.webhook_configs.find((w) => w.provider === provider.value);
                 const isActive = webhook?.enabled ?? false;
+                // Locked = un autre provider possède le dépôt connecté
+                const isLocked = !!lockedProvider && lockedProvider !== provider.value;
+                const isAllowed = !lockedProvider || lockedProvider === provider.value;
 
                 return (
-                    <div key={provider.value} className={`webhook-row ${isActive ? 'webhook-row--active' : ''}`}>
+                    <div key={provider.value} className={`webhook-row ${isActive ? 'webhook-row--active' : ''} ${isLocked ? 'webhook-row--locked' : ''}`}>
                         <div className="webhook-row__main">
                             <ProviderLogo provider={provider.value} />
                             <span className="webhook-row__provider">{provider.label}</span>
 
-                            {webhook ? (
+                            {isLocked ? (
                                 <Text type="secondary" style={{ fontSize: 12 }}>
-                                    {webhook.branch_mappings.length > 0
-                                        ? webhook.branch_mappings.map((m) => m.branch).join(', ')
-                                        : t('webhooksPanel.noMappingConfigured')}
+                                    {t('webhooksPanel.lockedByOtherProvider', {
+                                        provider: PROVIDERS.find((p) => p.value === lockedProvider)?.label ?? lockedProvider,
+                                    })}
+                                </Text>
+                            ) : webhook ? (
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                    {target.repository ?? ''}
                                 </Text>
                             ) : (
                                 <Text type="secondary" style={{ fontSize: 12 }}>
@@ -204,12 +159,19 @@ export default function WebhooksPanel({
                             )}
 
                             {canManage && !isActive && (
-                                <Button size="small" type="primary" onClick={() => activate(provider.value)}>
-                                    {t('webhooksPanel.activate')}
-                                </Button>
+                                <Tooltip title={isLocked ? t('webhooksPanel.lockedTooltip') : undefined}>
+                                    <Button
+                                        size="small"
+                                        type="primary"
+                                        disabled={isLocked || !isAllowed}
+                                        onClick={() => !isLocked && activate(provider.value)}
+                                    >
+                                        {t('webhooksPanel.activate')}
+                                    </Button>
+                                </Tooltip>
                             )}
 
-                            {canManage && webhook && (
+                            {canManage && webhook && isAllowed && (
                                 <a onClick={() => removeWebhook(webhook)} title={t('webhooksPanel.deleteTitle')}>
                                     <Trash2 size={14} />
                                 </a>
@@ -233,35 +195,8 @@ export default function WebhooksPanel({
 
                                 <div style={{ marginTop: 8 }}>
                                     <Text type="secondary" style={{ fontSize: 12 }}>
-                                        {t('webhooksPanel.branchMappingLabel')}
+                                        {t('webhooksPanel.branchAutoMappingHint')}
                                     </Text>
-                                    <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                        {webhook.branch_mappings.map((mapping) => {
-                                            const env = environments.find((e) => e.id === mapping.environment_id);
-                                            return (
-                                                <Tag
-                                                    key={mapping.id}
-                                                    closable={canManage}
-                                                    onClose={() =>
-                                                        router.delete(
-                                                            route('webhook-branch-mappings.destroy', [
-                                                                workspace!.slug,
-                                                                application.slug,
-                                                                webhook.uuid,
-                                                                mapping.uuid,
-                                                            ]),
-                                                            { preserveScroll: true },
-                                                        )
-                                                    }
-                                                >
-                                                    {mapping.branch} → {env?.name ?? '?'}
-                                                </Tag>
-                                            );
-                                        })}
-                                    </div>
-                                    {canManage && (
-                                        <BranchMappingForm application={application} webhookConfig={webhook} environments={environments} />
-                                    )}
                                 </div>
                             </div>
                         )}

@@ -1,5 +1,6 @@
 import CreateTargetModal from '@/Components/Applications/CreateTargetModal';
 import FrameworkSelect from '@/Components/Applications/FrameworkSelect';
+import GitRepositorySection from '@/Components/Applications/GitRepositorySection';
 import PipelineStepsPanel from '@/Components/Applications/PipelineStepsPanel';
 import WebhooksPanel from '@/Components/Applications/WebhooksPanel';
 import InputLabel from '@/Components/InputLabel';
@@ -50,7 +51,6 @@ function TargetEditModal({
                         onChange={(value) => setData('framework_id', value)}
                     />
                 </div>
-
                 <div>
                     <InputLabel htmlFor={`name-${target.id}`} value={t('targetWorkspace.nameLabel')} />
                     <Input
@@ -61,7 +61,6 @@ function TargetEditModal({
                     />
                     {errors.name && <div className="field-error">{errors.name}</div>}
                 </div>
-
                 <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
                     <PrimaryButton disabled={processing}>{t('targetWorkspace.save')}</PrimaryButton>
                 </div>
@@ -69,6 +68,7 @@ function TargetEditModal({
         </Modal>
     );
 }
+
 
 export default function TargetWorkspace({
     application,
@@ -160,7 +160,9 @@ export default function TargetWorkspace({
                                 <strong>{target.name}</strong>
                                 <small>{target.framework?.name ?? t('targetWorkspace.customFramework')}</small>
                             </span>
-                            <span className="target-workspace__item-badge">{target.pipeline_steps.length} {t('targetWorkspace.stepsUnit')}</span>
+                            <span className="target-workspace__item-badge">
+                                {target.pipeline_steps.length} {t('targetWorkspace.stepsUnit')}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -180,7 +182,6 @@ export default function TargetWorkspace({
                                 <h3>{selected.name}</h3>
                                 <span>{selected.framework?.name ?? t('targetWorkspace.customStack')}</span>
                             </div>
-
                             {canManage && (
                                 <div className="target-workspace__detail-actions">
                                     <button type="button" onClick={() => setEditing(true)}>
@@ -194,13 +195,24 @@ export default function TargetWorkspace({
                         </div>
 
                         <h4 className="target-workspace__section-title">{t('targetWorkspace.pipelineStepsTitle')}</h4>
-                        <PipelineStepsPanel application={application} target={selected} canManage={canManage} activeMembers={activeMembers} />
+                        <PipelineStepsPanel
+                            application={application}
+                            target={selected}
+                            canManage={canManage}
+                            activeMembers={activeMembers}
+                        />
+
+                        <h4 className="target-workspace__section-title">{t('gitRepository.sectionTitle')}</h4>
+                        <GitRepositorySection
+                            application={application}
+                            target={selected}
+                            canManage={canManage}
+                        />
 
                         <h4 className="target-workspace__section-title">{t('targetWorkspace.webhookIntegrationTitle')}</h4>
                         <WebhooksPanel
                             application={application}
                             target={selected}
-                            environments={application.environments}
                             canManage={canManage}
                         />
 

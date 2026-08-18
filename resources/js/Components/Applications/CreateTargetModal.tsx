@@ -58,7 +58,6 @@ export default function CreateTargetModal({
                         }}
                     />
                 </div>
-
                 <div>
                     <InputLabel htmlFor="name" value={t('createTargetModal.nameLabel')} />
                     <Input
@@ -69,7 +68,6 @@ export default function CreateTargetModal({
                     />
                     {errors.name && <div className="field-error">{errors.name}</div>}
                 </div>
-
                 <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
                     <PrimaryButton disabled={processing}>{t('createTargetModal.submit')}</PrimaryButton>
                 </div>

@@ -8,11 +8,15 @@ import InputLabel from '@/Components/InputLabel';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
 import { Application, Environment, Framework, Server, Target, TargetEnvironmentLink } from '@/types/models';
+import { GitConnection } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Select } from 'antd';
-import { CheckCircle2, FolderSearch, Layers, MoreHorizontal, Plus, RefreshCcw, Rocket, Trash2 } from 'lucide-react';
-import { FormEventHandler, Fragment, useState } from 'react';
+import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Select, Tag, Typography } from 'antd';
+import axios from 'axios';
+import { CheckCircle2, ExternalLink, FolderSearch, GitBranch, Layers, MoreHorizontal, Plus, RefreshCcw, Rocket, Trash2 } from 'lucide-react';
+import { FormEventHandler, Fragment, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+const { Text } = Typography;
 
 function EnvironmentCell({
     target,
@@ -46,6 +50,29 @@ function EnvironmentCell({
                 <span className="env-cell__branch">{link.git_branch}</span>
                 {hasSecrets && <span className="env-cell__dot env-cell__dot--secret" />}
             </div>
+            {link.url && (
+                <div className="env-cell__url-row">
+                    <span className="env-cell__url-text">{link.url.replace(/^https?:\/\//, '')}</span>
+                    <span
+                        role="link"
+                        tabIndex={0}
+                        className="env-cell__url-link"
+                        aria-label={t('environmentWorkspace.openUrlAriaLabel')}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(link.url!, '_blank', 'noopener,noreferrer');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.stopPropagation();
+                                window.open(link.url!, '_blank', 'noopener,noreferrer');
+                            }
+                        }}
+                    >
+                        <ExternalLink size={11} />
+                    </span>
+                </div>
+            )}
             <div className="env-cell__path">{link.deploy_path}</div>
             <div className="env-cell__meta">
                 {link.server ? link.server.name : t('environmentWorkspace.noServer')} · {link.variables.length} {t('environmentWorkspace.varsUnit')}
@@ -73,14 +100,38 @@ function ConfigDrawer({
     onClose: () => void;
 }) {
     const { t } = useTranslation('applications');
-    const { workspace } = usePage<PageProps>().props;
+    const { workspace, gitConnections } = usePage<PageProps>().props;
     const existing = target.target_environments.find((te) => te.environment_id === environment.id);
     const [browsing, setBrowsing] = useState(false);
+
+    const linkedRepository = target.repository ?? null;
+    const githubConnection: GitConnection | undefined = gitConnections.find((c) => c.provider === 'github');
+
+    const [remoteBranches, setRemoteBranches] = useState<string[] | null>(null);
+    const [loadingBranches, setLoadingBranches] = useState(false);
+
+    useEffect(() => {
+        if (!linkedRepository || !githubConnection) return;
+
+        setLoadingBranches(true);
+        axios
+            .get(route('git-connections.branches', [workspace!.slug, githubConnection.id]), {
+                params: { repository: linkedRepository },
+            })
+            .then((res) => {
+                if (Array.isArray(res.data.branches)) {
+                    setRemoteBranches(res.data.branches);
+                }
+            })
+            .catch(() => setRemoteBranches(null))
+            .finally(() => setLoadingBranches(false));
+    }, [linkedRepository, githubConnection?.id]);
 
     const { data, setData, post, patch, processing, errors } = useForm({
         server_id: existing?.server_id ?? (null as number | null),
         deploy_path: existing?.deploy_path ?? '',
         git_branch: existing?.git_branch ?? 'main',
+        url: existing?.url ?? '',
     });
 
     const selectedServer = servers.find((s) => s.id === data.server_id) ?? null;
@@ -205,14 +256,62 @@ function ConfigDrawer({
                 </div>
                 <div>
                     <InputLabel value={t('environmentWorkspace.drawer.branchLabel')} />
-                    <Input
-                        placeholder={t('environmentWorkspace.drawer.branchPlaceholder')}
-                        value={data.git_branch}
-                        onChange={(e) => setData('git_branch', e.target.value)}
-                        disabled={!canManage}
-                        status={errors.git_branch ? 'error' : undefined}
-                    />
+                    {Array.isArray(remoteBranches) ? (
+                        <Select
+                            className="w-full"
+                            showSearch
+                            loading={loadingBranches}
+                            placeholder={t('environmentWorkspace.drawer.branchPlaceholder')}
+                            value={data.git_branch || undefined}
+                            onChange={(value) => setData('git_branch', value)}
+                            disabled={!canManage}
+                            status={errors.git_branch ? 'error' : undefined}
+                            options={remoteBranches.map((b) => ({ value: b, label: b }))}
+                            filterOption={(input, option) =>
+                                (option?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
+                        />
+                    ) : (
+                        <Input
+                            placeholder={t('environmentWorkspace.drawer.branchPlaceholder')}
+                            value={data.git_branch}
+                            onChange={(e) => setData('git_branch', e.target.value)}
+                            disabled={!canManage || loadingBranches}
+                            status={errors.git_branch ? 'error' : undefined}
+                            suffix={loadingBranches ? <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>…</span> : null}
+                        />
+                    )}
                     <InputError message={errors.git_branch} />
+                    {linkedRepository && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                            <GitBranch size={11} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                            <Text type="secondary" style={{ fontSize: 11 }}>
+                                {linkedRepository} — {t('environmentWorkspace.drawer.repositoryReadOnly')}
+                            </Text>
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <InputLabel value={t('environmentWorkspace.drawer.urlLabel')} />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <Input
+                            placeholder={t('environmentWorkspace.drawer.urlPlaceholder')}
+                            value={data.url}
+                            onChange={(e) => setData('url', e.target.value)}
+                            disabled={!canManage}
+                            status={errors.url ? 'error' : undefined}
+                        />
+                        {data.url && (
+                            <SecondaryButton
+                                htmlType="button"
+                                icon={<ExternalLink size={14} />}
+                                onClick={() => window.open(data.url, '_blank', 'noopener,noreferrer')}
+                            >
+                                {t('environmentWorkspace.drawer.openUrl')}
+                            </SecondaryButton>
+                        )}
+                    </div>
+                    <InputError message={errors.url} />
                 </div>
             </form>
 

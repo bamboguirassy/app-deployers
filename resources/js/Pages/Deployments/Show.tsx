@@ -8,12 +8,12 @@ import { PageProps } from '@/types';
 import { Application, Deployment, DeploymentStep } from '@/types/models';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { Button, Space, Tooltip, Typography } from 'antd';
-import { Boxes, ChevronLeft, ChevronsUpDown, History, Pencil, RotateCcw, Square } from 'lucide-react';
+import { Avatar, Button, Progress, Tooltip, Typography } from 'antd';
+import { Boxes, ChevronLeft, ChevronsUpDown, ExternalLink, GitBranch, History, Layers, Pencil, RotateCcw, Square, User, Webhook, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export default function Show({
     application,
@@ -38,10 +38,6 @@ export default function Show({
 
     useEffect(() => {
         liveOutputRef.current = liveOutput;
-
-        // Auto-scroll : fait suivre le bas du flux à chaque nouveau morceau reçu,
-        // comme un terminal — l'utilisateur n'a jamais à scroller manuellement
-        // pour voir la dernière ligne.
         Object.keys(liveOutput).forEach((stepId) => {
             const el = liveOutputEls.current[Number(stepId)];
             if (el) el.scrollTop = el.scrollHeight;
@@ -51,11 +47,8 @@ export default function Show({
     const toggleStepOutput = (stepId: number) => {
         setExpandedSteps((prev) => {
             const next = new Set(prev);
-            if (next.has(stepId)) {
-                next.delete(stepId);
-            } else {
-                next.add(stepId);
-            }
+            if (next.has(stepId)) next.delete(stepId);
+            else next.add(stepId);
             return next;
         });
     };
@@ -82,13 +75,7 @@ export default function Show({
             error_excerpt: string | null;
         }) => {
             if (payload.deployment_id !== deployment.id) return;
-
-            // La sortie live accumulée pour ce step (si il en a produit) devient
-            // sa sortie finale tant que le job n'a pas broadcasté error_excerpt —
-            // sans ça, un step réussi affichait `output: null` et la card live
-            // disparaissait sans jamais laisser de trace consultable.
             const accumulated = liveOutputRef.current[payload.step_id];
-
             setSteps((prev) =>
                 prev.map((step) =>
                     step.id === payload.step_id
@@ -102,11 +89,9 @@ export default function Show({
                         : step,
                 ),
             );
-
             if (payload.error_excerpt || accumulated) {
                 setExpandedSteps((prev) => new Set(prev).add(payload.step_id));
             }
-
             setLiveOutput((prev) => {
                 if (!(payload.step_id in prev)) return prev;
                 const next = { ...prev };
@@ -122,7 +107,6 @@ export default function Show({
         '.deploiement.sortie',
         (payload: { deployment_id: number; step_id: number; chunk: string }) => {
             if (payload.deployment_id !== deployment.id) return;
-
             setLiveOutput((prev) => ({
                 ...prev,
                 [payload.step_id]: (prev[payload.step_id] ?? '') + payload.chunk,
@@ -134,9 +118,13 @@ export default function Show({
     const target = deployment.target_environment.target;
     const environment = deployment.target_environment.environment;
     const isActive = deployment.status === 'pending' || deployment.status === 'running';
-
     const canRetry = deployment.status === 'echec' || deployment.status === 'annule';
     const canRollback = deployment.status === 'succes';
+
+    const completedSteps = steps.filter((s) => s.status === 'succes').length;
+    const failedSteps = steps.filter((s) => s.status === 'echec').length;
+    const progressPercent = steps.length > 0 ? Math.round((completedSteps / steps.length) * 100) : 0;
+    const progressStatus = failedSteps > 0 ? 'exception' : isActive ? 'active' : deployment.status === 'succes' ? 'success' : 'normal';
 
     const cancel = () => {
         confirm.confirm({
@@ -183,40 +171,113 @@ export default function Show({
         <AuthenticatedLayout header={t('show.header')}>
             <Head title={t('show.pageTitle', { id: deployment.id })} />
 
-            <Space size={8} wrap className="deployment-breadcrumbs" aria-label={t('show.nav.label')}>
-                <Link href={route('deployments.index', [workspace!.slug, application.slug])} className="deployment-nav-link deployment-nav-link--back">
-                    <ChevronLeft size={15} /> <span>{t('show.nav.history')}</span>
+            {/* Top navigation bar */}
+            <div className="dp-topbar" aria-label={t('show.nav.label')}>
+                <Link
+                    href={route('deployments.index', [workspace!.slug, application.slug])}
+                    className="dp-topbar__back"
+                >
+                    <ChevronLeft size={15} />
+                    <span>{t('show.nav.history')}</span>
                 </Link>
-                <Link href={route('applications.show', [workspace!.slug, application.slug])} className="deployment-nav-link">
-                    <Boxes size={15} /> <span>{t('show.nav.viewApplication')}</span>
+
+                <Link
+                    href={route('applications.show', [workspace!.slug, application.slug])}
+                    className="dp-topbar__app"
+                >
+                    <Avatar
+                        size={22}
+                        src={application.logo_url ?? undefined}
+                        icon={!application.logo_url && <Boxes size={11} />}
+                        shape="square"
+                    />
+                    <span>{application.name}</span>
                 </Link>
+
                 <Link
                     href={`${route('applications.show', [workspace!.slug, application.slug])}?tab=targets&target=${target.uuid}`}
-                    className="deployment-nav-link deployment-nav-link--config"
+                    className="dp-topbar__edit"
                 >
-                    <Pencil size={15} /> <span>{t('show.nav.editPipeline')}</span>
+                    <Pencil size={13} />
+                    <span>{t('show.nav.editPipeline')}</span>
                 </Link>
-            </Space>
+            </div>
 
-            <section className="deployment-hero" aria-labelledby="deployment-title">
-                <div className="deployment-hero__heading">
-                    <div>
-                        <span className="deployment-eyebrow">{t('show.eyebrow', { id: deployment.id })}</span>
-                        <Title id="deployment-title" level={2} className="deployment-hero__title">
-                            {target.name} <span aria-hidden="true">→</span> {environment.name}
-                        </Title>
-                        <Text type="secondary" className="deployment-hero__meta">
-                            {t('show.branch')} <strong>{deployment.branch ?? target.name}</strong> ·{' '}
-                            {deployment.trigger_source === 'manual' ? t('show.triggeredManually') : t('show.triggeredByWebhook')}
-                            {deployment.triggered_by ? ` ${t('show.triggeredBy', { name: deployment.triggered_by.name })}` : ''}
-                        </Text>
+            {/* Hero card */}
+            <div className="dp-hero">
+                <div className="dp-hero__header">
+                    <div className="dp-hero__id">
+                        {t('show.eyebrow', { id: deployment.id })}
                     </div>
+                    <StatusTag status={deployment.status} variant="tag" />
+                </div>
 
-                    <div className="deployment-hero__actions" aria-label={t('show.actionsLabel')}>
-                    <div className="deployment-hero__status"><span className="deployment-action-label">{t('show.currentStatus')}</span><StatusTag status={deployment.status} variant="tag" /></div>
+                <div className="dp-hero__title">
+                    <span className="dp-hero__target">{target.name}</span>
+                    <span className="dp-hero__arrow" aria-hidden="true">→</span>
+                    <span className="dp-hero__env">{environment.name}</span>
+                </div>
+
+                <div className="dp-hero__meta">
+                    <span className="dp-hero__chip">
+                        <GitBranch size={12} />
+                        {deployment.branch ?? target.name}
+                    </span>
+                    <span className="dp-hero__chip">
+                        <Layers size={12} />
+                        {target.name}
+                    </span>
+                    <span className="dp-hero__chip">
+                        {deployment.trigger_source === 'manual' ? <User size={12} /> : <Webhook size={12} />}
+                        {deployment.trigger_source === 'manual' ? t('show.triggeredManually') : t('show.triggeredByWebhook')}
+                        {deployment.triggered_by ? ` · ${deployment.triggered_by.name}` : ''}
+                    </span>
+                    {deployment.duration_ms !== null && (
+                        <span className="dp-hero__chip dp-hero__chip--duration">
+                            <Zap size={12} />
+                            {formatDuration(deployment.duration_ms)}
+                        </span>
+                    )}
+                </div>
+
+                <div className="dp-hero__progress">
+                    <Progress
+                        percent={progressPercent}
+                        status={progressStatus}
+                        size="small"
+                        showInfo={false}
+                        strokeColor={
+                            progressStatus === 'exception'
+                                ? 'var(--color-danger)'
+                                : progressStatus === 'success'
+                                  ? 'var(--color-success)'
+                                  : 'var(--color-primary)'
+                        }
+                    />
+                    <span className="dp-hero__progress-label">
+                        {t('show.pipeline.completed', { done: completedSteps, total: steps.length })}
+                    </span>
+                </div>
+
+                <div className="dp-hero__actions">
+                    {deployment.status === 'succes' && deployment.target_environment.url && (
+                        <Button
+                            size="small"
+                            icon={<ExternalLink size={13} />}
+                            onClick={() => window.open(deployment.target_environment.url!, '_blank', 'noopener,noreferrer')}
+                        >
+                            {t('show.openEnvironmentUrl')}
+                        </Button>
+                    )}
                     {isActive && (
                         <Tooltip title={t('show.cancel.tooltip')}>
-                            <Button className="deployment-action deployment-action--danger" danger size="middle" icon={<Square size={14} />} onClick={cancel} aria-label={t('show.cancel.ariaLabel')}>
+                            <Button
+                                danger
+                                size="small"
+                                icon={<Square size={13} />}
+                                onClick={cancel}
+                                aria-label={t('show.cancel.ariaLabel')}
+                            >
                                 {t('show.cancel.button')}
                             </Button>
                         </Tooltip>
@@ -224,9 +285,8 @@ export default function Show({
                     {canRetry && (
                         <Tooltip title={t('show.retry.tooltip')}>
                             <Button
-                                className="deployment-action deployment-action--secondary"
-                                size="middle"
-                                icon={<RotateCcw size={14} />}
+                                size="small"
+                                icon={<RotateCcw size={13} />}
                                 loading={retrying}
                                 onClick={retry}
                                 aria-label={t('show.retry.ariaLabel')}
@@ -238,9 +298,9 @@ export default function Show({
                     {canRollback && (
                         <Tooltip title={t('show.rollback.tooltip')}>
                             <Button
-                                className="deployment-action deployment-action--primary"
-                                size="middle"
-                                icon={<History size={14} />}
+                                size="small"
+                                type="primary"
+                                icon={<History size={13} />}
                                 loading={rollingBack}
                                 onClick={rollback}
                                 aria-label={t('show.rollback.ariaLabel')}
@@ -250,69 +310,90 @@ export default function Show({
                         </Tooltip>
                     )}
                 </div>
-                </div>
-                <div className="deployment-summary" aria-label={t('show.summary.pipeline')}>
-                    <div><span>{t('show.summary.pipeline')}</span><strong>{t('show.summary.step', { count: steps.length })}</strong></div>
-                    <div><span>{t('show.summary.duration')}</span><strong>{deployment.duration_ms !== null ? formatDuration(deployment.duration_ms) : '—'}</strong></div>
-                    <div><span>{t('show.summary.source')}</span><strong>{deployment.trigger_source === 'manual' ? t('show.summary.manual') : t('show.summary.webhook')}</strong></div>
-                </div>
-            </section>
+            </div>
 
-            <section className="deployment-pipeline" aria-labelledby="pipeline-title">
-                <div className="deployment-section-heading">
-                    <div><span className="deployment-eyebrow">{t('show.pipeline.eyebrow')}</span><h3 id="pipeline-title">{t('show.pipeline.title')}</h3></div>
-                    <Text type="secondary">{t('show.pipeline.completed', { done: steps.filter((step) => step.status === 'succes').length, total: steps.length })}</Text>
+            {/* Pipeline timeline */}
+            <section className="dp-pipeline" aria-labelledby="pipeline-title">
+                <div className="dp-pipeline__header">
+                    <h3 id="pipeline-title">{t('show.pipeline.title')}</h3>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                        {t('show.pipeline.completed', { done: completedSteps, total: steps.length })}
+                    </Text>
                 </div>
-                <div className="app-modal-panel deployment-steps-panel">
-                {steps.map((step, index) => (
-                    <div key={step.id} className="deployment-step">
-                        <div className={`deployment-step-row ${step.status === 'running' ? 'deployment-step-row--running' : ''}`}>
-                            <StepStatusIcon status={step.status} />
-                            <span className="step-ordinal">{index + 1}</span>
-                            <span className={`step-row__type step-row__type--${step.type}`} title={step.type === 'command' ? t('show.pipeline.commandType') : t('show.pipeline.emailType')}>
-                                {stepTypeIcon(step.type, 12)}
-                            </span>
-                            <Text strong className="deployment-step__label">
-                                {step.label_snapshot}
-                            </Text>
-                            <span className="deployment-step__status">{getStatusLabel(t, step.status)}</span>
-                            {step.duration_ms !== null && (
-                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                    {formatDuration(step.duration_ms)}
-                                </Text>
-                            )}
-                            {step.output && (
-                                <Tooltip title={expandedSteps.has(step.id) ? t('show.pipeline.hideLogs') : t('show.pipeline.showLogs')}>
-                                    <button
-                                        type="button"
-                                        className="step-row__output-toggle"
-                                        onClick={() => toggleStepOutput(step.id)}
-                                        aria-label={expandedSteps.has(step.id) ? t('show.pipeline.hideLogs') : t('show.pipeline.showLogs')}
-                                    >
-                                        <ChevronsUpDown size={13} />
-                                    </button>
-                                </Tooltip>
-                            )}
-                        </div>
 
-                        {step.output && expandedSteps.has(step.id) && (
-                            <div className={`deployment-step-output ${step.status === 'echec' ? 'deployment-step-output--error' : ''}`}>
-                                {step.output}
-                            </div>
-                        )}
+                <div className="dp-timeline">
+                    {steps.map((step, index) => {
+                        const isRunning = step.status === 'running';
+                        const hasLive = isRunning && !!liveOutput[step.id];
+                        const hasOutput = !!step.output;
+                        const isExpanded = expandedSteps.has(step.id);
+                        const canExpand = hasOutput || hasLive;
 
-                        {step.status === 'running' && liveOutput[step.id] && (
+                        return (
                             <div
-                                ref={(el) => {
-                                    liveOutputEls.current[step.id] = el;
-                                }}
-                                className="deployment-step-output deployment-step-output--live"
+                                key={step.id}
+                                className={[
+                                    'dp-step',
+                                    `dp-step--${step.status}`,
+                                    isRunning ? 'dp-step--running' : '',
+                                ].filter(Boolean).join(' ')}
                             >
-                                {liveOutput[step.id]}
+                                {/* Connector line */}
+                                {index < steps.length - 1 && <div className="dp-step__connector" aria-hidden="true" />}
+
+                                <div className="dp-step__row">
+                                    <div className="dp-step__icon-col">
+                                        <StepStatusIcon status={step.status} />
+                                    </div>
+
+                                    <div className="dp-step__body">
+                                        <div className="dp-step__main">
+                                            <span className="dp-step__ordinal">{index + 1}</span>
+                                            <span
+                                                className={`dp-step__type dp-step__type--${step.type}`}
+                                                title={step.type === 'command' ? t('show.pipeline.commandType') : t('show.pipeline.emailType')}
+                                            >
+                                                {stepTypeIcon(step.type, 12)}
+                                            </span>
+                                            <span className="dp-step__label">{step.label_snapshot}</span>
+                                            <span className="dp-step__status-text">{getStatusLabel(t, step.status)}</span>
+                                            {step.duration_ms !== null && (
+                                                <span className="dp-step__duration">{formatDuration(step.duration_ms)}</span>
+                                            )}
+                                            {canExpand && (
+                                                <Tooltip title={isExpanded ? t('show.pipeline.hideLogs') : t('show.pipeline.showLogs')}>
+                                                    <button
+                                                        type="button"
+                                                        className="dp-step__toggle"
+                                                        onClick={() => toggleStepOutput(step.id)}
+                                                        aria-label={isExpanded ? t('show.pipeline.hideLogs') : t('show.pipeline.showLogs')}
+                                                        aria-expanded={isExpanded}
+                                                    >
+                                                        <ChevronsUpDown size={13} />
+                                                    </button>
+                                                </Tooltip>
+                                            )}
+                                        </div>
+
+                                        {hasOutput && isExpanded && (
+                                            <div className={`dp-step__output ${step.status === 'echec' ? 'dp-step__output--error' : ''}`}>
+                                                {step.output}
+                                            </div>
+                                        )}
+
+                                        {hasLive && (
+                                            <div
+                                                ref={(el) => { liveOutputEls.current[step.id] = el; }}
+                                                className="dp-step__output dp-step__output--live"
+                                            >
+                                                {liveOutput[step.id]}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                ))}
+                        );
+                    })}
                 </div>
             </section>
         </AuthenticatedLayout>

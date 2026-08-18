@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
+            'supportEmail' => config('mail.support_address'),
             'auth' => [
                 'user' => $user,
             ],
@@ -53,6 +54,20 @@ class HandleInertiaRequests extends Middleware
             'workspaces' => $user
                 ? $user->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
                 : [],
+            // Connexions Git du workspace (GitHub, ...) — partagées globalement plutôt
+            // que threadées prop par prop jusqu'à WebhooksPanel, pour lui permettre de
+            // proposer un sélecteur de dépôt/branche fiable dès qu'un compte est
+            // connecté. Ne contient jamais le token d'accès (voir GitConnection::$hidden).
+            'gitConnections' => $workspace instanceof Workspace
+                ? $workspace->gitConnections()->get(['id', 'provider', 'account_login'])
+                : [],
+            // Permet à WebhooksPanel de désactiver le bouton "Connecter GitHub"
+            // avec un message clair plutôt que de laisser l'utilisateur atterrir
+            // sur la page d'erreur de GitHub ("client_id manquant") quand
+            // GITHUB_CLIENT_ID/SECRET ne sont pas renseignés (cas courant en local).
+            'gitProvidersConfigured' => [
+                'github' => filled(config('services.github.client_id')) && filled(config('services.github.client_secret')),
+            ],
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
                 'error' => fn () => $request->session()->get('error'),

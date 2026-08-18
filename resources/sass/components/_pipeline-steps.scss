@@ -228,6 +228,10 @@
     border-color: theme('color-primary');
 }
 
+.webhook-row--locked {
+    opacity: 0.55;
+}
+
 .webhook-row__main {
     display: flex;
     align-items: center;
@@ -243,6 +247,190 @@
     margin-top: space('3');
     padding-top: space('3');
     border-top: 1px solid theme('color-border');
+}
+
+// ── Dépôt git — état connecté ───────────────────────────────────────────────
+
+.git-repo-connected {
+    @include card-surface;
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    padding: space('2') space('3');
+}
+
+.git-repo-connected__name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: theme('color-text');
+    word-break: break-all;
+}
+
+.git-repo-connected__unlink {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
+    color: theme('color-text-muted');
+    display: flex;
+    align-items: center;
+    margin-top: 1px;
+
+    &:hover {
+        color: theme('color-danger');
+    }
+}
+
+.git-repo-empty {
+    @include card-surface;
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    padding: space('2') space('3');
+    color: theme('color-text-muted');
+}
+
+.git-repo-empty__label {
+    flex: 1;
+    font-size: 13px;
+}
+
+// ── GitRepositorySection — liste inline des providers ────────────────────────
+
+.git-provider-list {
+    display: flex;
+    flex-direction: column;
+    gap: space('2');
+}
+
+.git-provider-row {
+    @include card-surface;
+    padding: space('2') space('3');
+    display: flex;
+    flex-direction: column;
+    gap: space('2');
+    overflow: hidden;
+    min-width: 0;
+}
+
+.git-provider-row__header {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+}
+
+.git-provider-row__label {
+    font-weight: 600;
+    font-size: 13px;
+    flex: 1;
+}
+
+.git-provider-row__account {
+    margin: 0;
+    font-size: 11px;
+    color: theme('color-text-muted');
+    padding-left: space('1');
+}
+
+.git-provider-row__oauth {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: theme('color-success');
+}
+
+.git-provider-row__input-row {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    flex-wrap: wrap;
+}
+
+.git-provider-row--disabled {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+// ── GitRepositoryDrawer — sélecteur de provider (legacy, conservé) ───────────
+
+.git-provider-grid {
+    display: flex;
+    flex-direction: column;
+    gap: space('2');
+    margin-top: space('1');
+}
+
+.git-provider-card {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+    padding: space('2') space('3');
+    border-radius: var(--border-radius);
+    border: 1px solid theme('color-border');
+    background: theme('color-surface');
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    width: 100%;
+
+    &:hover:not(:disabled) {
+        border-color: theme('color-primary');
+    }
+}
+
+.git-provider-card--selected {
+    border-color: theme('color-primary');
+    background: color-mix(in srgb, theme('color-primary') 6%, theme('color-surface'));
+}
+
+.git-provider-card--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.git-provider-card__info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 2px;
+}
+
+.git-provider-card__label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.git-provider-card__account {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: theme('color-success');
+}
+
+.git-provider-card__check {
+    color: theme('color-primary');
+    flex-shrink: 0;
+}
+
+.git-oauth-hint {
+    margin-top: space('2');
+    padding: space('2') space('3');
+    background: theme('color-surface');
+    border-radius: var(--border-radius);
+    border: 1px dashed theme('color-border');
+}
+
+.section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: theme('color-text-muted');
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: space('2');
 }
 
 .target-workspace {
@@ -491,20 +679,20 @@
 .workspace-members-list .application-members-table .ant-table-container,
 .workspace-members-list .application-members-table .ant-table-content,
 .workspace-members-list .application-members-table .ant-table-body {
-    background: #fff !important;
+    background: theme('color-surface') !important;
 }
 .workspace-members-list .application-members-table .ant-table-thead > tr > th {
-    background: #fff;
-    border-bottom-color: #e5e7eb;
-    color: #667085;
+    background: theme('color-surface');
+    border-bottom-color: theme('color-border');
+    color: theme('color-text-muted');
 }
 .workspace-members-list .application-members-table .ant-table-tbody > tr > td {
-    background: #fff;
-    border-bottom-color: #eaecf0;
-    color: #1d2939;
+    background: theme('color-surface');
+    border-bottom-color: theme('color-border');
+    color: theme('color-text');
 }
 .workspace-members-list .application-members-table .ant-table-tbody > tr:hover > td {
-    background: #f8faff;
+    background: color-mix(in srgb, theme('color-primary') 6%, transparent);
 }
 
 .application-members-panel .kpi-panel,
@@ -802,6 +990,34 @@
 
 .env-cell__dot--secret {
     background-color: theme('color-primary');
+}
+
+.env-cell__url-row {
+    display: flex;
+    align-items: center;
+    gap: space('1');
+    overflow: hidden;
+}
+
+.env-cell__url-text {
+    font-size: 10px;
+    color: theme('color-primary');
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.env-cell__url-link {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: theme('color-text-muted');
+
+    &:hover {
+        color: theme('color-primary');
+    }
 }
 
 .app-switcher {

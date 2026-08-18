@@ -28,6 +28,15 @@ class SetPermissionsTeam
             $workspace instanceof Workspace ? $workspace->id : null
         );
 
+        // Mémorise le dernier workspace visité pour que la prochaine connexion
+        // (ou visite de `/home`) y redirige directement plutôt que vers le
+        // workspace le plus récemment créé. Écriture conditionnelle pour ne
+        // pas faire un UPDATE à chaque requête d'un même workspace.
+        $user = $request->user();
+        if ($workspace instanceof Workspace && $user && $user->last_workspace_id !== $workspace->id) {
+            $user->forceFill(['last_workspace_id' => $workspace->id])->save();
+        }
+
         return $next($request);
     }
 }

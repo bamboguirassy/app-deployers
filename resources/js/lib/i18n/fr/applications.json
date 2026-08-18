@@ -81,6 +81,7 @@
         "frameworkLabel": "Framework / stack",
         "nameLabel": "Nom du target",
         "namePlaceholder": "ex: Backend, Frontend, Worker...",
+        "repositoryLabel": "Dépôt git (optionnel)",
         "submit": "Créer"
     },
     "deploymentsPanel": {
@@ -98,6 +99,7 @@
         "configured": "Configuré",
         "noServer": "Aucun serveur",
         "varsUnit": "vars",
+        "openUrlAriaLabel": "Ouvrir l'URL de l'environnement dans un nouvel onglet",
         "heading": "Matrice des environnements",
         "subheading": "Gérez et comparez la configuration de vos targets à travers les environnements.",
         "addEnvironment": "Ajouter un environnement",
@@ -135,6 +137,10 @@
             "chooseServerHint": "Choisissez d'abord un serveur pour parcourir ses dossiers.",
             "branchLabel": "Branche git",
             "branchPlaceholder": "main",
+            "repositoryReadOnly": "dépôt associé au target",
+            "urlLabel": "URL de l'environnement",
+            "urlPlaceholder": "https://exemple.com",
+            "openUrl": "Ouvrir",
             "deploy": "Déployer",
             "variablesSectionTitle": "Variables d'environnement"
         }
@@ -271,7 +277,33 @@
         "edit": "Modifier",
         "delete": "Supprimer",
         "pipelineStepsTitle": "Étapes du pipeline",
-        "webhookIntegrationTitle": "Intégration webhook"
+        "webhookIntegrationTitle": "Intégration webhook",
+        "repositoryLabel": "Dépôt git (optionnel)"
+    },
+    "gitRepository": {
+        "sectionTitle": "Dépôt git",
+        "drawerTitle": "Connecter un dépôt git",
+        "providerLabel": "Hébergeur",
+        "repositoryLabel": "Dépôt",
+        "repositoryHint": "Format : propriétaire/nom-du-dépôt",
+        "connect": "Connecter",
+        "cancel": "Annuler",
+        "connectButton": "Connecter un dépôt",
+        "noRepository": "Aucun dépôt connecté",
+        "disconnect": "Déconnecter le dépôt",
+        "githubNotConnectedHint": "Connectez votre compte GitHub pour sélectionner un dépôt depuis votre liste.",
+        "connectGithub": "Connecter GitHub",
+        "connectGithubTooltip": "Connecter GitHub pour sélectionner un dépôt depuis votre liste",
+        "githubNotConfigured": "Intégration GitHub non configurée sur ce serveur (GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET manquants).",
+        "selectRepoPlaceholder": "Choisir un dépôt...",
+        "comingSoon": "Bientôt disponible",
+        "connected": "Connecté",
+        "confirmDisconnect": {
+            "title": "Déconnecter le dépôt ?",
+            "content": "Le dépôt sera dissocié du target. Les webhooks existants ne seront pas supprimés.",
+            "okText": "Déconnecter",
+            "cancelText": "Annuler"
+        }
     },
     "variablesEditor": {
         "hideValueTooltip": "Masquer la valeur dans l'interface et les journaux de déploiement",
@@ -308,6 +340,22 @@
             "okText": "Supprimer",
             "cancelText": "Annuler"
         },
-        "activateHint": "Activer un provider révèle son URL de webhook et permet de mapper des branches à des environnements."
+        "activateHint": "Activer un provider révèle son URL de webhook. Les branches sont automatiquement associées via la matrice des environnements.",
+        "branchAutoMappingHint": "Les branches sont automatiquement associées à la branche git configurée dans chaque environnement (onglet Environnements).",
+        "noRepository": "Aucun dépôt associé",
+        "lockedByOtherProvider": "Verrouillé — dépôt connecté via {{provider}}",
+        "lockedTooltip": "Déconnectez le dépôt actuel pour activer un autre provider",
+        "notConnected": "Non connecté — les dépôts et branches sont saisis manuellement",
+        "connectGithub": "Connecter GitHub",
+        "githubNotConfigured": "Intégration GitHub non configurée sur ce serveur (GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET manquants).",
+        "connectedAs": "Connecté ({{account}})",
+        "disconnect": "Déconnecter",
+        "repositoryLabel": "Dépôt :",
+        "repositoryPlaceholder": "Choisir un dépôt",
+        "confirmDisconnectGithub": {
+            "title": "Déconnecter le compte GitHub {{account}} ?",
+            "okText": "Déconnecter",
+            "cancelText": "Annuler"
+        }
     }
 }

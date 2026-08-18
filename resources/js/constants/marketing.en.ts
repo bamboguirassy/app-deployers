@@ -97,6 +97,11 @@ export const STEPS = [
             'Sign up and name your team. This is the space that groups your applications, servers and members.',
         detail:
             "Signing up creates your account and a first workspace — the space that groups your applications, environments and team members. You can invite colleagues right away and assign them a role (owner, manager, deployer or viewer) matching what they need to do.",
+        bullets: [
+            'One workspace per team or client, with its own applications and deployment history',
+            'Four built-in roles (owner, manager, deployer, viewer) to separate who configures from who deploys',
+            'Invite by email: the member joins the workspace as soon as they accept',
+        ],
     },
     {
         title: 'Configure your targets',
@@ -104,6 +109,11 @@ export const STEPS = [
             'Add your servers, define your applications, their environments, and the deployment pipeline for each target.',
         detail:
             "Add the servers you deploy to (over SSH), create an application, then its environments (Production, Staging...) and its targets (API, frontend, worker...). For each target, define the pipeline: the ordered list of shell steps to run, with their timeouts and failure behavior. Then add the environment variables specific to each environment.",
+        bullets: [
+            'SSH connection to your own servers — no imposed infrastructure, you stay in control',
+            'Fully customizable shell pipeline, step by step, with timeouts and failure handling',
+            'Environment variables (secrets included, encrypted) scoped to each target/environment pair',
+        ],
     },
     {
         title: 'Deploy and supervise',
@@ -111,5 +121,33 @@ export const STEPS = [
             'Launch a deployment manually or via webhook, and follow every step live until it succeeds.',
         detail:
             "Trigger a first deployment manually from the UI, or set up a Git webhook so every push to the right branch triggers one automatically. Watch progress step by step in real time, all the way to success — or step in immediately (cancel, check the logs) if something goes wrong. Rolling back to a previous version takes one click.",
+        bullets: [
+            'Manual trigger or automatic via GitHub, GitLab or Bitbucket webhooks',
+            'Live tracking of every step (console output included) through real-time notifications',
+            'Cancel mid-run, retry after a failure, or roll back to a previous deployment',
+        ],
+    },
+];
+
+export const HOW_IT_WORKS_FAQ = [
+    {
+        question: 'Do I need my own servers?',
+        answer:
+            "Yes. App Deployer orchestrates your deployments but doesn't provide hosting: you connect your existing servers over SSH and keep full control over your infrastructure and data.",
+    },
+    {
+        question: 'What happens if a pipeline step fails?',
+        answer:
+            'The deployment stops and the remaining steps are marked "cancelled", unless you flagged a step as allowed to continue on failure. You can immediately inspect the failing step\'s output, then retry the deployment once the fix is in place.',
+    },
+    {
+        question: 'How does rollback work?',
+        answer:
+            "A rollback replays the pipeline against the branch and commit of a past successful deployment. It doesn't automatically restore server state — the pipeline itself needs to be designed to be replayable (reversible migrations, etc.).",
+    },
+    {
+        question: 'Can I automate deployment on every Git push?',
+        answer:
+            'Yes, via GitHub, GitLab or Bitbucket webhooks: map a branch to an environment, and every push to that branch automatically triggers a deployment.',
     },
 ];
