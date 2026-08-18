@@ -25,6 +25,8 @@
         "notConfigured": "{{interval}} billing isn't set up yet for this plan"
     },
     "units": {
+        "workspace": "workspace",
+        "workspaces": "workspaces",
         "application": "application",
         "applications": "applications",
         "deployment": "concurrent deployment",
@@ -64,6 +66,7 @@
     },
     "usage": {
         "title": "Current usage",
+        "workspaces": "Workspaces (owner)",
         "applications": "Applications",
         "deploymentsAllowed": "Allowed concurrent deployments",
         "unlimited": "Unlimited"

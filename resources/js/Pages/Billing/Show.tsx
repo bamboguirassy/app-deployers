@@ -28,6 +28,7 @@ interface BillingPlan {
     name: string;
     max_applications: number | null;
     max_concurrent_deployments: number | null;
+    max_workspaces: number | null;
 }
 
 interface BillingSubscription {
@@ -38,7 +39,7 @@ interface BillingSubscription {
     renews_at: string | null;
 }
 
-type ProPlan = Pick<BillingPlan, 'slug' | 'name' | 'max_applications' | 'max_concurrent_deployments'> & {
+type ProPlan = Pick<BillingPlan, 'slug' | 'name' | 'max_applications' | 'max_concurrent_deployments' | 'max_workspaces'> & {
     monthlyConfigured: boolean;
     yearlyConfigured: boolean;
 };
@@ -53,7 +54,7 @@ export default function Show({
     paddle,
 }: {
     plan: BillingPlan;
-    usage: { applications: number };
+    usage: { applications: number; workspaces: number };
     subscription: BillingSubscription | null;
     freePlan: BillingPlan;
     proPlan: ProPlan | null;
@@ -133,6 +134,7 @@ export default function Show({
           : null;
 
     const freeFeatures = [
+        formatLimit(freePlan.max_workspaces, 'units.workspace', 'units.workspaces'),
         formatLimit(freePlan.max_applications, 'units.application', 'units.applications'),
         formatLimit(freePlan.max_concurrent_deployments, 'units.deployment', 'units.deployments'),
         t('plans.free.webhooks'),
@@ -142,6 +144,7 @@ export default function Show({
 
     const proFeatures = [
         t('plans.pro.allFreeFeatures'),
+        formatLimit(proPlan?.max_workspaces ?? null, 'units.workspace', 'units.workspaces'),
         proPlan?.max_applications == null
             ? t('plans.pro.unlimitedApplications')
             : formatLimit(proPlan.max_applications, 'units.application', 'units.applications'),
@@ -306,6 +309,12 @@ export default function Show({
                     {t('usage.title')}
                 </Title>
                 <div className="billing-usage-card__grid">
+                    <div>
+                        <Text type="secondary">{t('usage.workspaces')}</Text>
+                        <Paragraph style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 600 }}>
+                            {usage.workspaces} / {plan.max_workspaces ?? '∞'}
+                        </Paragraph>
+                    </div>
                     <div>
                         <Text type="secondary">{t('usage.applications')}</Text>
                         <Paragraph style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 600 }}>

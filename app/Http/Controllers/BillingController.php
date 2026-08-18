@@ -29,9 +29,14 @@ class BillingController extends Controller
                 'name' => $plan->name,
                 'max_applications' => $plan->max_applications,
                 'max_concurrent_deployments' => $plan->max_concurrent_deployments,
+                'max_workspaces' => $plan->max_workspaces,
             ],
             'usage' => [
                 'applications' => $workspace->applications()->count(),
+                'workspaces' => auth()->user()->workspaces()
+                    ->get()
+                    ->filter(fn ($ws) => auth()->user()->isWorkspaceOwner($ws))
+                    ->count(),
             ],
             'subscription' => $subscription ? [
                 'status' => $subscription->status,
@@ -45,12 +50,14 @@ class BillingController extends Controller
                 'name' => $freePlan->name,
                 'max_applications' => $freePlan->max_applications,
                 'max_concurrent_deployments' => $freePlan->max_concurrent_deployments,
+                'max_workspaces' => $freePlan->max_workspaces,
             ],
             'proPlan' => $proPlan ? [
                 'slug' => $proPlan->slug,
                 'name' => $proPlan->name,
                 'max_applications' => $proPlan->max_applications,
                 'max_concurrent_deployments' => $proPlan->max_concurrent_deployments,
+                'max_workspaces' => $proPlan->max_workspaces,
                 'monthlyConfigured' => (bool) $proPlan->paddle_price_id_monthly,
                 'yearlyConfigured' => (bool) $proPlan->paddle_price_id_yearly,
             ] : null,

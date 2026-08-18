@@ -25,6 +25,8 @@
         "notConfigured": "La facturation {{interval}} n'est pas encore configurée pour ce plan"
     },
     "units": {
+        "workspace": "workspace",
+        "workspaces": "workspaces",
         "application": "application",
         "applications": "applications",
         "deployment": "déploiement simultané",
@@ -64,6 +66,7 @@
     },
     "usage": {
         "title": "Utilisation actuelle",
+        "workspaces": "Workspaces (owner)",
         "applications": "Applications",
         "deploymentsAllowed": "Déploiements simultanés autorisés",
         "unlimited": "Illimité"
