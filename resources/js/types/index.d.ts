@@ -25,6 +25,7 @@ export interface User {
     email: string;
     email_verified_at?: string | null;
     suspended_at?: string | null;
+    google_id?: string | null;
     is_super_admin?: boolean;
     created_at?: string;
     role?: 'owner' | 'manager' | 'deployer' | 'viewer';

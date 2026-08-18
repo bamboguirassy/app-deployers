@@ -76,9 +76,24 @@
             "user": "User",
             "emailVerified": "Email verified",
             "role": "Role",
+            "provider": "Sign-in",
             "applications": "Applications",
             "status": "Status",
-            "registration": "Joined"
+            "registration": "Joined",
+            "actions": "Actions"
+        },
+        "provider": {
+            "google": "Google",
+            "email": "Email / password"
+        },
+        "resetPasswordTooltip": "Send reset link",
+        "confirms": {
+            "resetPassword": {
+                "title": "Send a reset link?",
+                "content": "An email will be sent to {{email}} to set a new password. The user will then be able to sign in with their email and that password, regardless of the provider they used before.",
+                "okText": "Send",
+                "cancelText": "Cancel"
+            }
         },
         "verified": "Verified",
         "pending": "Pending",

@@ -1,12 +1,13 @@
 import KpiCollapse from '@/Components/KpiCollapse';
 import ListToolbar from '@/Components/ListToolbar';
 import { ROLE_COLORS, getRoleLabel, getRoleOptions } from '@/constants/members';
+import { useConfirm } from '@/theme/ConfirmContext';
 import { useListSearch } from '@/hooks/useListSearch';
-import { User } from '@/types';
-import { router } from '@inertiajs/react';
-import { Avatar, Card, Space, Spin, Table, Tag, Typography } from 'antd';
+import { PageProps, User } from '@/types';
+import { router, usePage } from '@inertiajs/react';
+import { Avatar, Button, Card, Space, Spin, Table, Tag, Tooltip, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckCircle2, ShieldAlert, ShieldCheck, Users as UsersIcon, XCircle } from 'lucide-react';
+import { CheckCircle2, KeyRound, ShieldAlert, ShieldCheck, Users as UsersIcon, XCircle } from 'lucide-react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dateLocale } from '@/lib/i18n';
@@ -32,12 +33,23 @@ export default forwardRef<UsersListHandle, {
     getRowHref: (user: User) => string;
 }>(function UsersList({ searchUrl, initialItems, initialKpis, getRowHref }, ref) {
     const { t, i18n } = useTranslation('users');
+    const { workspace } = usePage<PageProps>().props;
+    const confirm = useConfirm();
     const search = useListSearch<User, UserKpis>(searchUrl, initialItems, initialKpis, {
         sort: 'name',
         direction: 'asc',
     });
 
     useImperativeHandle(ref, () => ({ refresh: search.refresh }), [search.refresh]);
+
+    const sendPasswordReset = (user: User) =>
+        confirm.confirm({
+            title: t('list.confirms.resetPassword.title'),
+            content: t('list.confirms.resetPassword.content', { email: user.email }),
+            okText: t('list.confirms.resetPassword.okText'),
+            cancelText: t('list.confirms.resetPassword.cancelText'),
+            onOk: () => router.post(route('users.send-password-reset', [workspace!.slug, user.uuid])),
+        });
 
     const columns: ColumnsType<User> = [
         {
@@ -72,6 +84,16 @@ export default forwardRef<UsersListHandle, {
             title: t('list.columns.role'),
             key: 'role',
             render: (_value, user) => (user.role ? <Tag color={ROLE_COLORS[user.role]}>{getRoleLabel(t, user.role)}</Tag> : '—'),
+        },
+        {
+            title: t('list.columns.provider'),
+            key: 'provider',
+            align: 'center',
+            render: (_value, user) => (
+                <Tag color={user.google_id ? 'blue' : 'default'}>
+                    {user.google_id ? t('list.provider.google') : t('list.provider.email')}
+                </Tag>
+            ),
         },
         {
             title: t('list.columns.applications'),
@@ -110,6 +132,22 @@ export default forwardRef<UsersListHandle, {
             title: t('list.columns.registration'),
             key: 'created_at',
             render: (_value, user) => (user.created_at ? new Date(user.created_at).toLocaleDateString(dateLocale(i18n.language)) : '—'),
+        },
+        {
+            title: t('list.columns.actions'),
+            key: 'actions',
+            align: 'center',
+            render: (_value, user) => (
+                <Tooltip title={t('list.resetPasswordTooltip')}>
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<KeyRound size={15} />}
+                        onClick={(e) => { e.stopPropagation(); sendPasswordReset(user); }}
+                        aria-label={t('list.resetPasswordTooltip')}
+                    />
+                </Tooltip>
+            ),
         },
     ];
 

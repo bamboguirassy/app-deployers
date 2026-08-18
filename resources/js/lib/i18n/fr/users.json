@@ -76,9 +76,24 @@
             "user": "Utilisateur",
             "emailVerified": "Email vérifié",
             "role": "Rôle",
+            "provider": "Connexion",
             "applications": "Applications",
             "status": "Statut",
-            "registration": "Inscription"
+            "registration": "Inscription",
+            "actions": "Actions"
+        },
+        "provider": {
+            "google": "Google",
+            "email": "Email/mot de passe"
+        },
+        "resetPasswordTooltip": "Envoyer lien réinitialisation",
+        "confirms": {
+            "resetPassword": {
+                "title": "Envoyer un lien de réinitialisation ?",
+                "content": "Un email sera envoyé à {{email}} pour définir un nouveau mot de passe. L'utilisateur pourra ensuite se connecter avec son email et ce mot de passe, quel que soit le provider utilisé jusqu'ici.",
+                "okText": "Envoyer",
+                "cancelText": "Annuler"
+            }
         },
         "verified": "Vérifié",
         "pending": "En attente",

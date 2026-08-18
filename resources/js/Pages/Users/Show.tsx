@@ -20,7 +20,6 @@ export default function Show({
     activity,
     isSelf,
     canManage,
-    hasPassword,
 }: {
     user: User;
     role: 'owner' | 'manager' | 'deployer' | 'viewer';
@@ -28,7 +27,6 @@ export default function Show({
     activity: ActivityLogEntry[];
     isSelf: boolean;
     canManage: boolean;
-    hasPassword: boolean;
 }) {
     const { t, i18n } = useTranslation('users');
     const { workspace } = usePage<PageProps>().props;
@@ -122,11 +120,9 @@ export default function Show({
                             <SecondaryButton icon={<Mail size={14} />} onClick={resendVerification}>
                                 {t('show.actionsCard.resendVerification')}
                             </SecondaryButton>
-                            {hasPassword && (
-                                <SecondaryButton icon={<KeyRound size={14} />} onClick={sendPasswordReset}>
-                                    {t('show.actionsCard.resetPassword')}
-                                </SecondaryButton>
-                            )}
+                            <SecondaryButton icon={<KeyRound size={14} />} onClick={sendPasswordReset}>
+                                {t('show.actionsCard.resetPassword')}
+                            </SecondaryButton>
                             <SecondaryButton
                                 danger={!user.suspended_at}
                                 icon={user.suspended_at ? <ShieldCheck size={14} /> : <ShieldOff size={14} />}
