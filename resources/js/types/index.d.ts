@@ -128,6 +128,7 @@ export interface ApplicationMember {
     name: string;
     email: string;
     role: 'owner' | 'manager' | 'deployer' | 'viewer' | null;
+    invitation_pending: boolean;
 }
 
 export interface ActivityLogEntry {

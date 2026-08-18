@@ -3,12 +3,12 @@ import InputLabel from '@/Components/InputLabel';
 import MembersList, { MembersListHandle } from '@/Components/Applications/MembersList';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { MembersKpis, ROLE_COLORS, getRoleLabel } from '@/constants/members';
+import { MembersKpis, ROLE_COLORS, getRoleLabel, getRoleOptions } from '@/constants/members';
 import { ApplicationMember, PageProps } from '@/types';
 import { Application } from '@/types/models';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Modal, Tag } from 'antd';
+import { Modal, Select, Tag } from 'antd';
 import { Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +29,7 @@ export default function MembersPanel({
     const listRef = useRef<MembersListHandle>(null);
     const [inviting, setInviting] = useState(false);
     const confirm = useConfirm();
-    const { data, setData, post, processing, errors, reset } = useForm({ email: '' });
+    const { data, setData, post, processing, errors, reset } = useForm({ email: '', role: 'viewer' as string });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -110,8 +110,18 @@ export default function MembersPanel({
                             required
                         />
                         <InputError message={errors.email} />
-                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                            {t('membersPanel.emailHint')}
+                    </div>
+
+                    <div>
+                        <InputLabel value={t('membersPanel.roleLabel')} />
+                        <Select
+                            value={data.role}
+                            onChange={(v) => setData('role', v)}
+                            options={getRoleOptions(t)}
+                            style={{ width: '100%', marginTop: 4 }}
+                        />
+                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4, display: 'block' }}>
+                            {t('membersPanel.roleHint')}
                         </span>
                     </div>
 

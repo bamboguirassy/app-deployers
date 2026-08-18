@@ -110,6 +110,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/servers', [ServerController::class, 'index'])->name('servers.index');
         Route::post('/servers/search', [ServerController::class, 'search'])->name('servers.search');
         Route::post('/servers/test-connection', [ServerController::class, 'testConnection'])->name('servers.test-connection');
+        Route::post('/servers/browse-directory-anon', [ServerController::class, 'browseDirectoryAnon'])->name('servers.browse-directory-anon');
         Route::post('/servers', [ServerController::class, 'store'])->name('servers.store');
         Route::patch('/servers/{server}', [ServerController::class, 'update'])->name('servers.update');
         Route::delete('/servers/{server}', [ServerController::class, 'destroy'])->name('servers.destroy');

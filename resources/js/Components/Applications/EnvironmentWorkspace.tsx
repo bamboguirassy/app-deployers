@@ -3,6 +3,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import VariablesEditor from '@/Components/Applications/VariablesEditor';
 import DirectoryBrowserModal from '@/Components/Servers/DirectoryBrowserModal';
+import ServerFormModal from '@/Components/Servers/ServerFormModal';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { useConfirm } from '@/theme/ConfirmContext';
@@ -88,6 +89,7 @@ function ConfigDrawer({
     canManage,
     canDeploy,
     onClose,
+    onServerCreated,
 }: {
     application: Application;
     target: Target;
@@ -96,11 +98,13 @@ function ConfigDrawer({
     canManage: boolean;
     canDeploy: boolean;
     onClose: () => void;
+    onServerCreated?: (server: Server) => void;
 }) {
     const { t } = useTranslation('applications');
     const { workspace, gitConnections } = usePage<PageProps>().props;
     const existing = target.target_environments.find((te) => te.environment_id === environment.id);
     const [browsing, setBrowsing] = useState(false);
+    const [addingServer, setAddingServer] = useState(false);
 
     const linkedRepository = target.repository ?? null;
     const githubConnection: GitConnection | undefined = gitConnections.find((c) => c.provider === 'github');
@@ -155,6 +159,14 @@ function ConfigDrawer({
 
         if (!data.deploy_path && server?.default_path) {
             setData('deploy_path', server.default_path);
+        }
+    };
+
+    const handleServerCreatedInDrawer = (newServer: Server) => {
+        onServerCreated?.(newServer);
+        setData('server_id', newServer.id);
+        if (!data.deploy_path && newServer.default_path) {
+            setData('deploy_path', newServer.default_path);
         }
     };
 
@@ -216,16 +228,27 @@ function ConfigDrawer({
             <form onSubmit={onSubmit} className="form-stack">
                 <div>
                     <InputLabel value={t('environmentWorkspace.drawer.serverLabel')} />
-                    <Select
-                        className="w-full"
-                        placeholder={t('environmentWorkspace.drawer.serverPlaceholder')}
-                        value={data.server_id ?? undefined}
-                        onChange={handleServerChange}
-                        disabled={!canManage}
-                        status={errors.server_id ? 'error' : undefined}
-                        options={servers.map((s) => ({ value: s.id, label: `${s.name} (${s.host})` }))}
-                        notFoundContent={<Empty description={t('environmentWorkspace.drawer.noServerHint')} />}
-                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <Select
+                            className="w-full"
+                            placeholder={t('environmentWorkspace.drawer.serverPlaceholder')}
+                            value={data.server_id ?? undefined}
+                            onChange={handleServerChange}
+                            disabled={!canManage}
+                            status={errors.server_id ? 'error' : undefined}
+                            options={servers.map((s) => ({ value: s.id, label: `${s.name} (${s.host})` }))}
+                            notFoundContent={<Empty description={t('environmentWorkspace.drawer.noServerHint')} />}
+                        />
+                        {canManage && (
+                            <SecondaryButton
+                                htmlType="button"
+                                icon={<Plus size={14} />}
+                                onClick={() => setAddingServer(true)}
+                                aria-label={t('environmentWorkspace.drawer.addServer')}
+                                title={t('environmentWorkspace.drawer.addServer')}
+                            />
+                        )}
+                    </div>
                     <InputError message={errors.server_id} />
                 </div>
                 <div>
@@ -312,6 +335,13 @@ function ConfigDrawer({
                 </div>
             </form>
 
+            <ServerFormModal
+                workspaceSlug={workspace!.slug}
+                open={addingServer}
+                onClose={() => setAddingServer(false)}
+                onServerCreated={handleServerCreatedInDrawer}
+            />
+
             <DirectoryBrowserModal
                 workspaceSlug={workspace!.slug}
                 server={selectedServer}
@@ -349,7 +379,12 @@ export default function EnvironmentWorkspace({
     const [creatingEnv, setCreatingEnv] = useState(false);
     const [creatingTarget, setCreatingTarget] = useState(false);
     const [cell, setCell] = useState<{ target: Target; environment: Environment } | null>(null);
+    const [localServers, setLocalServers] = useState<Server[]>(servers);
     const confirm = useConfirm();
+
+    const handleServerCreated = (newServer: Server) => {
+        setLocalServers((prev) => [...prev, newServer]);
+    };
     const { data, setData, post, processing, reset, errors } = useForm({ name: '' });
 
     const submit: FormEventHandler = (e) => {
@@ -486,10 +521,11 @@ export default function EnvironmentWorkspace({
                     application={application}
                     target={application.targets.find((t) => t.id === cell.target.id) ?? cell.target}
                     environment={cell.environment}
-                    servers={servers}
+                    servers={localServers}
                     canManage={canManage}
                     canDeploy={canDeploy}
                     onClose={() => setCell(null)}
+                    onServerCreated={handleServerCreated}
                 />
             )}
 

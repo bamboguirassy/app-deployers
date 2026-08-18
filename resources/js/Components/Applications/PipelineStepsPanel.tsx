@@ -67,21 +67,26 @@ function deriveLabelFromCommand(command: string): string {
 function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }) {
     const { t } = useTranslation('applications');
 
+    const variables = getTemplateVariables(t);
+
     return (
         <Dropdown
             trigger={['click']}
-            menu={{
-                items: getTemplateVariables(t).map((v) => ({
-                    key: v.path,
-                    label: (
-                        <div>
+            dropdownRender={() => (
+                <div className="variable-insert-menu">
+                    {variables.map((v) => (
+                        <button
+                            key={v.path}
+                            type="button"
+                            className="variable-insert-menu__item"
+                            onClick={() => onInsert(v.path)}
+                        >
                             <code>{`{{${v.path}}}`}</code>
-                            <div className="step-variable-hint">{v.label}</div>
-                        </div>
-                    ),
-                    onClick: () => onInsert(v.path),
-                })),
-            }}
+                            <span className="step-variable-hint">{v.label}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
         >
             <Button size="small" icon={<Variable size={13} />}>
                 {t('pipelineSteps.variableButton')}

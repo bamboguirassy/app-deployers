@@ -22,27 +22,53 @@ class SftpDirectoryBrowser
      */
     public function listDirectories(Server $server, string $path): array
     {
+        return $this->listDirectoriesWithCredentials(
+            $server->host,
+            $server->port,
+            $server->username,
+            $server->auth_method,
+            $server->usesPassword() ? (string) $server->password : null,
+            $server->usesSshKey() ? (string) $server->private_key : null,
+            $server->passphrase ? (string) $server->passphrase : null,
+            $path,
+        );
+    }
+
+    /**
+     * Variante sans Server persisté — utilisée lors de la création d'un serveur
+     * (les credentials ne sont pas encore enregistrés en base).
+     */
+    public function listDirectoriesWithCredentials(
+        string $host,
+        int $port,
+        string $username,
+        string $authMethod,
+        ?string $password,
+        ?string $privateKey,
+        ?string $passphrase,
+        string $path,
+    ): array {
         $path = $path === '' ? '/' : $path;
 
         try {
-            $sftp = new SFTP($server->host, $server->port, self::TIMEOUT_SECONDS);
+            $sftp = new SFTP($host, $port, self::TIMEOUT_SECONDS);
         } catch (Throwable $e) {
             throw new RuntimeException("Impossible d'initialiser la connexion : {$e->getMessage()}");
         }
 
-        if ($server->usesPassword()) {
-            $ok = @$sftp->login($server->username, (string) $server->password);
+        if ($authMethod === 'password') {
+            $ok = @$sftp->login($username, (string) $password);
         } else {
             try {
                 $key = PublicKeyLoader::load(
-                    $server->private_key,
-                    $server->passphrase !== null && $server->passphrase !== '' ? $server->passphrase : false,
+                    (string) $privateKey,
+                    $passphrase !== null && $passphrase !== '' ? $passphrase : false,
                 );
             } catch (Throwable $e) {
                 throw new RuntimeException('Clé privée invalide ou passphrase incorrecte.');
             }
 
-            $ok = @$sftp->login($server->username, $key);
+            $ok = @$sftp->login($username, $key);
         }
 
         if (! $ok) {

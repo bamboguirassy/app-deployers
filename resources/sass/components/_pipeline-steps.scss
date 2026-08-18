@@ -208,6 +208,42 @@
     color: theme('color-text-muted');
 }
 
+.variable-insert-menu {
+    // padding-top/bottom item (6+6) + code (~16px) + hint (~14px) = ~42px/item
+    // 5 items visibles + padding menu (4+4px) = 218px
+    max-height: 218px;
+    overflow-y: auto;
+    max-width: min(280px, 80vw);
+    background: theme('color-surface');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-md;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+    padding: space('1') 0;
+
+    &__item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        color: theme('color-text');
+
+        code {
+            display: block;
+            font-size: 12px;
+            word-break: break-all;
+            white-space: normal;
+            color: theme('color-primary');
+        }
+
+        &:hover {
+            background: theme('color-surface-raised');
+        }
+    }
+}
+
 .webhook-list {
     display: flex;
     flex-direction: column;

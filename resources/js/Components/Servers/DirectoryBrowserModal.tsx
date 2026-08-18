@@ -12,16 +12,30 @@ interface DirectoryEntry {
     path: string;
 }
 
+export interface AnonCredentials {
+    host: string;
+    port: number;
+    username: string;
+    auth_method: 'password' | 'ssh_key';
+    password?: string;
+    private_key?: string;
+    passphrase?: string;
+}
+
 export default function DirectoryBrowserModal({
     workspaceSlug,
     server,
+    credentials,
     initialPath,
     open,
     onClose,
     onSelect,
 }: {
     workspaceSlug: string;
-    server: Server | null;
+    /** Serveur enregistré (mode édition). Mutuellement exclusif avec credentials. */
+    server?: Server | null;
+    /** Credentials bruts non enregistrés (mode création après test réussi). */
+    credentials?: AnonCredentials | null;
     initialPath?: string;
     open: boolean;
     onClose: () => void;
@@ -35,13 +49,15 @@ export default function DirectoryBrowserModal({
     const [search, setSearch] = useState('');
 
     const load = (targetPath: string) => {
-        if (!server) return;
-
         setSearch('');
         setLoading(true);
         setError(null);
-        axios
-            .post(route('servers.browse-directory', [workspaceSlug, server.uuid]), { path: targetPath })
+
+        const request = server
+            ? axios.post(route('servers.browse-directory', [workspaceSlug, server.uuid]), { path: targetPath })
+            : axios.post(route('servers.browse-directory-anon', workspaceSlug), { ...credentials, path: targetPath });
+
+        request
             .then((res) => {
                 setPath(res.data.path);
                 setEntries(res.data.entries);
@@ -52,16 +68,15 @@ export default function DirectoryBrowserModal({
 
     const visibleEntries = useMemo(() => {
         const query = search.trim().toLowerCase();
-
         return query ? entries.filter((entry) => entry.name.toLowerCase().includes(query)) : entries;
     }, [entries, search]);
 
     useEffect(() => {
-        if (open && server) {
+        if (open && (server || credentials)) {
             load(initialPath && initialPath.trim() !== '' ? initialPath : '/');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, server]);
+    }, [open, server, credentials]);
 
     const segments = path.split('/').filter(Boolean);
     const breadcrumbItems = [
@@ -78,9 +93,13 @@ export default function DirectoryBrowserModal({
         ),
     }));
 
+    const title = server
+        ? t('directoryBrowser.titleWithServer', { name: server.name })
+        : t('directoryBrowser.title');
+
     return (
         <Modal
-            title={server ? t('directoryBrowser.titleWithServer', { name: server.name }) : t('directoryBrowser.title')}
+            title={title}
             open={open}
             onCancel={onClose}
             width="min(560px, 92vw)"
@@ -115,6 +134,7 @@ export default function DirectoryBrowserModal({
                     placeholder={t('directoryBrowser.searchPlaceholder')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => e.stopPropagation()}
                     allowClear
                 />
             )}

@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Events\DeploymentStatusUpdated;
+use App\Listeners\ClearPendingInvitationsOnLogin;
 use App\Listeners\NotifyOnDeploymentFailure;
 use App\Policies\PlatformAdminPolicy;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
@@ -42,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
         RedirectIfAuthenticated::redirectUsing(fn () => route('home'));
 
         Event::listen(DeploymentStatusUpdated::class, NotifyOnDeploymentFailure::class);
+        Event::listen(Login::class, ClearPendingInvitationsOnLogin::class);
 
         // Pas d'app/Providers/EventServiceProvider dans ce squelette Laravel 11+ :
         // le mapping Registered -> SendEmailVerificationNotification que Laravel

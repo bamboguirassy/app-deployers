@@ -3,7 +3,7 @@ import ListToolbar from '@/Components/ListToolbar';
 import { MembersKpis, ROLE_VALUES, getRoleLabel } from '@/constants/members';
 import { useListSearch } from '@/hooks/useListSearch';
 import { ApplicationMember } from '@/types';
-import { Avatar, Space, Spin, Table } from 'antd';
+import { Avatar, Space, Spin, Table, Tag } from 'antd';
 import { Crown, Eye, Users as UsersIcon, Wrench } from 'lucide-react';
 import { ReactNode, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -81,7 +81,14 @@ export default forwardRef<MembersListHandle, {
                             <Space>
                                 <Avatar size="small">{member.name.charAt(0).toUpperCase()}</Avatar>
                                 <div>
-                                    <div>{member.name}</div>
+                                    <Space size={6} wrap={false}>
+                                        <span>{member.name}</span>
+                                        {member.invitation_pending && (
+                                            <Tag color="warning" style={{ fontSize: 11, lineHeight: '18px' }}>
+                                                {t('membersList.invitationPending')}
+                                            </Tag>
+                                        )}
+                                    </Space>
                                     <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{member.email}</span>
                                 </div>
                             </Space>

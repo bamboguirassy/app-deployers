@@ -6,12 +6,16 @@ use App\Http\Controllers\Concerns\FiltersLists;
 use App\Models\Application;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Notifications\ApplicationInvitationNotification;
 use App\Support\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 class ApplicationMemberController extends Controller
 {
@@ -34,7 +38,7 @@ class ApplicationMemberController extends Controller
             })
             ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
             ->where('application_user.application_id', $application->id)
-            ->select('users.id', 'users.uuid', 'users.name', 'users.email', 'roles.name as role');
+            ->select('users.id', 'users.uuid', 'users.name', 'users.email', 'roles.name as role', 'application_user.invitation_pending');
     }
 
     public function search(Request $request, Workspace $workspace, Application $application): JsonResponse
@@ -86,9 +90,13 @@ class ApplicationMemberController extends Controller
     }
 
     /**
-     * Accorde l'accès à cette application à un utilisateur déjà membre du
-     * workspace (l'accès applicatif ne crée jamais de compte ni de rôle workspace
-     * — voir la gestion des membres du workspace pour ça).
+     * Accorde l'accès à cette application.
+     * — Si l'utilisateur existe et est déjà membre du workspace : ajout direct.
+     * — S'il existe mais n'est pas encore membre du workspace : ajout au workspace
+     *   avec le rôle choisi, puis ajout à l'application.
+     * — S'il n'existe pas : création de compte (sans mot de passe), ajout au
+     *   workspace, ajout à l'application avec invitation_pending = true, et envoi
+     *   d'un email d'invitation pour définir son mot de passe.
      */
     public function store(Request $request, Workspace $workspace, Application $application): RedirectResponse
     {
@@ -96,19 +104,38 @@ class ApplicationMemberController extends Controller
 
         $data = $request->validate([
             'email' => ['required', 'email', 'max:255'],
+            'role'  => ['required', 'in:'.implode(',', self::ROLES)],
         ]);
 
         $user = User::where('email', $data['email'])->first();
+        $isNewUser = ! $user;
+        $wasWorkspaceMember = $user && $user->roleInWorkspace($workspace);
 
-        if (! $user || ! $user->roleInWorkspace($workspace)) {
-            throw ValidationException::withMessages([
-                'email' => "Cet utilisateur doit d'abord être ajouté au workspace avant de pouvoir accéder à une application.",
+        if (! $user) {
+            $user = User::create([
+                'name'     => Str::before($data['email'], '@'),
+                'email'    => $data['email'],
+                'password' => Hash::make(Str::random(40)),
             ]);
         }
 
-        $application->users()->syncWithoutDetaching([$user->id]);
+        if (! $wasWorkspaceMember) {
+            app(PermissionRegistrar::class)->setPermissionsTeamId($workspace->id);
+            $user->syncRoles([$data['role']]);
+        }
+
+        $application->users()->syncWithoutDetaching([
+            $user->id => ['invitation_pending' => $isNewUser],
+        ]);
 
         AuditLogger::log($application, 'member.access_granted', $user);
+
+        if ($isNewUser) {
+            $token = Password::createToken($user);
+            $user->notify(new ApplicationInvitationNotification($token, $application, $workspace));
+
+            return back()->with('status', "Invitation envoyée à {$user->email}.");
+        }
 
         return back()->with('status', "{$user->email} a désormais accès à cette application.");
     }

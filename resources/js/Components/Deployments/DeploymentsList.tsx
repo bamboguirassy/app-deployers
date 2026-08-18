@@ -204,7 +204,7 @@ export default forwardRef<DeploymentsListHandle, {
                             dataSource={search.items}
                             pagination={false}
                             sticky
-                            scroll={{ y: 560, x: 'max-content' }}
+                            scroll={{ x: 'max-content' }}
                             onRow={(record) => ({
                                 onClick: () => router.visit(getRowHref(record)),
                                 onKeyDown: (e: KeyboardEvent) => {

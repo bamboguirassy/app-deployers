@@ -2,7 +2,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
-import DirectoryBrowserModal from '@/Components/Servers/DirectoryBrowserModal';
+import DirectoryBrowserModal, { AnonCredentials } from '@/Components/Servers/DirectoryBrowserModal';
 import { Server } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -22,11 +22,14 @@ export default function ServerFormModal({
     server,
     open,
     onClose,
+    onServerCreated,
 }: {
     workspaceSlug: string;
     server?: Server;
     open: boolean;
     onClose: () => void;
+    /** Quand fourni, la création utilise axios (pas Inertia) et renvoie le serveur créé. */
+    onServerCreated?: (server: Server) => void;
 }) {
     const { t } = useTranslation('servers');
     const isEditing = !!server;
@@ -46,11 +49,14 @@ export default function ServerFormModal({
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<TestResult | null>(null);
     const [browsingDefaultPath, setBrowsingDefaultPath] = useState(false);
+    const [creatingViaAxios, setCreatingViaAxios] = useState(false);
+    const [createError, setCreateError] = useState<string | null>(null);
 
     useEffect(() => {
         if (open) {
             clearErrors();
             setTestResult(null);
+            setCreateError(null);
             setData({
                 name: server?.name ?? '',
                 host: server?.host ?? '',
@@ -99,6 +105,25 @@ export default function ServerFormModal({
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
+        // Mode "création rapide" depuis le mapping target/env : axios + callback.
+        if (!isEditing && onServerCreated) {
+            setCreatingViaAxios(true);
+            setCreateError(null);
+            axios
+                .post(route('servers.store', workspaceSlug), data)
+                .then((res) => {
+                    reset();
+                    onClose();
+                    onServerCreated(res.data as Server);
+                })
+                .catch((err) => {
+                    const msg = err.response?.data?.message ?? t('form.unexpectedError');
+                    setCreateError(msg);
+                })
+                .finally(() => setCreatingViaAxios(false));
+            return;
+        }
+
         const options = {
             onSuccess: () => {
                 reset();
@@ -117,6 +142,20 @@ export default function ServerFormModal({
         data.host.trim() !== '' &&
         data.username.trim() !== '' &&
         (data.auth_method === 'password' ? data.password.trim() !== '' : data.private_key.trim() !== '');
+
+    // Credentials à passer à l'explorateur en mode création (après test réussi).
+    const anonCredentials: AnonCredentials | null =
+        !isEditing && testResult?.success
+            ? {
+                  host: data.host,
+                  port: data.port,
+                  username: data.username,
+                  auth_method: data.auth_method,
+                  password: data.password || undefined,
+                  private_key: data.private_key || undefined,
+                  passphrase: data.passphrase || undefined,
+              }
+            : null;
 
     return (
         <Modal
@@ -174,27 +213,6 @@ export default function ServerFormModal({
                         onChange={(e) => setData('username', e.target.value)}
                     />
                     <InputError message={errors.username} />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="server-default-path" value={t('form.defaultPathLabel')} />
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        <Input
-                            id="server-default-path"
-                            placeholder="/"
-                            value={data.default_path}
-                            onChange={(e) => setData('default_path', e.target.value)}
-                        />
-                        {isEditing && (
-                            <SecondaryButton htmlType="button" icon={<FolderOpen size={14} />} onClick={() => setBrowsingDefaultPath(true)}>
-                                {t('form.browse')}
-                            </SecondaryButton>
-                        )}
-                    </div>
-                    <InputError message={errors.default_path} />
-                    <p className="section-hint" style={{ marginTop: 4 }}>
-                        {t('form.defaultPathHint')}
-                    </p>
                 </div>
 
                 <div>
@@ -292,24 +310,50 @@ export default function ServerFormModal({
                     />
                 )}
 
+                {/* Champ chemin + browse — toujours visible en édition, visible en
+                    création uniquement après un test de connexion réussi. */}
+                {(isEditing || anonCredentials) && (
+                    <div>
+                        <InputLabel htmlFor="server-default-path" value={t('form.defaultPathLabel')} />
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <Input
+                                id="server-default-path"
+                                placeholder="/"
+                                value={data.default_path}
+                                onChange={(e) => setData('default_path', e.target.value)}
+                            />
+                            <SecondaryButton htmlType="button" icon={<FolderOpen size={14} />} onClick={() => setBrowsingDefaultPath(true)}>
+                                {t('form.browse')}
+                            </SecondaryButton>
+                        </div>
+                        <InputError message={errors.default_path} />
+                        <p className="section-hint" style={{ marginTop: 4 }}>
+                            {t('form.defaultPathHint')}
+                        </p>
+                    </div>
+                )}
+
+                {createError && <Alert type="error" showIcon message={createError} />}
+
                 <div className="form-actions form-actions--end">
                     <SecondaryButton htmlType="button" onClick={onClose}>
                         {t('form.cancel')}
                     </SecondaryButton>
-                    <PrimaryButton disabled={processing}>{isEditing ? t('form.save') : t('form.addServer')}</PrimaryButton>
+                    <PrimaryButton disabled={processing || creatingViaAxios} loading={creatingViaAxios}>
+                        {isEditing ? t('form.save') : t('form.addServer')}
+                    </PrimaryButton>
                 </div>
             </form>
 
-            {isEditing && (
-                <DirectoryBrowserModal
-                    workspaceSlug={workspaceSlug}
-                    server={server ?? null}
-                    initialPath={data.default_path}
-                    open={browsingDefaultPath}
-                    onClose={() => setBrowsingDefaultPath(false)}
-                    onSelect={(path) => setData('default_path', path)}
-                />
-            )}
+            <DirectoryBrowserModal
+                workspaceSlug={workspaceSlug}
+                server={isEditing ? server : null}
+                credentials={!isEditing ? anonCredentials : null}
+                initialPath={data.default_path}
+                open={browsingDefaultPath}
+                onClose={() => setBrowsingDefaultPath(false)}
+                onSelect={(path) => setData('default_path', path)}
+            />
         </Modal>
     );
 }

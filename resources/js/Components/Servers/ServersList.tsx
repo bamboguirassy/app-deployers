@@ -8,7 +8,7 @@ import { Server } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { Card, Empty, Spin, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { KeyRound, Lock, Pencil, PlugZap, Server as ServerIcon, Trash2 } from 'lucide-react';
+import { FolderOpen, KeyRound, Lock, Pencil, PlugZap, Server as ServerIcon, Trash2 } from 'lucide-react';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dateLocale } from '@/lib/i18n';
@@ -73,6 +73,12 @@ export default forwardRef<ServersListHandle, {
                         <small>
                             {server.username}@{server.host}:{server.port}
                         </small>
+                        {server.default_path && server.default_path !== '/' && (
+                            <small style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <FolderOpen size={11} />
+                                {server.default_path}
+                            </small>
+                        )}
                     </span>
                 </span>
             ),

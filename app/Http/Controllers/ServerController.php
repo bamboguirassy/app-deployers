@@ -85,7 +85,7 @@ class ServerController extends Controller
         ]);
     }
 
-    public function store(Request $request, Workspace $workspace): RedirectResponse
+    public function store(Request $request, Workspace $workspace): RedirectResponse|JsonResponse
     {
         $this->authorize('manageServers', $workspace);
 
@@ -98,10 +98,14 @@ class ServerController extends Controller
             throw ValidationException::withMessages(['private_key' => 'La clé privée est requise.']);
         }
 
-        $workspace->servers()->create([
+        $server = $workspace->servers()->create([
             ...$data,
             'created_by' => auth()->id(),
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json($server->fresh());
+        }
 
         return back()->with('status', 'Serveur ajouté.');
     }
@@ -267,6 +271,44 @@ class ServerController extends Controller
 
         try {
             $result = $this->directoryBrowser->listDirectories($server, $data['path'] ?? '/');
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Parcourt le système de fichiers distant avec des credentials bruts (non
+     * enregistrés) — utilisé par le formulaire de création avant que le serveur
+     * ne soit persisté.
+     */
+    public function browseDirectoryAnon(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('manageServers', $workspace);
+
+        $data = $request->validate([
+            'host' => ['required', 'string', 'max:255'],
+            'port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'username' => ['required', 'string', 'max:255'],
+            'auth_method' => ['required', 'in:password,ssh_key'],
+            'password' => ['nullable', 'string'],
+            'private_key' => ['nullable', 'string'],
+            'passphrase' => ['nullable', 'string'],
+            'path' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $result = $this->directoryBrowser->listDirectoriesWithCredentials(
+                $data['host'],
+                $data['port'] ?? 22,
+                $data['username'],
+                $data['auth_method'],
+                $data['password'] ?? null,
+                $data['private_key'] ?? null,
+                $data['passphrase'] ?? null,
+                $data['path'] ?? '/',
+            );
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

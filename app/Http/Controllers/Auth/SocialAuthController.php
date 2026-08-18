@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class SocialAuthController extends Controller
 {
@@ -18,7 +19,12 @@ class SocialAuthController extends Controller
 
     public function handleGoogleCallback(): RedirectResponse
     {
-        $googleUser = Socialite::driver('google')->user();
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException) {
+            return redirect()->route('login')
+                ->withErrors(['email' => 'La session Google a expiré. Veuillez réessayer.']);
+        }
 
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],

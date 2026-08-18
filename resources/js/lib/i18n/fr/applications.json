@@ -162,22 +162,24 @@
         "sortEmail": "Email",
         "sortRole": "Rôle",
         "allShown": "Tous les membres sont affichés.",
-        "emptyResults": "Aucun membre ne correspond à ces critères."
+        "emptyResults": "Aucun membre ne correspond à ces critères.",
+        "invitationPending": "Invitation en attente"
     },
     "membersPanel": {
         "title": "Membres",
         "subtitle": "Accès à l’application et responsabilités de l’équipe",
-        "grantAccess": "Donner accès à un membre",
+        "grantAccess": "Inviter un membre",
         "confirmRemove": {
-            "title": "Retirer l'accès de {{name}} à cette application ?",
+            "title": "Retirer l’accès de {{name}} à cette application ?",
             "okText": "Retirer",
             "cancelText": "Annuler"
         },
-        "modalTitle": "Donner accès à un membre du workspace",
+        "modalTitle": "Inviter un membre",
         "emailLabel": "Email",
         "emailPlaceholder": "collegue@exemple.com",
-        "emailHint": "Doit déjà être membre du workspace. Son rôle (owner, manager, deployer, viewer) est géré depuis la page Utilisateurs du workspace.",
-        "submit": "Donner accès"
+        "roleLabel": "Rôle dans le workspace",
+        "roleHint": "S’applique uniquement aux nouveaux utilisateurs ou à ceux pas encore membres du workspace.",
+        "submit": "Inviter"
     },
     "pipelineSteps": {
         "variableButton": "Variable",
