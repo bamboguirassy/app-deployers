@@ -360,7 +360,7 @@ export default function Show({
                         <Title level={5} style={{ margin: 0 }}>{t('history.title')}</Title>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {billingHistory.map((entry) => (
+                        {billingHistory.map((entry, index) => (
                             <div key={entry.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <Tag color={entry.plan_slug === 'pro' ? 'purple' : 'default'} style={{ margin: 0 }}>
@@ -374,6 +374,9 @@ export default function Show({
                                     <Tag color={entry.status === 'active' ? 'success' : entry.status === 'canceled' ? 'error' : 'warning'} style={{ margin: 0 }}>
                                         {t(`history.status.${entry.status}`, { defaultValue: entry.status })}
                                     </Tag>
+                                    {index === 0 && (
+                                        <Tag color="blue" style={{ margin: 0 }}>{t('history.current')}</Tag>
+                                    )}
                                 </div>
                                 <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
                                     {new Date(entry.created_at).toLocaleDateString(dateLocale(i18n.language), { day: 'numeric', month: 'short', year: 'numeric' })}

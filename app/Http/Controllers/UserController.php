@@ -156,6 +156,7 @@ class UserController extends Controller
             'activity' => $activity,
             'isSelf' => $user->id === auth()->id(),
             'canManage' => auth()->user()->can('manage', $workspace),
+            'hasPassword' => ! is_null($user->password),
         ]);
     }
 

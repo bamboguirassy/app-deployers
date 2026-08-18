@@ -77,6 +77,7 @@
     },
     "history": {
         "title": "Historique d'abonnement",
+        "current": "Actuel",
         "status": {
             "active": "Actif",
             "canceled": "Annulé",
