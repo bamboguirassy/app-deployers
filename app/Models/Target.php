@@ -37,6 +37,11 @@ class Target extends Model
         return $this->belongsTo(Framework::class);
     }
 
+    public function variables(): HasMany
+    {
+        return $this->hasMany(TargetVariable::class)->orderBy('order');
+    }
+
     public function pipelineSteps(): HasMany
     {
         return $this->hasMany(PipelineStep::class)->orderBy('order');

@@ -42,7 +42,7 @@ function EnvironmentCell({
         );
     }
 
-    const hasSecrets = link.variables.some((v) => v.is_secret);
+    const hasSecrets = target.variables.some((v) => v.is_secret && link.variables.some((ev) => ev.target_variable_id === v.id));
 
     return (
         <button type="button" className={`env-cell ${selected ? 'env-cell--selected' : ''}`} onClick={onOpen}>
@@ -354,7 +354,7 @@ function ConfigDrawer({
             {existing && (
                 <>
                     <h4 className="target-workspace__section-title">{t('environmentWorkspace.drawer.variablesSectionTitle')}</h4>
-                    <VariablesEditor application={application} targetEnvironment={existing as TargetEnvironmentLink} canManage={canManage} />
+                    <VariablesEditor application={application} target={target} targetEnvironment={existing as TargetEnvironmentLink} canManage={canManage} />
                 </>
             )}
         </Drawer>

@@ -10,6 +10,28 @@ use Illuminate\Support\Facades\Cache;
 
 class DeploymentService
 {
+    /**
+     * Vérifie que toutes les TargetVariable sans default_value ont une valeur
+     * renseignée pour cet environnement. Lance une exception si ce n'est pas
+     * le cas — on ne veut pas démarrer un déploiement avec des variables vides.
+     */
+    private function assertVariablesComplete(TargetEnvironment $targetEnvironment): void
+    {
+        $definedIds = $targetEnvironment->variables->pluck('target_variable_id')->all();
+
+        $missing = $targetEnvironment->target->variables
+            ->filter(fn ($v) => $v->default_value === null && ! in_array($v->id, $definedIds))
+            ->pluck('key');
+
+        if ($missing->isNotEmpty()) {
+            Cache::forget(self::lockKey($targetEnvironment->id));
+
+            throw new MissingEnvironmentVariablesException(
+                'Variables manquantes pour cet environnement : '.$missing->join(', ').'.'
+            );
+        }
+    }
+
     public static function lockKey(int $targetEnvironmentId): string
     {
         return "deploy:lock:{$targetEnvironmentId}";
@@ -49,7 +71,14 @@ class DeploymentService
             );
         }
 
-        $targetEnvironment->loadMissing('target.pipelineSteps', 'target.application.workspace');
+        $targetEnvironment->loadMissing(
+            'target.pipelineSteps',
+            'target.application.workspace',
+            'target.variables',
+            'variables',
+        );
+
+        $this->assertVariablesComplete($targetEnvironment);
 
         $deployment = Deployment::create([
             'target_environment_id' => $targetEnvironment->id,

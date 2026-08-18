@@ -2,6 +2,7 @@ import CreateTargetModal from '@/Components/Applications/CreateTargetModal';
 import FrameworkSelect from '@/Components/Applications/FrameworkSelect';
 import GitRepositorySection from '@/Components/Applications/GitRepositorySection';
 import PipelineStepsPanel from '@/Components/Applications/PipelineStepsPanel';
+import TargetVariablesPanel from '@/Components/Applications/TargetVariablesPanel';
 import WebhooksPanel from '@/Components/Applications/WebhooksPanel';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -193,6 +194,13 @@ export default function TargetWorkspace({
                                 </div>
                             )}
                         </div>
+
+                        <h4 className="target-workspace__section-title">{t('targetWorkspace.variablesTitle')}</h4>
+                        <TargetVariablesPanel
+                            application={application}
+                            target={selected}
+                            canManage={canManage}
+                        />
 
                         <h4 className="target-workspace__section-title">{t('targetWorkspace.pipelineStepsTitle')}</h4>
                         <PipelineStepsPanel

@@ -20,6 +20,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\TargetController;
 use App\Http\Controllers\TargetEnvironmentController;
+use App\Http\Controllers\TargetVariableController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebhookConfigController;
 use App\Http\Controllers\WebhookReceiverController;
@@ -154,9 +155,12 @@ Route::middleware('auth')->group(function () {
             Route::post('/targets/{target}/environments/{environment}', [TargetEnvironmentController::class, 'store'])->name('target-environments.store');
             Route::patch('/target-environments/{targetEnvironment}', [TargetEnvironmentController::class, 'update'])->name('target-environments.update');
 
-            Route::post('/target-environments/{targetEnvironment}/variables', [EnvironmentVariableController::class, 'store'])->name('environment-variables.store');
-            Route::patch('/variables/{environmentVariable}', [EnvironmentVariableController::class, 'update'])->name('environment-variables.update');
-            Route::delete('/variables/{environmentVariable}', [EnvironmentVariableController::class, 'destroy'])->name('environment-variables.destroy');
+            Route::post('/targets/{target}/variables', [TargetVariableController::class, 'store'])->name('target-variables.store');
+            Route::patch('/target-variables/{targetVariable}', [TargetVariableController::class, 'update'])->name('target-variables.update');
+            Route::delete('/target-variables/{targetVariable}', [TargetVariableController::class, 'destroy'])->name('target-variables.destroy');
+            Route::post('/targets/{target}/variables/reorder', [TargetVariableController::class, 'reorder'])->name('target-variables.reorder');
+
+            Route::post('/target-environments/{targetEnvironment}/variables', [EnvironmentVariableController::class, 'upsert'])->name('environment-variables.upsert');
 
             Route::post('/targets/{target}/webhooks', [WebhookConfigController::class, 'store'])->name('webhook-configs.store');
             Route::post('/webhooks/{webhookConfig}/reveal-secret', [WebhookConfigController::class, 'revealSecret'])->name('webhook-configs.reveal-secret');

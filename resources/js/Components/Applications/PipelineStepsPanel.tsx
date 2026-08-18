@@ -102,6 +102,7 @@ function StepEditorDrawer({
     onSubmit,
     submitting,
     activeMembers,
+    targetVariables,
 }: {
     open: boolean;
     onClose: () => void;
@@ -112,6 +113,7 @@ function StepEditorDrawer({
     ) => void;
     submitting: boolean;
     activeMembers: { id: number; name: string; email: string }[];
+    targetVariables: import('@/types/models').TargetVariable[];
 }) {
     const { t } = useTranslation('applications');
     const [type, setType] = useState<StepType>('command');
@@ -128,6 +130,7 @@ function StepEditorDrawer({
     const labelTouchedRef = useRef(false);
 
     const labelRef = useRef<InputRef>(null);
+    const commandRef = useRef<TextAreaRef>(null);
     const subjectRef = useRef<InputRef>(null);
     const bodyRef = useRef<TextAreaRef>(null);
     const { errors } = usePage<PageProps>().props;
@@ -258,8 +261,43 @@ function StepEditorDrawer({
 
                 {type === 'command' && (
                     <div>
-                        <label className="step-editor__field-label">{t('pipelineSteps.drawer.commandLabel')}</label>
+                        <div className="step-editor__field-header">
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.commandLabel')}</label>
+                            {targetVariables.length > 0 && (
+                                <Dropdown
+                                    trigger={['click']}
+                                    dropdownRender={() => (
+                                        <div className="variable-insert-menu">
+                                            {targetVariables.map((v) => (
+                                                <button
+                                                    key={v.id}
+                                                    type="button"
+                                                    className="variable-insert-menu__item"
+                                                    onClick={() =>
+                                                        setConfig((c) => ({
+                                                            ...c,
+                                                            command: insertAtCursor(
+                                                                commandRef.current?.resizableTextArea?.textArea,
+                                                                (c as CommandStepConfig).command ?? '',
+                                                                `$${v.key}`,
+                                                            ),
+                                                        }))
+                                                    }
+                                                >
+                                                    <code className="step-variable-hint">${v.key}</code>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                >
+                                    <Button size="small" icon={<Variable size={13} />}>
+                                        {t('pipelineSteps.variableButton')}
+                                    </Button>
+                                </Dropdown>
+                            )}
+                        </div>
                         <Input.TextArea
+                            ref={commandRef}
                             className="step-editor__mono"
                             rows={6}
                             value={(config as CommandStepConfig).command ?? ''}
@@ -607,6 +645,7 @@ export default function PipelineStepsPanel({
                 onSubmit={submit}
                 submitting={submitting}
                 activeMembers={activeMembers}
+                targetVariables={target.variables}
             />
         </div>
     );

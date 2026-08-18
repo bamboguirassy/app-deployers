@@ -1304,6 +1304,207 @@
     }
 }
 
+// ── TargetVariablesPanel ─────────────────────────────────────────────────────
+
+.target-var-panel {
+    @include card-surface;
+    overflow: hidden;
+}
+
+.target-var-row {
+    display: grid;
+    grid-template-columns: 24px minmax(100px, 1fr) minmax(120px, 1.5fr) 28px auto;
+    align-items: center;
+    gap: space('3');
+    padding: space('2') space('3');
+    border-bottom: 1px solid theme('color-border');
+
+    &:last-child { border-bottom: none; }
+    &:hover { background-color: theme('color-primary-soft'); }
+}
+
+.target-var-row--header {
+    background: transparent !important;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: theme('color-text-muted');
+}
+
+.target-var-row__drag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: theme('color-text-muted');
+    cursor: grab;
+}
+
+.target-var-row__key {
+    font-family: $font-family-mono;
+    font-size: 12.5px;
+    color: theme('color-text');
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.target-var-row__default {
+    font-family: $font-family-mono;
+    font-size: 12px;
+    color: theme('color-text-muted');
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.target-var-row__no-default {
+    font-family: inherit;
+    font-style: italic;
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+.target-var-row__secret-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: theme('color-text-muted');
+}
+
+.target-var-row__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: $radius-sm;
+        border: none;
+        background: transparent;
+        color: theme('color-text-muted');
+        cursor: pointer;
+
+        &:hover:first-child {
+            background-color: theme('color-primary-soft');
+            color: theme('color-primary');
+        }
+
+        &:hover:last-child {
+            background-color: theme('color-danger');
+            color: white;
+        }
+    }
+}
+
+.target-var-panel__empty {
+    padding: space('4') space('3');
+    font-size: 13px;
+    color: theme('color-text-muted');
+    text-align: center;
+    font-style: italic;
+}
+
+.target-var-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: space('2');
+    padding: space('2') space('3');
+    background-color: theme('color-bg');
+    border-top: 1px solid theme('color-border');
+
+    &__key {
+        flex: 0 0 160px;
+        font-family: $font-family-mono;
+        font-size: 12.5px;
+    }
+
+    &__default {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+// ── VariablesEditor (grille guidée) ──────────────────────────────────────────
+
+.var-row {
+    // La grille passe à 3 colonnes (clé, valeur, type) — plus de colonne actions.
+    grid-template-columns: minmax(100px, 1fr) minmax(140px, 2fr) 28px;
+}
+
+.var-row__key {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    flex-wrap: wrap;
+}
+
+.var-row__default-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: theme('color-primary');
+    background-color: theme('color-primary-soft');
+    border-radius: 999px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+}
+
+.var-row__secret-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: theme('color-text-muted');
+}
+
+.var-table__empty {
+    padding: space('4') space('3');
+    font-size: 13px;
+    color: theme('color-text-muted');
+    text-align: center;
+    font-style: italic;
+}
+
+.var-table__footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: space('2') space('3');
+    border-top: 1px solid theme('color-border');
+    background-color: theme('color-bg');
+}
+
+// ── pipeline-add-btn (partagé avec TargetVariablesPanel) ─────────────────────
+
+.pipeline-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: space('3');
+    border: none;
+    border-top: 1px dashed theme('color-border');
+    background: transparent;
+    color: theme('color-primary');
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background-color: theme('color-primary-soft');
+    }
+}
+
 .run-deploy-btn {
     display: inline-flex;
     align-items: center;

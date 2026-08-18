@@ -11,7 +11,7 @@ class EnvironmentVariable extends Model
 {
     use BelongsToWorkspace;
 
-    protected $fillable = ['target_environment_id', 'key', 'value', 'is_secret'];
+    protected $fillable = ['target_environment_id', 'target_variable_id', 'value'];
 
     protected static function booted(): void
     {
@@ -29,13 +29,17 @@ class EnvironmentVariable extends Model
     {
         return [
             'value' => 'encrypted',
-            'is_secret' => 'boolean',
         ];
     }
 
     public function targetEnvironment(): BelongsTo
     {
         return $this->belongsTo(TargetEnvironment::class);
+    }
+
+    public function targetVariable(): BelongsTo
+    {
+        return $this->belongsTo(TargetVariable::class);
     }
 
     public function resolveWorkspaceId(): ?int

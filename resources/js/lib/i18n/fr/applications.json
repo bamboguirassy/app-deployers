@@ -278,6 +278,7 @@
         "customStack": "Stack personnalisée",
         "edit": "Modifier",
         "delete": "Supprimer",
+        "variablesTitle": "Variables d'environnement",
         "pipelineStepsTitle": "Étapes du pipeline",
         "webhookIntegrationTitle": "Intégration webhook",
         "repositoryLabel": "Dépôt git (optionnel)"
@@ -307,18 +308,48 @@
             "cancelText": "Annuler"
         }
     },
-    "variablesEditor": {
-        "hideValueTooltip": "Masquer la valeur dans l'interface et les journaux de déploiement",
-        "deleteVariableTooltip": "Supprimer la variable",
-        "deleteVariableAriaLabel": "Supprimer la variable",
-        "newKeyPlaceholder": "Nouvelle clé",
-        "newValuePlaceholder": "Nouvelle valeur",
+    "targetVariables": {
+        "keyPlaceholder": "NOM_VARIABLE",
+        "defaultValuePlaceholder": "Valeur par défaut (optionnelle)",
+        "secretTooltip": "Masquer la valeur",
+        "save": "Enregistrer",
+        "add": "Ajouter",
+        "cancel": "Annuler",
         "addVariable": "Ajouter une variable",
+        "noDefault": "Aucune valeur par défaut",
+        "secret": "Valeur masquée",
+        "visible": "Valeur visible",
+        "dragAriaLabel": "Réordonner",
+        "editTooltip": "Modifier",
+        "editAriaLabel": "Modifier la variable",
+        "deleteTooltip": "Supprimer",
+        "deleteAriaLabel": "Supprimer la variable",
+        "emptyDescription": "Aucune variable définie. Ajoutez une variable pour l'utiliser dans vos commandes via $NOM_VARIABLE.",
+        "confirmDelete": {
+            "title": "Supprimer la variable \"{{key}}\" ?",
+            "content": "Les valeurs renseignées pour chaque environnement seront également supprimées.",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        },
+        "columns": {
+            "key": "Clé",
+            "defaultValue": "Valeur par défaut",
+            "secret": "Secret"
+        }
+    },
+    "variablesEditor": {
+        "noVariablesDefined": "Aucune variable définie sur ce target. Ajoutez-en depuis l'onglet \"Variables d'environnement\" du target.",
+        "hasDefaultTooltip": "Une valeur par défaut est définie — ce champ est optionnel",
+        "defaultBadge": "défaut",
+        "defaultPlaceholder": "Valeur par défaut utilisée si vide",
+        "requiredPlaceholder": "Valeur requise",
+        "secretValue": "Valeur masquée",
+        "visibleValue": "Valeur visible",
+        "save": "Enregistrer les variables",
         "columns": {
             "key": "Clé",
             "value": "Valeur",
-            "secret": "Secret",
-            "actions": "Actions"
+            "secret": "Type"
         }
     },
     "webhooksPanel": {

@@ -26,13 +26,22 @@ export type PipelineStep =
     | (PipelineStepBase & { type: 'command'; config: CommandStepConfig })
     | (PipelineStepBase & { type: 'email'; config: EmailStepConfig });
 
+export interface TargetVariable {
+    id: number;
+    uuid: string;
+    target_id: number;
+    key: string;
+    default_value: string | null;
+    is_secret: boolean;
+    order: number;
+}
+
 export interface EnvironmentVariable {
     id: number;
     uuid: string;
     target_environment_id: number;
-    key: string;
+    target_variable_id: number;
     value: string;
-    is_secret: boolean;
 }
 
 export interface TargetEnvironmentLink {
@@ -88,6 +97,7 @@ export interface Target {
     order: number;
     repository: string | null;
     repository_provider: 'github' | 'gitlab' | 'bitbucket' | null;
+    variables: TargetVariable[];
     pipeline_steps: PipelineStep[];
     target_environments: TargetEnvironmentLink[];
     webhook_configs: WebhookConfig[];

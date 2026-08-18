@@ -11,6 +11,7 @@ use App\Models\TargetEnvironment;
 use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentService;
+use App\Services\MissingEnvironmentVariablesException;
 use App\Services\TargetEnvironmentMissingServerException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -187,7 +188,7 @@ class DeploymentController extends Controller
                 source: 'manual',
                 user: auth()->user(),
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException $e) {
             return back()->with('error', $e->getMessage());
         }
 
@@ -228,7 +229,7 @@ class DeploymentController extends Controller
                 $triggered++;
             } catch (DeploymentAlreadyRunningException) {
                 $skipped[] = $targetEnvironment->target->name;
-            } catch (TargetEnvironmentMissingServerException) {
+            } catch (TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException) {
                 $missingServer[] = $targetEnvironment->target->name;
             }
         }
@@ -296,7 +297,7 @@ class DeploymentController extends Controller
                 commitSha: $deployment->commit_sha,
                 branch: $deployment->branch,
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException $e) {
             return back()->with('error', $e->getMessage());
         }
 
@@ -328,7 +329,7 @@ class DeploymentController extends Controller
                 commitSha: $deployment->commit_sha,
                 branch: $deployment->branch,
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException $e) {
             return back()->with('error', $e->getMessage());
         }
 

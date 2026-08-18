@@ -276,6 +276,7 @@
         "customStack": "Custom stack",
         "edit": "Edit",
         "delete": "Delete",
+        "variablesTitle": "Environment variables",
         "pipelineStepsTitle": "Pipeline steps",
         "webhookIntegrationTitle": "Webhook integration",
         "repositoryLabel": "Git repository (optional)"
@@ -305,18 +306,48 @@
             "cancelText": "Cancel"
         }
     },
-    "variablesEditor": {
-        "hideValueTooltip": "Hide the value in the UI and deployment logs",
-        "deleteVariableTooltip": "Delete variable",
-        "deleteVariableAriaLabel": "Delete variable",
-        "newKeyPlaceholder": "New key",
-        "newValuePlaceholder": "New value",
+    "targetVariables": {
+        "keyPlaceholder": "VARIABLE_NAME",
+        "defaultValuePlaceholder": "Default value (optional)",
+        "secretTooltip": "Hide value",
+        "save": "Save",
+        "add": "Add",
+        "cancel": "Cancel",
         "addVariable": "Add variable",
+        "noDefault": "No default value",
+        "secret": "Hidden value",
+        "visible": "Visible value",
+        "dragAriaLabel": "Reorder",
+        "editTooltip": "Edit",
+        "editAriaLabel": "Edit variable",
+        "deleteTooltip": "Delete",
+        "deleteAriaLabel": "Delete variable",
+        "emptyDescription": "No variables defined. Add a variable to use it in your commands via $VARIABLE_NAME.",
+        "confirmDelete": {
+            "title": "Delete variable \"{{key}}\"?",
+            "content": "Values set for each environment will also be deleted.",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        },
+        "columns": {
+            "key": "Key",
+            "defaultValue": "Default value",
+            "secret": "Secret"
+        }
+    },
+    "variablesEditor": {
+        "noVariablesDefined": "No variables defined on this target. Add one from the \"Environment variables\" section of the target.",
+        "hasDefaultTooltip": "A default value is defined — this field is optional",
+        "defaultBadge": "default",
+        "defaultPlaceholder": "Default value used if empty",
+        "requiredPlaceholder": "Required value",
+        "secretValue": "Hidden value",
+        "visibleValue": "Visible value",
+        "save": "Save variables",
         "columns": {
             "key": "Key",
             "value": "Value",
-            "secret": "Secret",
-            "actions": "Actions"
+            "secret": "Type"
         }
     },
     "webhooksPanel": {

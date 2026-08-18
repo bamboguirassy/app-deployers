@@ -47,8 +47,9 @@ class RunDeploymentJob implements ShouldQueue
         $deployment = Deployment::with([
             'steps',
             'targetEnvironment.target.application.workspace',
+            'targetEnvironment.target.variables',
             'targetEnvironment.environment',
-            'targetEnvironment.variables',
+            'targetEnvironment.variables.targetVariable',
             'targetEnvironment.server',
         ])->find($this->deploymentId);
 
@@ -87,7 +88,7 @@ class RunDeploymentJob implements ShouldQueue
             $deployment->update(['status' => 'running', 'started_at' => now()]);
             broadcast(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
 
-            $env = $targetEnvironment->variables->pluck('value', 'key')->all();
+            $env = $this->buildEnv($targetEnvironment);
 
             // Une seule connexion SSH ouverte pour tout le déploiement (pas une par
             // étape) : on évite de payer la poignée de main SSH à chaque commande.
@@ -162,6 +163,24 @@ class RunDeploymentJob implements ShouldQueue
             $quotaGuard->releaseDeploymentSlot($workspace);
             $ssh?->disconnect();
         }
+    }
+
+    /**
+     * Construit le tableau de variables d'environnement pour ce déploiement.
+     * Pour chaque TargetVariable du target : valeur de l'env si définie,
+     * sinon default_value du TargetVariable (null → variable absente du tableau).
+     */
+    private function buildEnv(TargetEnvironment $targetEnvironment): array
+    {
+        $envValues = $targetEnvironment->variables->keyBy('target_variable_id');
+
+        return $targetEnvironment->target->variables
+            ->mapWithKeys(function ($var) use ($envValues) {
+                $value = $envValues->get($var->id)?->value ?? $var->default_value;
+
+                return $value !== null ? [$var->key => $value] : [];
+            })
+            ->all();
     }
 
     /**
