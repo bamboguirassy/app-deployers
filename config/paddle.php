@@ -23,4 +23,7 @@ return [
     // pour se protéger d'une attaque par replay tout en laissant une marge
     // raisonnable au délai de livraison du webhook.
     'signature_tolerance_seconds' => (int) env('PADDLE_SIGNATURE_TOLERANCE_SECONDS', 300),
+
+    'pro_price_id_monthly' => env('PADDLE_PRO_PRICE_ID_MONTHLY'),
+    'pro_price_id_yearly' => env('PADDLE_PRO_PRICE_ID_YEARLY'),
 ];

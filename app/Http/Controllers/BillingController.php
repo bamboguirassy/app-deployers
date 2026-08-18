@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use App\Models\SubscriptionHistory;
 use App\Models\Workspace;
 use App\Services\PaddleClient;
 use Illuminate\Http\JsonResponse;
@@ -45,6 +46,23 @@ class BillingController extends Controller
                 'grace_period_ends_at' => $subscription->grace_period_ends_at,
                 'renews_at' => $subscription->renews_at,
             ] : null,
+            'billingHistory' => $subscription
+                ? SubscriptionHistory::query()
+                    ->where('workspace_id', $workspace->id)
+                    ->with('plan:id,name,slug')
+                    ->latest()
+                    ->limit(10)
+                    ->get(['id', 'plan_id', 'status', 'interval', 'source', 'created_at'])
+                    ->map(fn ($h) => [
+                        'id' => $h->id,
+                        'plan_name' => $h->plan?->name,
+                        'plan_slug' => $h->plan?->slug,
+                        'status' => $h->status,
+                        'interval' => $h->interval,
+                        'source' => $h->source,
+                        'created_at' => $h->created_at,
+                    ])
+                : [],
             'freePlan' => [
                 'slug' => $freePlan->slug,
                 'name' => $freePlan->name,

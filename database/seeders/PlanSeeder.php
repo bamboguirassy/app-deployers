@@ -26,8 +26,8 @@ class PlanSeeder extends Seeder
     {
         foreach (self::PLANS as $plan) {
             if ($plan['slug'] === 'pro') {
-                $plan['paddle_price_id_monthly'] = env('PADDLE_PRO_PRICE_ID_MONTHLY');
-                $plan['paddle_price_id_yearly'] = env('PADDLE_PRO_PRICE_ID_YEARLY');
+                $plan['paddle_price_id_monthly'] = config('paddle.pro_price_id_monthly');
+                $plan['paddle_price_id_yearly'] = config('paddle.pro_price_id_yearly');
             }
 
             Plan::query()->updateOrCreate(['slug' => $plan['slug']], $plan);

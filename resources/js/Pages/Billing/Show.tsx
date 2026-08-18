@@ -1,9 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_MONTHLY_EQUIVALENT_EUR, PRO_YEARLY_PRICE_EUR, PRO_YEARLY_SAVINGS_EUR } from '@/constants/pricing';
 import { PageProps } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Alert, Button, Segmented, Tooltip, Typography, message } from 'antd';
-import { Check, Rocket, Sparkles } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Alert, Button, Segmented, Tag, Tooltip, Typography, message } from 'antd';
+import { Check, CalendarClock, History, Rocket, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ declare global {
     interface Window {
         Paddle?: {
             Environment: { set: (env: 'sandbox' | 'production') => void };
-            Initialize: (options: { token: string }) => void;
+            Initialize: (options: { token: string; eventCallback?: (event: { name: string }) => void }) => void;
             Checkout: { open: (options: { transactionId: string }) => void };
         };
     }
@@ -52,7 +52,8 @@ export default function Show({
     proPlan,
     can,
     paddle,
-}: {
+    billingHistory,
+}: PageProps & {
     plan: BillingPlan;
     usage: { applications: number; workspaces: number };
     subscription: BillingSubscription | null;
@@ -60,6 +61,15 @@ export default function Show({
     proPlan: ProPlan | null;
     can: { manageBilling: boolean };
     paddle: { client_token: string | null; sandbox: boolean };
+    billingHistory: Array<{
+        id: number;
+        plan_name: string | null;
+        plan_slug: string | null;
+        status: string;
+        interval: string | null;
+        source: string;
+        created_at: string;
+    }>;
 }) {
     const { t, i18n } = useTranslation('billing');
     const { workspace } = usePage<PageProps>().props;
@@ -83,7 +93,14 @@ export default function Show({
             if (paddle.sandbox) {
                 window.Paddle?.Environment.set('sandbox');
             }
-            window.Paddle?.Initialize({ token: paddle.client_token! });
+            window.Paddle?.Initialize({
+                token: paddle.client_token!,
+                eventCallback: (event) => {
+                    if (event.name === 'checkout.completed') {
+                        setTimeout(() => router.reload({ only: ['plan', 'subscription', 'usage'] }), 2000);
+                    }
+                },
+            });
             paddleReady.current = true;
         };
 
@@ -287,16 +304,7 @@ export default function Show({
                                 {subscription?.is_comped ? (
                                     t('plans.pro.compedButton')
                                 ) : (
-                                    <>
-                                        {t('plans.pro.currentButton')}
-                                        {subscription?.renews_at && subscription.status === 'active' && (
-                                            <>
-                                                {t('plans.pro.renewsAt', {
-                                                    date: new Date(subscription.renews_at).toLocaleDateString(dateLocale(i18n.language)),
-                                                })}
-                                            </>
-                                        )}
-                                    </>
+                                    t('plans.pro.currentButton')
                                 )}
                             </Button>
                         )}
@@ -329,6 +337,52 @@ export default function Show({
                     </div>
                 </div>
             </div>
+
+            {subscription && subscription.status === 'active' && !subscription.is_comped && subscription.renews_at && (
+                <div className="billing-usage-card" style={{ marginTop: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <CalendarClock size={16} />
+                        <Title level={5} style={{ margin: 0 }}>{t('nextBilling.title')}</Title>
+                    </div>
+                    <Text>
+                        {t('nextBilling.description', {
+                            date: new Date(subscription.renews_at).toLocaleDateString(dateLocale(i18n.language), { day: 'numeric', month: 'long', year: 'numeric' }),
+                            interval: t(`interval.${subscription.interval ?? 'monthly'}Label`),
+                        })}
+                    </Text>
+                </div>
+            )}
+
+            {billingHistory.length > 0 && (
+                <div className="billing-usage-card" style={{ marginTop: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <History size={16} />
+                        <Title level={5} style={{ margin: 0 }}>{t('history.title')}</Title>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {billingHistory.map((entry) => (
+                            <div key={entry.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Tag color={entry.plan_slug === 'pro' ? 'purple' : 'default'} style={{ margin: 0 }}>
+                                        {entry.plan_name ?? '—'}
+                                    </Tag>
+                                    {entry.interval && (
+                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                            {t(`interval.${entry.interval}Label`)}
+                                        </Text>
+                                    )}
+                                    <Tag color={entry.status === 'active' ? 'success' : entry.status === 'canceled' ? 'error' : 'warning'} style={{ margin: 0 }}>
+                                        {t(`history.status.${entry.status}`, { defaultValue: entry.status })}
+                                    </Tag>
+                                </div>
+                                <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                                    {new Date(entry.created_at).toLocaleDateString(dateLocale(i18n.language), { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </Text>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <Paragraph type="secondary" style={{ marginTop: 24, fontSize: 12 }}>
                 {t('footer.prefix')}

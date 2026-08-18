@@ -71,6 +71,18 @@
         "deploymentsAllowed": "Allowed concurrent deployments",
         "unlimited": "Unlimited"
     },
+    "nextBilling": {
+        "title": "Next billing date",
+        "description": "Your {{interval}} subscription will renew on {{date}}."
+    },
+    "history": {
+        "title": "Subscription history",
+        "status": {
+            "active": "Active",
+            "canceled": "Canceled",
+            "past_due": "Payment overdue"
+        }
+    },
     "footer": {
         "prefix": "Upgrading to a paid plan is billed by our partner Paddle. By subscribing, you agree to our ",
         "termsLink": "terms of service",

@@ -105,6 +105,10 @@ you rediscover one of those, it's a regression, not a known gap — worth flaggi
 - `trigger_source: scheduled` exists on `Deployment` and is handled by `DeploymentContextBuilder`,
   but nothing actually schedules a deployment yet (no cron/UI wired up) — the value is
   future-proofing, not a working feature.
+- **Déploiement via VPN** — fonctionnalité planifiée : permettre de cibler des serveurs sur un
+  réseau privé via un tunnel VPN (WireGuard ou OpenVPN), sans exposer le serveur cible sur
+  l'internet public. Rien n'est encore implémenté côté modèle ou pipeline — c'est une intention
+  produit, pas du code existant.
 - Webhook receiver dedupe (`WebhookReceiverController::handle()`) keys on the provider's
   delivery-id header when available (`X-GitHub-Delivery`, `X-Gitlab-Event-UUID`,
   `X-Request-UUID` for Bitbucket) with a 24h TTL — falls back to `branch:commit_sha` when the

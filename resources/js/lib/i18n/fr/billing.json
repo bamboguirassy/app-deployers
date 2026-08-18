@@ -71,6 +71,18 @@
         "deploymentsAllowed": "Déploiements simultanés autorisés",
         "unlimited": "Illimité"
     },
+    "nextBilling": {
+        "title": "Prochaine facturation",
+        "description": "Votre abonnement ({{interval}}) sera renouvelé le {{date}}."
+    },
+    "history": {
+        "title": "Historique d'abonnement",
+        "status": {
+            "active": "Actif",
+            "canceled": "Annulé",
+            "past_due": "Paiement en attente"
+        }
+    },
     "footer": {
         "prefix": "Le passage à un plan payant est facturé par notre partenaire Paddle. En souscrivant, vous acceptez nos ",
         "termsLink": "conditions d'utilisation",
