@@ -36,7 +36,7 @@ interface AdminDeploymentRow extends Deployment {
 
 /**
  * Monitoring cross-workspace pour le super-admin : en-tête de tableau fixe
- * (antd `sticky` + `scroll.y`) et infinite scroll via useListSearch, à la
+ * (thead sticky via CSS natif) et infinite scroll via useListSearch, à la
  * même convention que WorkspacesList.tsx / Admin/Users/List.tsx. Chaque ligne
  * ouvre la vue lecture-seule /admin/deployments/{deployment} (jamais la page
  * workspace-scopée, pour ne pas dépendre de l'appartenance du super-admin au
@@ -213,7 +213,6 @@ export default function DeploymentsMonitor({
                             rowKey="id"
                             dataSource={search.items}
                             pagination={false}
-                            sticky
                             scroll={{ y: 560, x: true }}
                             onRow={(record) => ({
                                 onClick: () => router.visit(getRowHref(record)),

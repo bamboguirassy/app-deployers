@@ -203,7 +203,6 @@ export default forwardRef<DeploymentsListHandle, {
                             rowKey="id"
                             dataSource={search.items}
                             pagination={false}
-                            sticky
                             scroll={{ x: 'max-content' }}
                             onRow={(record) => ({
                                 onClick: () => router.visit(getRowHref(record)),

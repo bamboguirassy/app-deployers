@@ -394,6 +394,13 @@
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
+    // Sticky natif CSS — s'ancre sur le premier ancêtre scrollable
+    // (app-shell__content / admin-shell__content, overflow-y: auto),
+    // contrairement au sticky JS d'Ant Design qui écoute window et se
+    // désynchronise quand le lazy load allonge le tableau dynamiquement.
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .premium-table .ant-table-tbody > tr > td {
