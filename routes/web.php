@@ -250,8 +250,8 @@ Route::get('/sitemap.xml', function () {
             'x-default' => route($pair['en']),
         ];
 
-        $urls[] = ['loc' => $alternates['en'], 'lastmod' => '2026-08-15', 'changefreq' => $pair['changefreq'], 'priority' => $pair['priority'], 'alternates' => $alternates];
-        $urls[] = ['loc' => $alternates['fr'], 'lastmod' => '2026-08-15', 'changefreq' => $pair['changefreq'], 'priority' => $pair['priority'], 'alternates' => $alternates];
+        $urls[] = ['loc' => $alternates['en'], 'changefreq' => $pair['changefreq'], 'priority' => $pair['priority'], 'alternates' => $alternates];
+        $urls[] = ['loc' => $alternates['fr'], 'changefreq' => $pair['changefreq'], 'priority' => $pair['priority'], 'alternates' => $alternates];
     }
 
     return response()

@@ -833,3 +833,288 @@
     justify-content: center;
     margin-top: space('6');
 }
+
+// ─── Catalog section ────────────────────────────────────────────────
+
+.landing-catalog-wrap {
+    background-color: theme('color-surface-raised');
+    border-top: 1px solid theme('color-border');
+    border-bottom: 1px solid theme('color-border');
+}
+
+.landing-catalog-features {
+    margin-top: space('5');
+}
+
+// Card (the interactive mockup)
+.catalog-card {
+    @include card-surface;
+    overflow: hidden;
+    box-shadow: theme('shadow-card'), 0 24px 48px -16px rgba(16, 24, 40, 0.14);
+    margin-bottom: space('6');
+
+    &__chrome {
+        display: flex;
+        align-items: center;
+        gap: space('2');
+        padding: space('3') space('4');
+        background-color: theme('color-bg');
+        border-bottom: 1px solid theme('color-border');
+
+        &-dots {
+            display: flex;
+            gap: space('2');
+        }
+
+        &-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+
+            &:nth-child(1) { background-color: #fc5c65; }
+            &:nth-child(2) { background-color: #fed330; }
+            &:nth-child(3) { background-color: #26de81; }
+        }
+
+        &-url {
+            margin-left: space('2');
+            font-size: 11.5px;
+            font-family: $font-family-mono;
+            color: theme('color-text-muted');
+            opacity: .8;
+
+            strong {
+                color: theme('color-text');
+                font-weight: 500;
+            }
+        }
+    }
+
+    &__app-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: space('3');
+        padding: space('4') space('5');
+        border-bottom: 1px solid theme('color-border');
+    }
+
+    &__app-identity {
+        display: flex;
+        align-items: center;
+        gap: space('3');
+    }
+
+    &__app-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: $radius-md;
+        background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 14px;
+        letter-spacing: -0.02em;
+        flex-shrink: 0;
+        user-select: none;
+    }
+
+    &__app-name {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    &__app-slug {
+        font-size: 11.5px;
+        font-family: $font-family-mono;
+        color: theme('color-text-muted');
+        margin-top: 2px;
+    }
+
+    &__app-meta {
+        display: flex;
+        align-items: center;
+        gap: space('5');
+
+        @include respond-below('sm') {
+            display: none;
+        }
+    }
+
+    &__meta-item {
+        display: flex;
+        align-items: center;
+        gap: space('1');
+        font-size: 12.5px;
+        color: theme('color-text-muted');
+
+        svg { opacity: .5; flex-shrink: 0; }
+    }
+}
+
+// Individual target rows inside the card
+.catalog-target {
+    border-top: 1px solid theme('color-border');
+    padding: space('4') space('5') space('3');
+
+    &__head {
+        display: flex;
+        align-items: center;
+        gap: space('2');
+        margin-bottom: space('3');
+        flex-wrap: wrap;
+    }
+
+    &__fw-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: $radius-sm;
+        overflow: hidden;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__fw-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: theme('color-text-muted');
+    }
+
+    &__sep {
+        color: theme('color-border-strong');
+        user-select: none;
+    }
+
+    &__name {
+        font-size: 15px;
+        font-weight: 700;
+        color: theme('color-text');
+    }
+
+    &__repo {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: space('1');
+        padding: space('1') space('3');
+        border-radius: $radius-sm;
+        border: 1px solid theme('color-border');
+        background: theme('color-bg');
+        font-size: 11.5px;
+        font-family: $font-family-mono;
+        color: theme('color-text-muted');
+        white-space: nowrap;
+
+        svg { opacity: .6; flex-shrink: 0; }
+
+        @include respond-below('sm') {
+            display: none;
+        }
+    }
+
+    &__envs {
+        display: flex;
+        flex-direction: column;
+        gap: space('1');
+        padding-left: space('7');
+
+        @include respond-below('sm') {
+            padding-left: 0;
+        }
+    }
+}
+
+// Individual environment rows
+.catalog-env {
+    display: grid;
+    grid-template-columns: 72px 108px 1fr auto;
+    align-items: center;
+    padding: space('2') space('3');
+    border-radius: $radius-sm;
+    background: theme('color-bg');
+    border-left: 2.5px solid transparent;
+
+    @include respond-below('md') {
+        grid-template-columns: 64px 1fr auto;
+    }
+
+    &--ok   { border-left-color: theme('color-success'); }
+    &--run  { border-left-color: theme('color-info'); }
+    &--fail { border-left-color: theme('color-danger'); }
+
+    &__label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: theme('color-text-muted');
+    }
+
+    &__branch {
+        display: inline-flex;
+        align-items: center;
+        gap: space('1');
+        font-size: 11.5px;
+        font-family: $font-family-mono;
+        color: theme('color-text-muted');
+
+        svg { opacity: .45; flex-shrink: 0; }
+
+        @include respond-below('md') {
+            display: none;
+        }
+    }
+
+    &__url {
+        font-size: 12.5px;
+        font-family: $font-family-mono;
+        color: theme('color-primary');
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__status {
+        display: inline-flex;
+        align-items: center;
+        gap: space('1');
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 3px space('2');
+        border-radius: 999px;
+        white-space: nowrap;
+
+        &-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
+        &--ok {
+            color: theme('color-success');
+            background-color: rgba(22, 163, 74, 0.10);
+        }
+
+        &--run {
+            color: theme('color-info');
+            background-color: rgba(14, 165, 233, 0.10);
+
+            .catalog-env__status-dot {
+                animation: landing-pulse 1.2s ease infinite;
+            }
+        }
+
+        &--fail {
+            color: theme('color-danger');
+            background-color: rgba(220, 38, 38, 0.10);
+        }
+    }
+}

@@ -1,3 +1,4 @@
+import CatalogSection from '@/Components/Welcome/CatalogSection';
 import MarketingLayout from '@/Layouts/MarketingLayout';
 import { Link } from '@inertiajs/react';
 import { Button } from 'antd';
@@ -140,6 +141,8 @@ export default function Welcome() {
                     </div>
                 </div>
             </section>
+
+            <CatalogSection locale="en" />
 
             <section className="landing-section">
                 <div className="landing-section__header">

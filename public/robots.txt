@@ -216,4 +216,4 @@ Allow: /securite
 Allow: /logos/
 Disallow: /
 
-Sitemap: /sitemap.xml
+Sitemap: https://app-deployer.dev/sitemap.xml
