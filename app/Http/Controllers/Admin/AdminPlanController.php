@@ -28,6 +28,7 @@ class AdminPlanController extends Controller
                 'name' => $plan->name,
                 'max_applications' => $plan->max_applications,
                 'max_concurrent_deployments' => $plan->max_concurrent_deployments,
+                'max_workspaces' => $plan->max_workspaces,
                 'workspaces_count' => $usage[$plan->id]['workspaces_count'] ?? 0,
                 'max_applications_in_use' => $usage[$plan->id]['max_applications_in_use'] ?? 0,
             ])->values(),
@@ -95,16 +96,17 @@ class AdminPlanController extends Controller
         $data = $request->validate([
             'max_applications' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'max_concurrent_deployments' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'max_workspaces' => ['sometimes', 'nullable', 'integer', 'min:1'],
         ]);
 
-        $before = $plan->only(['max_applications', 'max_concurrent_deployments']);
+        $before = $plan->only(['max_applications', 'max_concurrent_deployments', 'max_workspaces']);
 
         $plan->fill($data);
         $plan->save();
 
         PlatformAuditLogger::log('plan.update', $plan, [
             'before' => $before,
-            'after' => $plan->only(['max_applications', 'max_concurrent_deployments']),
+            'after' => $plan->only(['max_applications', 'max_concurrent_deployments', 'max_workspaces']),
         ]);
 
         return back()->with('status', "Les limites du plan {$plan->name} ont été mises à jour.");

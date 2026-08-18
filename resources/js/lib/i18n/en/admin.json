@@ -1,335 +1,339 @@
 {
-    "layout": {
-        "nav": {
-            "dashboard": "Dashboard",
-            "workspaces": "Workspaces",
-            "users": "Users",
-            "plans": "Plans",
-            "deployments": "Deployments"
-        },
-        "brand": "Administration",
-        "superAdminBadge": "Super Admin",
-        "backToApp": "Back to application",
-        "logout": "Log out",
-        "openMenu": "Open menu",
-        "breadcrumbFallback": "Administration"
+  "layout": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "workspaces": "Workspaces",
+      "users": "Users",
+      "plans": "Plans",
+      "deployments": "Deployments",
+      "horizon": "Queue monitor"
     },
-    "dashboard": {
-        "title": "Administration — Dashboard",
-        "eyebrow": "Platform",
-        "heading": "Super-admin dashboard",
-        "subtitle": "Overview of all workspaces, subscriptions, and deployments across the platform.",
-        "kpiTitle": "Platform metrics",
-        "kpiSubtitle": "Aggregated figures across all workspaces",
-        "kpis": {
-            "totalWorkspaces": "Workspaces",
-            "activeWorkspaces": "Active / with subscription",
-            "deployments24h": "Deployments (24h)",
-            "failedDeployments24h": "Failures (24h)",
-            "failedJobs": "Failed jobs"
-        },
-        "planDistribution": {
-            "cardTitle": "Breakdown by plan",
-            "planColumn": "Plan",
-            "workspacesColumn": "Workspaces",
-            "empty": "No subscription data"
-        },
-        "topWorkspaces": {
-            "cardTitle": "Top 5 workspaces (deployments)",
-            "workspaceColumn": "Workspace",
-            "deploymentsColumn": "Deployments",
-            "empty": "No deployments recorded"
-        },
-        "failedJobsWarning": "{{count}} job(s) failed in the queue — check Horizon."
+    "brand": "Administration",
+    "superAdminBadge": "Super Admin",
+    "backToApp": "Back to application",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "breadcrumbFallback": "Administration"
+  },
+  "dashboard": {
+    "title": "Administration — Dashboard",
+    "eyebrow": "Platform",
+    "heading": "Super-admin dashboard",
+    "subtitle": "Overview of all workspaces, subscriptions, and deployments across the platform.",
+    "kpiTitle": "Platform metrics",
+    "kpiSubtitle": "Aggregated figures across all workspaces",
+    "kpis": {
+      "totalWorkspaces": "Workspaces",
+      "activeWorkspaces": "Active / with subscription",
+      "deployments24h": "Deployments (24h)",
+      "failedDeployments24h": "Failures (24h)",
+      "failedJobs": "Failed jobs"
     },
-    "plans": {
-        "title": "Administration — Plans",
-        "eyebrow": "Limits & quotas",
-        "heading": "Plans",
-        "subtitle": "Edit quota limits per plan. Plan creation/deletion and Paddle pricing are not managed here.",
-        "usageSummary": "{{workspacesCount}} workspace(s) on this plan · current peak usage observed: {{maxApplicationsInUse}} application(s)",
-        "maxApplicationsLabel": "Max number of applications",
-        "maxConcurrentDeploymentsLabel": "Max concurrent deployments",
-        "unlimited": "Unlimited",
-        "save": "Save",
-        "confirmLowerLimit": {
-            "title": "Limit below current usage",
-            "content": "This limit is lower than the current usage of at least one workspace on this plan — affected workspaces won't be able to create new applications until they fall back below the limit, but nothing will be deleted automatically. Continue?",
-            "okText": "Continue",
-            "cancelText": "Cancel"
-        }
+    "planDistribution": {
+      "cardTitle": "Breakdown by plan",
+      "planColumn": "Plan",
+      "workspacesColumn": "Workspaces",
+      "empty": "No subscription data"
     },
-    "workspacesList": {
-        "title": "Administration — Workspaces",
-        "eyebrow": "Platform",
-        "heading": "Workspaces",
-        "subtitle": "View and manage all workspaces created on the platform."
+    "topWorkspaces": {
+      "cardTitle": "Top 5 workspaces (deployments)",
+      "workspaceColumn": "Workspace",
+      "deploymentsColumn": "Deployments",
+      "empty": "No deployments recorded"
     },
-    "workspacesShow": {
-        "title": "Administration — {{name}}",
-        "eyebrow": "Workspace",
-        "createdAt": "{{slug}} — created {{date}}",
-        "owner_one": "Owner:",
-        "owner_other": "Owners:",
-        "noOwner": "No owner",
-        "reactivateWorkspace": "Reactivate workspace",
-        "suspendWorkspace": "Suspend workspace",
-        "deleteWorkspace": "Delete workspace",
-        "confirmReactivate": {
-            "title": "Reactivate workspace \"{{name}}\"?",
-            "okText": "Reactivate",
-            "cancelText": "Cancel"
-        },
-        "confirmSuspend": {
-            "title": "Suspend workspace \"{{name}}\"?",
-            "content": "Members will lose access to this workspace until it's reactivated.",
-            "okText": "Suspend",
-            "cancelText": "Cancel"
-        },
-        "confirmGrantFreePro": {
-            "title": "Grant the Pro plan for free to \"{{name}}\"?",
-            "content": "No Paddle billing is triggered — Pro access stays active until you revoke it.",
-            "okText": "Grant Pro",
-            "cancelText": "Cancel"
-        },
-        "confirmRevokeFreePro": {
-            "title": "Revoke the free offer for \"{{name}}\"?",
-            "content": "The workspace will immediately fall back to the Free plan.",
-            "okText": "Revoke",
-            "cancelText": "Cancel"
-        },
-        "membersColumns": {
-            "name": "Name",
-            "email": "Email",
-            "role": "Role"
-        },
-        "failedDeploymentColumns": {
-            "target": "Target / environment",
-            "step": "Failed step",
-            "stepFallback": "Step",
-            "noOutput": "No output recorded.",
-            "triggered": "Triggered",
-            "viewDetail": "View details"
-        },
-        "applicationColumns": {
-            "name": "Application",
-            "deployments": "Deployments",
-            "lastDeployment": "Last deployment",
-            "failureRate": "Failure rate (all-time)"
-        },
-        "overview": {
-            "cardTitle": "Overview",
-            "status": "Status",
-            "suspendedSince": "Suspended on {{date}}",
-            "active": "Active",
-            "currentPlan": "Current plan",
-            "free": "Free",
-            "comped": "Comped",
-            "nextRenewal": "Next renewal",
-            "applications": "Applications",
-            "members": "Members",
-            "owners": "Owner(s)",
-            "creator": "Creator"
-        },
-        "subscription": {
-            "cardTitle": "Subscription",
-            "freeOfferTitle": "Free offer",
-            "compedDescription": "This workspace has the Pro plan comped for free, with no Paddle billing.",
-            "notCompedDescription": "Grant the Pro plan to this workspace for free, without going through Paddle.",
-            "revokeOffer": "Revoke offer",
-            "grantFreePro": "Grant Pro for free",
-            "planLabel": "Plan",
-            "statusLabel": "Status",
-            "save": "Save",
-            "empty": "No subscription for this workspace"
-        },
-        "tabs": {
-            "members": "Members ({{count}})",
-            "membersEmpty": "No members",
-            "applications": "Applications & deployments ({{count}})",
-            "applicationsEmpty": "No applications",
-            "subscriptionHistory": "Subscription history ({{count}})",
-            "subscriptionHistoryEmpty": "No history available before this tracking was enabled",
-            "unknownPlan": "Unknown plan"
-        },
-        "deleteModal": {
-            "title": "Permanently delete \"{{name}}\"",
-            "cancel": "Cancel",
-            "confirmDelete": "Delete permanently",
-            "introBefore": "This action is ",
-            "introBold": "irreversible",
-            "introAfter": ". Everything below will be deleted immediately and permanently, with no way to recover it:",
-            "members_one": "{{count}} member",
-            "members_other": "{{count}} members",
-            "membersWithOwners": " (including {{count}} owner{{plural}})",
-            "applications_one": "{{count}} application, with all its targets, environments, pipelines, and environment variables",
-            "applications_other": "{{count}} applications, with all their targets, environments, pipelines, and environment variables",
-            "servers_one": "{{count}} registered server (including SSH credentials)",
-            "servers_other": "{{count}} registered servers (including SSH credentials)",
-            "deploymentsHistory_one": "{{count}} deployment and all its history/logs",
-            "deploymentsHistory_other": "{{count}} deployments and all their history/logs",
-            "subscriptionWithPlan": "{{plan}} plan — will be canceled (no interaction with Paddle needed on the billing side, already in progress)",
-            "noSubscription": "No active subscription",
-            "confirmPromptBefore": "To confirm, type the workspace slug (",
-            "confirmPromptAfter": ") below:",
-            "labels": {
-                "members": "Members",
-                "applications": "Applications",
-                "servers": "Servers",
-                "deployments": "Deployments",
-                "subscription": "Subscription"
-            }
-        }
+    "failedJobsWarning": "{{count}} job(s) failed in the queue — check Horizon."
+  },
+  "plans": {
+    "title": "Administration — Plans",
+    "eyebrow": "Limits & quotas",
+    "heading": "Plans",
+    "subtitle": "Edit quota limits per plan. Plan creation/deletion and Paddle pricing are not managed here.",
+    "usageSummary": "{{workspacesCount}} workspace(s) on this plan · current peak usage observed: {{maxApplicationsInUse}} application(s)",
+    "maxApplicationsLabel": "Max number of applications",
+    "maxConcurrentDeploymentsLabel": "Max concurrent deployments",
+    "unlimited": "Unlimited",
+    "save": "Save",
+    "confirmLowerLimit": {
+      "title": "Limit below current usage",
+      "content": "This limit is lower than the current usage of at least one workspace on this plan — affected workspaces won't be able to create new applications until they fall back below the limit, but nothing will be deleted automatically. Continue?",
+      "okText": "Continue",
+      "cancelText": "Cancel"
     },
-    "workspacesComponent": {
-        "columns": {
-            "workspace": "Workspace",
-            "owner": "Owner",
-            "plan": "Plan",
-            "subscriptionStatus": "Subscription status",
-            "noSubscription": "None",
-            "renewal": "Next renewal",
-            "applications": "Applications",
-            "members": "Members",
-            "status": "Status",
-            "suspended": "Suspended",
-            "active": "Active",
-            "createdAt": "Created on",
-            "free": "Free"
-        },
-        "kpiTitle": "Key metrics",
-        "kpiSubtitle": "Overview of the platform's workspaces",
-        "kpis": {
-            "total": "Workspaces",
-            "suspended": "Suspended",
-            "activeSubscriptions": "Active subscriptions"
-        },
-        "searchPlaceholder": "Search a workspace (name, slug)...",
-        "sortOptions": {
-            "createdAt": "Creation date",
-            "name": "Name",
-            "applicationsCount": "Number of applications"
-        },
-        "allShown": "All workspaces are shown.",
-        "noResults": "No workspaces match these criteria."
+    "maxWorkspacesLabel": "Max workspaces"
+  },
+  "workspacesList": {
+    "title": "Administration — Workspaces",
+    "eyebrow": "Platform",
+    "heading": "Workspaces",
+    "subtitle": "View and manage all workspaces created on the platform."
+  },
+  "workspacesShow": {
+    "title": "Administration — {{name}}",
+    "eyebrow": "Workspace",
+    "createdAt": "{{slug}} — created {{date}}",
+    "owner_one": "Owner:",
+    "owner_other": "Owners:",
+    "noOwner": "No owner",
+    "reactivateWorkspace": "Reactivate workspace",
+    "suspendWorkspace": "Suspend workspace",
+    "deleteWorkspace": "Delete workspace",
+    "confirmReactivate": {
+      "title": "Reactivate workspace \"{{name}}\"?",
+      "okText": "Reactivate",
+      "cancelText": "Cancel"
     },
-    "usersList": {
-        "title": "Administration — Users",
-        "eyebrow": "Platform",
-        "heading": "Users",
-        "subtitle": "All users on the platform, across all workspaces. Promote or demote super-admin rights here."
+    "confirmSuspend": {
+      "title": "Suspend workspace \"{{name}}\"?",
+      "content": "Members will lose access to this workspace until it's reactivated.",
+      "okText": "Suspend",
+      "cancelText": "Cancel"
     },
-    "usersComponent": {
-        "statusFilters": {
-            "active": "Active",
-            "suspended": "Suspended",
-            "superAdmin": "Super-admin"
-        },
-        "confirmPromote": {
-            "title": "Grant super-admin rights to {{name}}?",
-            "content": "This user will be able to access the platform panel and manage all workspaces.",
-            "okText": "Promote",
-            "cancelText": "Cancel"
-        },
-        "confirmDemote": {
-            "title": "Revoke super-admin rights from {{name}}?",
-            "okText": "Demote",
-            "cancelText": "Cancel"
-        },
-        "columns": {
-            "user": "User",
-            "workspaces": "Workspaces",
-            "noWorkspaces": "None",
-            "roleTooltip": "Role: {{role}}",
-            "otherWorkspaces": "Other workspaces",
-            "status": "Status",
-            "suspended": "Suspended",
-            "active": "Active",
-            "superAdmin": "Super-admin",
-            "yes": "Yes",
-            "no": "No",
-            "registration": "Signed up",
-            "action": "Action",
-            "demote": "Demote",
-            "promote": "Promote",
-            "cannotDemoteSelf": "You cannot demote yourself"
-        },
-        "kpiTitle": "Key metrics",
-        "kpiSubtitle": "All users on the platform, across all workspaces",
-        "kpis": {
-            "total": "Users",
-            "suspended": "Suspended",
-            "superAdmins": "Super-admins"
-        },
-        "searchPlaceholder": "Search by name or email...",
-        "statusFilterPlaceholder": "Status",
-        "sortOptions": {
-            "name": "Name",
-            "email": "Email",
-            "createdAt": "Signup date"
-        },
-        "allShown": "All users are shown.",
-        "noResults": "No users match these criteria."
+    "confirmGrantFreePro": {
+      "title": "Grant the Pro plan for free to \"{{name}}\"?",
+      "content": "No Paddle billing is triggered — Pro access stays active until you revoke it.",
+      "okText": "Grant Pro",
+      "cancelText": "Cancel"
     },
-    "deploymentsIndex": {
-        "title": "Administration — Deployments",
-        "eyebrow": "Platform monitoring",
-        "heading": "Deployments",
-        "subtitle": "All deployments across every workspace, to spot and investigate failures. Read-only view."
+    "confirmRevokeFreePro": {
+      "title": "Revoke the free offer for \"{{name}}\"?",
+      "content": "The workspace will immediately fall back to the Free plan.",
+      "okText": "Revoke",
+      "cancelText": "Cancel"
     },
-    "deploymentsMonitor": {
-        "columns": {
-            "workspaceApplication": "Workspace / Application",
-            "targetEnvironment": "Target → Environment",
-            "branch": "Branch",
-            "source": "Source",
-            "status": "Status",
-            "duration": "Duration",
-            "triggeredAt": "Triggered on",
-            "open": "Open"
-        },
-        "kpiTitle": "Key metrics",
-        "kpiSubtitle": "Across all platforms",
-        "kpis": {
-            "total": "Total",
-            "running": "Running",
-            "echec": "Failures (total)",
-            "echec24h": "Failures (24h)"
-        },
-        "searchPlaceholder": "Search by branch or commit...",
-        "statusFilterPlaceholder": "Status",
-        "sortOptions": {
-            "date": "Date",
-            "duration": "Duration",
-            "status": "Status"
-        },
-        "viewFailures": "View failures",
-        "empty": "No deployments match these criteria",
-        "loadingMore": "Loading more deployments...",
-        "allShown": "All deployments are shown."
+    "membersColumns": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role"
     },
-    "deploymentsShow": {
-        "breadcrumbTitle": "#{{id}}",
-        "headTitle": "Deployment #{{id}}",
-        "branch": "branch {{branch}}",
-        "manualTrigger": "triggered manually",
-        "webhookTrigger": "triggered by webhook",
-        "triggeredBy": " by {{name}}"
+    "failedDeploymentColumns": {
+      "target": "Target / environment",
+      "step": "Failed step",
+      "stepFallback": "Step",
+      "noOutput": "No output recorded.",
+      "triggered": "Triggered",
+      "viewDetail": "View details"
     },
-    "roles": {
-        "owner": "Owner",
-        "manager": "Manager",
-        "deployer": "Deployer",
-        "viewer": "Viewer"
+    "applicationColumns": {
+      "name": "Application",
+      "deployments": "Deployments",
+      "lastDeployment": "Last deployment",
+      "failureRate": "Failure rate (all-time)"
     },
-    "subscriptionSources": {
-        "admin": "Super-admin",
-        "webhook": "Paddle (webhook)",
-        "system": "System"
+    "overview": {
+      "cardTitle": "Overview",
+      "status": "Status",
+      "suspendedSince": "Suspended on {{date}}",
+      "active": "Active",
+      "currentPlan": "Current plan",
+      "free": "Free",
+      "comped": "Comped",
+      "nextRenewal": "Next renewal",
+      "applications": "Applications",
+      "members": "Members",
+      "owners": "Owner(s)",
+      "creator": "Creator"
     },
-    "subscriptionStatuses": {
-        "active": "Active",
-        "past_due": "Past due",
-        "canceled": "Canceled"
+    "subscription": {
+      "cardTitle": "Subscription",
+      "freeOfferTitle": "Free offer",
+      "compedDescription": "This workspace has the Pro plan comped for free, with no Paddle billing.",
+      "notCompedDescription": "Grant the Pro plan to this workspace for free, without going through Paddle.",
+      "revokeOffer": "Revoke offer",
+      "grantFreePro": "Grant Pro for free",
+      "planLabel": "Plan",
+      "statusLabel": "Status",
+      "save": "Save",
+      "empty": "No subscription for this workspace"
+    },
+    "tabs": {
+      "members": "Members ({{count}})",
+      "membersEmpty": "No members",
+      "applications": "Applications & deployments ({{count}})",
+      "applicationsEmpty": "No applications",
+      "subscriptionHistory": "Subscription history ({{count}})",
+      "subscriptionHistoryEmpty": "No history available before this tracking was enabled",
+      "unknownPlan": "Unknown plan"
+    },
+    "deleteModal": {
+      "title": "Permanently delete \"{{name}}\"",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete permanently",
+      "introBefore": "This action is ",
+      "introBold": "irreversible",
+      "introAfter": ". Everything below will be deleted immediately and permanently, with no way to recover it:",
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "membersWithOwners": " (including {{count}} owner{{plural}})",
+      "applications_one": "{{count}} application, with all its targets, environments, pipelines, and environment variables",
+      "applications_other": "{{count}} applications, with all their targets, environments, pipelines, and environment variables",
+      "servers_one": "{{count}} registered server (including SSH credentials)",
+      "servers_other": "{{count}} registered servers (including SSH credentials)",
+      "deploymentsHistory_one": "{{count}} deployment and all its history/logs",
+      "deploymentsHistory_other": "{{count}} deployments and all their history/logs",
+      "subscriptionWithPlan": "{{plan}} plan — will be canceled (no interaction with Paddle needed on the billing side, already in progress)",
+      "noSubscription": "No active subscription",
+      "confirmPromptBefore": "To confirm, type the workspace slug (",
+      "confirmPromptAfter": ") below:",
+      "labels": {
+        "members": "Members",
+        "applications": "Applications",
+        "servers": "Servers",
+        "deployments": "Deployments",
+        "subscription": "Subscription"
+      }
     }
+  },
+  "workspacesComponent": {
+    "columns": {
+      "workspace": "Workspace",
+      "owner": "Owner",
+      "plan": "Plan",
+      "subscriptionStatus": "Subscription status",
+      "noSubscription": "None",
+      "renewal": "Next renewal",
+      "applications": "Applications",
+      "members": "Members",
+      "status": "Status",
+      "suspended": "Suspended",
+      "active": "Active",
+      "createdAt": "Created on",
+      "free": "Free"
+    },
+    "kpiTitle": "Key metrics",
+    "kpiSubtitle": "Overview of the platform's workspaces",
+    "kpis": {
+      "total": "Workspaces",
+      "suspended": "Suspended",
+      "activeSubscriptions": "Active subscriptions"
+    },
+    "searchPlaceholder": "Search a workspace (name, slug)...",
+    "sortOptions": {
+      "createdAt": "Creation date",
+      "name": "Name",
+      "applicationsCount": "Number of applications"
+    },
+    "allShown": "All workspaces are shown.",
+    "noResults": "No workspaces match these criteria."
+  },
+  "usersList": {
+    "title": "Administration — Users",
+    "eyebrow": "Platform",
+    "heading": "Users",
+    "subtitle": "All users on the platform, across all workspaces. Promote or demote super-admin rights here."
+  },
+  "usersComponent": {
+    "statusFilters": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "superAdmin": "Super-admin"
+    },
+    "confirmPromote": {
+      "title": "Grant super-admin rights to {{name}}?",
+      "content": "This user will be able to access the platform panel and manage all workspaces.",
+      "okText": "Promote",
+      "cancelText": "Cancel"
+    },
+    "confirmDemote": {
+      "title": "Revoke super-admin rights from {{name}}?",
+      "okText": "Demote",
+      "cancelText": "Cancel"
+    },
+    "columns": {
+      "user": "User",
+      "workspaces": "Workspaces",
+      "noWorkspaces": "None",
+      "roleTooltip": "Role: {{role}}",
+      "otherWorkspaces": "Other workspaces",
+      "status": "Status",
+      "suspended": "Suspended",
+      "active": "Active",
+      "superAdmin": "Super-admin",
+      "yes": "Yes",
+      "no": "No",
+      "registration": "Signed up",
+      "action": "Action",
+      "demote": "Demote",
+      "promote": "Promote",
+      "cannotDemoteSelf": "You cannot demote yourself",
+      "lastActive": "Last active"
+    },
+    "kpiTitle": "Key metrics",
+    "kpiSubtitle": "All users on the platform, across all workspaces",
+    "kpis": {
+      "total": "Users",
+      "suspended": "Suspended",
+      "superAdmins": "Super-admins"
+    },
+    "searchPlaceholder": "Search by name or email...",
+    "statusFilterPlaceholder": "Status",
+    "sortOptions": {
+      "name": "Name",
+      "email": "Email",
+      "createdAt": "Signup date",
+      "lastActive": "Last active"
+    },
+    "allShown": "All users are shown.",
+    "noResults": "No users match these criteria."
+  },
+  "deploymentsIndex": {
+    "title": "Administration — Deployments",
+    "eyebrow": "Platform monitoring",
+    "heading": "Deployments",
+    "subtitle": "All deployments across every workspace, to spot and investigate failures. Read-only view."
+  },
+  "deploymentsMonitor": {
+    "columns": {
+      "workspaceApplication": "Workspace / Application",
+      "targetEnvironment": "Target → Environment",
+      "branch": "Branch",
+      "source": "Source",
+      "status": "Status",
+      "duration": "Duration",
+      "triggeredAt": "Triggered on",
+      "open": "Open"
+    },
+    "kpiTitle": "Key metrics",
+    "kpiSubtitle": "Across all platforms",
+    "kpis": {
+      "total": "Total",
+      "running": "Running",
+      "echec": "Failures (total)",
+      "echec24h": "Failures (24h)"
+    },
+    "searchPlaceholder": "Search by branch or commit...",
+    "statusFilterPlaceholder": "Status",
+    "sortOptions": {
+      "date": "Date",
+      "duration": "Duration",
+      "status": "Status"
+    },
+    "viewFailures": "View failures",
+    "empty": "No deployments match these criteria",
+    "loadingMore": "Loading more deployments...",
+    "allShown": "All deployments are shown."
+  },
+  "deploymentsShow": {
+    "breadcrumbTitle": "#{{id}}",
+    "headTitle": "Deployment #{{id}}",
+    "branch": "branch {{branch}}",
+    "manualTrigger": "triggered manually",
+    "webhookTrigger": "triggered by webhook",
+    "triggeredBy": " by {{name}}"
+  },
+  "roles": {
+    "owner": "Owner",
+    "manager": "Manager",
+    "deployer": "Deployer",
+    "viewer": "Viewer"
+  },
+  "subscriptionSources": {
+    "admin": "Super-admin",
+    "webhook": "Paddle (webhook)",
+    "system": "System"
+  },
+  "subscriptionStatuses": {
+    "active": "Active",
+    "past_due": "Past due",
+    "canceled": "Canceled"
+  }
 }

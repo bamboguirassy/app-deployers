@@ -21,6 +21,7 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
     const { data, setData, patch, processing } = useForm({
         max_applications: plan.max_applications,
         max_concurrent_deployments: plan.max_concurrent_deployments,
+        max_workspaces: plan.max_workspaces,
     });
 
     // Dernière valeur numérique connue pour chaque champ, utilisée pour
@@ -28,6 +29,7 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
     // retomber bêtement sur 0.
     const [lastAppsValue, setLastAppsValue] = useState<number>(plan.max_applications ?? 0);
     const [lastConcurrentValue, setLastConcurrentValue] = useState<number>(plan.max_concurrent_deployments ?? 0);
+    const [lastWorkspacesValue, setLastWorkspacesValue] = useState<number>(plan.max_workspaces ?? 1);
 
     const submit = () => {
         const lowersBelowCurrentUsage =
@@ -82,6 +84,35 @@ function PlanCard({ plan }: { plan: AdminPlan }) {
                                     setData('max_applications', null);
                                 } else {
                                     setData('max_applications', lastAppsValue);
+                                }
+                            }}
+                        >
+                            {t('plans.unlimited')}
+                        </Checkbox>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="admin-field-label">{t('plans.maxWorkspacesLabel')}</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <InputNumber
+                            className="w-full"
+                            min={1}
+                            disabled={data.max_workspaces === null}
+                            value={data.max_workspaces ?? undefined}
+                            onChange={(value) => {
+                                const numeric = value ?? 1;
+                                setData('max_workspaces', numeric);
+                                setLastWorkspacesValue(numeric);
+                            }}
+                        />
+                        <Checkbox
+                            checked={data.max_workspaces === null}
+                            onChange={(e) => {
+                                if (e.target.checked) {
+                                    setData('max_workspaces', null);
+                                } else {
+                                    setData('max_workspaces', lastWorkspacesValue);
                                 }
                             }}
                         >

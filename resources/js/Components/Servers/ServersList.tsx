@@ -4,14 +4,13 @@ import ServerFormModal from '@/Components/Servers/ServerFormModal';
 import TestConnectionModal from '@/Components/Servers/TestConnectionModal';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { useListSearch } from '@/hooks/useListSearch';
+import { dateLocale } from '@/lib/i18n';
 import { Server } from '@/types/models';
 import { router } from '@inertiajs/react';
-import { Card, Empty, Spin, Table, Tag } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Empty, Spin, Tooltip } from 'antd';
 import { FolderOpen, KeyRound, Lock, Pencil, PlugZap, Server as ServerIcon, Trash2 } from 'lucide-react';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { dateLocale } from '@/lib/i18n';
 
 export interface ServerKpis {
     total: number;
@@ -59,77 +58,6 @@ export default forwardRef<ServersListHandle, {
         });
     };
 
-    const columns: ColumnsType<Server> = [
-        {
-            title: t('list.columns.server'),
-            key: 'name',
-            render: (_value, server) => (
-                <span className="premium-table__name">
-                    <span className="applications-table__metric-icon">
-                        <ServerIcon size={16} />
-                    </span>
-                    <span>
-                        <strong>{server.name}</strong>
-                        <small>
-                            {server.username}@{server.host}:{server.port}
-                        </small>
-                        {server.default_path && server.default_path !== '/' && (
-                            <small style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                <FolderOpen size={11} />
-                                {server.default_path}
-                            </small>
-                        )}
-                    </span>
-                </span>
-            ),
-        },
-        {
-            title: t('list.columns.authentication'),
-            key: 'auth_method',
-            align: 'center',
-            width: 160,
-            render: (_value, server) =>
-                server.auth_method === 'ssh_key' ? (
-                    <Tag color="blue" style={{ whiteSpace: 'nowrap' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                            <KeyRound size={12} />
-                            {t('list.authOptions.sshKey')}
-                        </span>
-                    </Tag>
-                ) : (
-                    <Tag style={{ whiteSpace: 'nowrap' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                            <Lock size={12} />
-                            {t('list.authOptions.password')}
-                        </span>
-                    </Tag>
-                ),
-        },
-        {
-            title: t('list.columns.addedOn'),
-            key: 'created_at',
-            render: (_value, server) => new Date(server.created_at).toLocaleDateString(dateLocale(i18n.language)),
-        },
-        {
-            title: '',
-            key: 'actions',
-            align: 'right',
-            render: (_value, server) => (
-                <span style={{ display: 'inline-flex', gap: 12 }}>
-                    <a onClick={() => setTesting(server)} aria-label={t('list.actions.testConnection')} title={t('list.actions.testConnection')}>
-                        <PlugZap size={14} />
-                    </a>
-                    <a onClick={() => setEditing(server)} aria-label={t('list.actions.edit')} title={t('list.actions.edit')}>
-                        <Pencil size={14} />
-                    </a>
-                    <a onClick={() => removeServer(server)} aria-label={t('list.actions.delete')} title={t('list.actions.delete')}>
-                        <Trash2 size={14} />
-                    </a>
-                </span>
-            ),
-        },
-    ];
-
     return (
         <div>
             <KpiCollapse
@@ -165,14 +93,82 @@ export default forwardRef<ServersListHandle, {
             </div>
 
             {search.items.length === 0 && !search.loading ? (
-                <Card>
+                <div className="app-grid-empty">
                     <Empty description={t('list.emptyDescription')} />
-                </Card>
+                </div>
             ) : (
                 <>
-                    <Card className="premium-table-card">
-                        <Table rowKey="id" dataSource={search.items} pagination={false} columns={columns} className="premium-table" scroll={{ x: 'max-content' }} />
-                    </Card>
+                    <div className="srv-grid">
+                        {search.items.map((server) => (
+                            <div key={server.id} className={`srv-card srv-card--${server.auth_method}`}>
+
+                                {/* Header */}
+                                <div className="srv-card__header">
+                                    <span className={`srv-card__icon srv-card__icon--${server.auth_method}`}>
+                                        <ServerIcon size={18} />
+                                    </span>
+                                    <div className="srv-card__identity">
+                                        <strong className="srv-card__name">{server.name}</strong>
+                                        <span className="srv-card__host">
+                                            {server.username}@{server.host}:{server.port}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Path */}
+                                {server.default_path && server.default_path !== '/' && (
+                                    <div className="srv-card__path">
+                                        <FolderOpen size={11} />
+                                        <span>{server.default_path}</span>
+                                    </div>
+                                )}
+
+                                {/* Footer */}
+                                <div className="srv-card__footer">
+                                    <span className={`srv-card__auth srv-card__auth--${server.auth_method}`}>
+                                        {server.auth_method === 'ssh_key' ? <KeyRound size={11} /> : <Lock size={11} />}
+                                        {server.auth_method === 'ssh_key' ? t('list.authOptions.sshKey') : t('list.authOptions.password')}
+                                    </span>
+                                    <span className="srv-card__date">
+                                        {new Date(server.created_at).toLocaleDateString(dateLocale(i18n.language))}
+                                    </span>
+                                    <div className="srv-card__actions">
+                                        <Tooltip title={t('list.actions.testConnection')}>
+                                            <button
+                                                type="button"
+                                                className="srv-card__action"
+                                                aria-label={t('list.actions.testConnection')}
+                                                onClick={() => setTesting(server)}
+                                            >
+                                                <PlugZap size={14} />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title={t('list.actions.edit')}>
+                                            <button
+                                                type="button"
+                                                className="srv-card__action"
+                                                aria-label={t('list.actions.edit')}
+                                                onClick={() => setEditing(server)}
+                                            >
+                                                <Pencil size={14} />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title={t('list.actions.delete')}>
+                                            <button
+                                                type="button"
+                                                className="srv-card__action srv-card__action--danger"
+                                                aria-label={t('list.actions.delete')}
+                                                onClick={() => removeServer(server)}
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
                     <div ref={search.sentinelRef} style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
                         {search.loading && <Spin size="small" />}
                         {!search.hasMore && !search.loading && search.items.length > 0 && (

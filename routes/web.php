@@ -206,6 +206,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('admin')->name('a
     Route::post('/users/{user}/promote', [AdminUserController::class, 'promote'])->name('users.promote');
     Route::post('/users/{user}/demote', [AdminUserController::class, 'demote'])->name('users.demote');
 
+    Route::get('/horizon', fn () => inertia('Admin/Horizon'))->name('horizon');
+
     // Monitoring cross-workspace des déploiements — lecture seule uniquement,
     // voir AdminDeploymentController pour le raisonnement sur l'isolation vis-à-vis
     // de l'ability `deploy` (mutation) d'ApplicationPolicy.

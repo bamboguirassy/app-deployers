@@ -36,12 +36,23 @@ export function useListSearch<T, K>(
     const [lastPage, setLastPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
+
     const sentinelRef = useRef<HTMLDivElement>(null);
     const requestId = useRef(0);
+    // Synchronous guard — avoids the race where loadMore fires before setLoading(true)
+    // has propagated through React's render cycle.
+    const loadingRef = useRef(false);
+    const pageRef = useRef(1);
+    const lastPageRef = useRef(1);
+
+    // Keep refs in sync with state so the stable observer callback reads fresh values.
+    pageRef.current = page;
+    lastPageRef.current = lastPage;
 
     const fetchPage = useCallback(
         (targetPage: number, append: boolean) => {
             const id = ++requestId.current;
+            loadingRef.current = true;
             setLoading(true);
 
             axios
@@ -55,34 +66,44 @@ export function useListSearch<T, K>(
                     setTotal(data.meta.total);
                 })
                 .finally(() => {
-                    if (id === requestId.current) setLoading(false);
+                    if (id === requestId.current) {
+                        loadingRef.current = false;
+                        setLoading(false);
+                    }
                 });
         },
         [url, search, filters, sort, direction],
     );
 
+    // Stable ref so the IntersectionObserver always calls the latest version
+    // without needing to be recreated.
+    const loadMoreRef = useRef<() => void>(() => {});
+    loadMoreRef.current = () => {
+        if (loadingRef.current || pageRef.current >= lastPageRef.current) return;
+        fetchPage(pageRef.current + 1, true);
+    };
+
+    // Reset to page 1 whenever filters/search/sort change.
     useEffect(() => {
         const timeout = setTimeout(() => fetchPage(1, false), 300);
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search, filters, sort, direction]);
 
-    const loadMore = useCallback(() => {
-        if (loading || page >= lastPage) return;
-        fetchPage(page + 1, true);
-    }, [loading, page, lastPage, fetchPage]);
-
+    // Create the IntersectionObserver once — never recreated, so the sentinel
+    // being in-viewport after a page load doesn't trigger a cascade of requests.
     useEffect(() => {
         const el = sentinelRef.current;
         if (!el) return;
 
-        const observer = new IntersectionObserver((entries) => entries[0].isIntersecting && loadMore(), {
-            rootMargin: '400px',
-        });
+        const observer = new IntersectionObserver(
+            (entries) => { if (entries[0].isIntersecting) loadMoreRef.current(); },
+            { rootMargin: '200px' },
+        );
         observer.observe(el);
-
         return () => observer.disconnect();
-    }, [loadMore]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const setFilter = useCallback((key: string, value: unknown) => {
         setFiltersState((prev) => {

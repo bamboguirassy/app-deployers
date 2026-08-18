@@ -36,6 +36,27 @@ class AdminUserController extends Controller
      *
      * @param  iterable<User>  $users
      */
+    private function attachLastActivity(iterable $users): void
+    {
+        $users = collect($users);
+        $userIds = $users->pluck('id');
+
+        if ($userIds->isEmpty()) {
+            return;
+        }
+
+        $activities = DB::table('sessions')
+            ->whereIn('user_id', $userIds)
+            ->select('user_id', DB::raw('MAX(last_activity) as last_activity'))
+            ->groupBy('user_id')
+            ->pluck('last_activity', 'user_id');
+
+        $users->each(function (User $user) use ($activities) {
+            $ts = $activities->get($user->id);
+            $user->setAttribute('last_active_at', $ts ? \Carbon\Carbon::createFromTimestamp($ts)->toIso8601String() : null);
+        });
+    }
+
     private function attachWorkspaces(iterable $users): void
     {
         $users = collect($users);
@@ -77,6 +98,7 @@ class AdminUserController extends Controller
 
         $users = User::query()->orderBy('name')->paginate(20);
         $this->attachWorkspaces($users->items());
+        $this->attachLastActivity($users->items());
 
         return Inertia::render('Admin/Users/List', [
             'users' => ['data' => $users->items()],
@@ -112,6 +134,7 @@ class AdminUserController extends Controller
 
         $users = $query->paginate($this->perPage($data['per_page'] ?? null, 20));
         $this->attachWorkspaces($users->items());
+        $this->attachLastActivity($users->items());
 
         return response()->json([
             'data' => $users->items(),

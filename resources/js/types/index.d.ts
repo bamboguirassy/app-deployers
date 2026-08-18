@@ -28,6 +28,7 @@ export interface User {
     google_id?: string | null;
     is_super_admin?: boolean;
     created_at?: string;
+    last_active_at?: string | null;
     role?: 'owner' | 'manager' | 'deployer' | 'viewer';
     applications?: ApplicationAccess[];
     workspaces?: Workspace[];
@@ -39,6 +40,7 @@ export interface Plan {
     name: string;
     max_applications: number | null;
     max_concurrent_deployments: number | null;
+    max_workspaces: number | null;
 }
 
 export interface AdminPlan extends Plan {

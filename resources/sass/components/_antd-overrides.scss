@@ -22,6 +22,13 @@
     justify-content: space-between;
     gap: 24px;
     margin: 8px 0 28px;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
 }
 
 .applications-eyebrow,
@@ -40,6 +47,20 @@
     padding-inline: 18px;
     border-radius: 10px;
     box-shadow: 0 8px 18px color-mix(in srgb, theme('color-primary') 22%, transparent);
+
+    @media (max-width: 640px) {
+        width: 100%;
+    }
+}
+
+// Titre hero — évite le coupure de mot sur petits écrans
+.premium-list-hero h2.ant-typography,
+.applications-hero h2.ant-typography {
+    @media (max-width: 640px) {
+        font-size: clamp(22px, 7vw, 30px) !important;
+        line-height: 1.2 !important;
+        word-break: break-word;
+    }
 }
 
 .applications-list-toolbar,
@@ -63,6 +84,303 @@
 
 .applications-table-card {
     border-radius: 0;
+}
+
+// ── Server card grid ──────────────────────────────────────────────────────────
+
+.srv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: space('4');
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+        gap: space('3');
+    }
+}
+
+.srv-card {
+    display: flex;
+    flex-direction: column;
+    gap: space('3');
+    padding: space('4');
+    background: theme('color-surface');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-lg;
+    transition: border-color .15s, box-shadow .15s;
+
+    &:hover {
+        border-color: theme('color-border-strong');
+        box-shadow: 0 4px 16px rgba(0 0 0 / .07);
+    }
+}
+
+.srv-card__header {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+}
+
+.srv-card__icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-md;
+
+    &--ssh_key {
+        color: theme('color-primary');
+        background: color-mix(in srgb, theme('color-primary') 12%, transparent);
+    }
+
+    &--password {
+        color: theme('color-text-muted');
+        background: theme('color-surface-raised');
+    }
+}
+
+.srv-card__identity {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.srv-card__name {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: theme('color-text');
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.srv-card__host {
+    display: block;
+    font-size: 12px;
+    font-family: $font-family-mono;
+    color: theme('color-text-muted');
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.srv-card__path {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-family: $font-family-mono;
+    color: theme('color-text-muted');
+    overflow: hidden;
+
+    span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    svg { flex-shrink: 0; }
+}
+
+.srv-card__footer {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    padding-top: space('3');
+    border-top: 1px solid theme('color-border');
+    margin-top: auto;
+    flex-wrap: wrap;
+}
+
+.srv-card__auth {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+
+    &--ssh_key {
+        color: theme('color-primary');
+        background: color-mix(in srgb, theme('color-primary') 10%, transparent);
+    }
+
+    &--password {
+        color: theme('color-text-muted');
+        background: theme('color-surface-raised');
+    }
+}
+
+.srv-card__date {
+    font-size: 11px;
+    color: theme('color-text-muted');
+    margin-right: auto;
+}
+
+.srv-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.srv-card__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: theme('color-text-muted');
+    cursor: pointer;
+    transition: background .12s, color .12s;
+
+    &:hover {
+        background: theme('color-surface-raised');
+        color: theme('color-text');
+    }
+
+    &--danger:hover {
+        background: rgba(220 38 38 / .08);
+        color: theme('color-danger');
+    }
+}
+
+// ── Application card grid ──────────────────────────────────────────────────────
+
+.app-grid-empty {
+    @include card-surface;
+    padding: space('8');
+}
+
+.app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: space('4');
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+        gap: space('3');
+    }
+}
+
+.app-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: space('4');
+    padding: space('4');
+    background: theme('color-surface');
+    border: 1px solid theme('color-border');
+    border-radius: $radius-lg;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+
+    &:hover {
+        border-color: theme('color-primary');
+        box-shadow: 0 4px 20px rgba(0 0 0 / .08);
+        transform: translateY(-2px);
+        color: inherit;
+    }
+}
+
+.app-card__accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+
+    &--succes  { background: theme('color-success'); }
+    &--echec   { background: theme('color-danger'); }
+    &--running { background: theme('color-primary'); }
+    &--pending { background: theme('color-warning'); }
+    &--annule  { background: theme('color-border-strong'); }
+}
+
+.app-card__header {
+    display: flex;
+    align-items: center;
+    gap: space('3');
+    margin-top: 4px; // compensation for accent bar
+}
+
+.app-card__avatar {
+    flex-shrink: 0;
+    border: 1px solid theme('color-border');
+    border-radius: $radius-md !important;
+}
+
+.app-card__identity {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.app-card__name {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: theme('color-text');
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-card__slug {
+    display: block;
+    font-size: 11px;
+    color: theme('color-text-muted');
+    font-family: $font-family-mono;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space('2');
+    padding-top: space('3');
+    border-top: 1px solid theme('color-border');
+    margin-top: auto;
+}
+
+.app-card__badges {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+}
+
+.app-card__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: theme('color-text-muted');
+
+    svg { flex-shrink: 0; }
+}
+
+.app-card__status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.app-card__time {
+    font-size: 11px;
+    color: theme('color-text-muted');
+    white-space: nowrap;
+}
+
+.app-card__no-deploy {
+    font-size: 11px;
+    color: theme('color-text-muted');
 }
 
 .premium-table .ant-table {

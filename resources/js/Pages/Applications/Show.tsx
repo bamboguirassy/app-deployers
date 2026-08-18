@@ -68,28 +68,30 @@ export default function Show({
     const confirm = useConfirm();
     const logoInputRef = useRef<HTMLInputElement>(null);
 
-    // Permet un lien profond depuis la page d'un déploiement vers
-    // "Targets & Pipeline" avec le bon target déjà sélectionné (?tab=targets&target=123).
+    // Lien profond : ?tab=targets&target=123 ou juste ?tab=environments
     const initialParams = new URLSearchParams(window.location.search);
     const initialTabParam = initialParams.get('tab') as TabKey | null;
     const initialTargetId = initialParams.get('target');
 
-    const storageKey = `app-tab:${application.id}`;
     const validTabs: TabKey[] = ['targets', 'environments', 'members', 'deployments', 'details'];
-    const storedTab = localStorage.getItem(storageKey) as TabKey | null;
     const resolvedInitialTab: TabKey =
-        initialTabParam ?? (storedTab && validTabs.includes(storedTab) ? storedTab : 'targets');
+        initialTabParam && validTabs.includes(initialTabParam) ? initialTabParam : 'targets';
 
     const [activeTab, setActiveTab] = useState<TabKey>(resolvedInitialTab);
 
     const switchTab = (tab: TabKey) => {
         setActiveTab(tab);
-        localStorage.setItem(storageKey, tab);
+        const params = new URLSearchParams();
+        params.set('tab', tab);
+        window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
     };
 
+    // Synchronise l'URL au montage si aucun ?tab= n'était présent
     useEffect(() => {
-        if (initialTabParam || initialTargetId) {
-            window.history.replaceState(null, '', window.location.pathname);
+        if (!initialTabParam) {
+            const params = new URLSearchParams(window.location.search);
+            params.set('tab', resolvedInitialTab);
+            window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

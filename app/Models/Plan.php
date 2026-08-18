@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Plan extends Model
 {
     protected $fillable = [
-        'slug', 'name', 'max_applications', 'max_concurrent_deployments',
+        'slug', 'name', 'max_applications', 'max_concurrent_deployments', 'max_workspaces',
         'paddle_price_id_monthly', 'paddle_price_id_yearly',
     ];
 

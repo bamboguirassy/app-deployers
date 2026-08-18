@@ -1519,6 +1519,13 @@
     padding: space('3') space('4');
     margin-bottom: space('4');
     flex-wrap: wrap;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: space('3');
+        padding: space('4');
+    }
 }
 
 .kpi-panel__heading {
@@ -1536,6 +1543,10 @@
         font-size: 12px;
         color: theme('color-text-muted');
     }
+
+    @media (max-width: 640px) {
+        min-width: 0;
+    }
 }
 
 .kpi-panel__stats {
@@ -1544,6 +1555,13 @@
     gap: space('6');
     flex-wrap: wrap;
     flex: 1;
+
+    @media (max-width: 640px) {
+        width: 100%;
+        gap: space('4');
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 .kpi-panel__stat {

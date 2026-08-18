@@ -12,6 +12,7 @@ import {
     Rocket,
     ShieldCheck,
     Users,
+    Activity,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -73,6 +74,11 @@ export default function AdminLayout({
             icon: <Rocket size={16} />,
             label: <Link href={route('admin.deployments.index')}>{t('layout.nav.deployments')}</Link>,
         },
+        {
+            key: 'horizon',
+            icon: <Activity size={16} />,
+            label: <Link href={route('admin.horizon')}>{t('layout.nav.horizon')}</Link>,
+        },
     ];
 
     const selectedKey = route().current('admin.workspaces.*')
@@ -83,7 +89,9 @@ export default function AdminLayout({
             ? 'plans'
             : route().current('admin.deployments.*')
               ? 'deployments'
-              : 'dashboard';
+              : route().current('admin.horizon')
+                ? 'horizon'
+                : 'dashboard';
 
     const userMenuItems: MenuProps['items'] = [
         {

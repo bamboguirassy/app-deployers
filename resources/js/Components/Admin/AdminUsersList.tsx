@@ -170,10 +170,20 @@ export default forwardRef<AdminUsersListHandle, {
                 ),
         },
         {
+            title: t('usersComponent.columns.lastActive'),
+            key: 'last_active_at',
+            width: 170,
+            render: (_value, user) => {
+                if (!user.last_active_at) return <span className="section-hint">—</span>;
+                const date = new Date(user.last_active_at);
+                return <span>{date.toLocaleString(dateLocale(i18n.language))}</span>;
+            },
+        },
+        {
             title: t('usersComponent.columns.registration'),
             key: 'created_at',
-            width: 130,
-            render: (_value, user) => (user.created_at ? new Date(user.created_at).toLocaleDateString(dateLocale(i18n.language)) : '—'),
+            width: 170,
+            render: (_value, user) => (user.created_at ? new Date(user.created_at).toLocaleString(dateLocale(i18n.language)) : '—'),
         },
         {
             title: t('usersComponent.columns.action'),
@@ -205,7 +215,7 @@ export default forwardRef<AdminUsersListHandle, {
         },
     ];
 
-    const tableWidth = 260 + 280 + 120 + 130 + 130 + 160;
+    const tableWidth = 260 + 280 + 120 + 130 + 170 + 170 + 160;
 
     return (
         <div>
