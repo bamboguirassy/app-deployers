@@ -8,11 +8,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 
-/**
- * Notifie le déclencheur (et lui seul) quand un déploiement passe en « succes ».
- * Les owners ne sont pas notifiés pour les succès afin d'éviter le bruit —
- * seul l'utilisateur qui a déclenché le déploiement reçoit la confirmation.
- */
 class NotifyOnDeploymentSuccess implements ShouldQueue
 {
     public function handle(DeploymentStatusUpdated $event): void
@@ -24,9 +19,8 @@ class NotifyOnDeploymentSuccess implements ShouldQueue
         }
 
         $deployment->loadMissing([
-            'targetEnvironment.target.application.workspace',
+            'targetEnvironment.target.application',
             'targetEnvironment.environment',
-            'triggeredBy',
         ]);
 
         $application = $deployment->targetEnvironment->target->application;
@@ -36,14 +30,19 @@ class NotifyOnDeploymentSuccess implements ShouldQueue
             return;
         }
 
-        if (! $deployment->triggeredBy) {
-            return;
-        }
-
         if (! Cache::add("notify:success:{$deployment->id}", true, now()->addHour())) {
             return;
         }
 
-        Notification::send($deployment->triggeredBy, new DeploymentSucceededNotification($deployment));
+        $recipients = $application->users()
+            ->whereNull('users.suspended_at')
+            ->wherePivot('invitation_pending', false)
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        Notification::send($recipients, new DeploymentSucceededNotification($deployment));
     }
 }

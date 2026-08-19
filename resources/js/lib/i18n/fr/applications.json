@@ -363,9 +363,9 @@
             "hint": "Activez ou désactivez chaque notification selon vos préférences. Ces réglages s'appliquent à tous les déploiements de cette application.",
             "activeCount": "{{count}}/{{total}} actives",
             "startEvent": "Déploiement démarré",
-            "startRecipients": "Utilisateur déclencheur",
+            "startRecipients": "Tous les membres actifs de l'application",
             "successEvent": "Déploiement réussi",
-            "successRecipients": "Utilisateur déclencheur",
+            "successRecipients": "Tous les membres actifs de l'application",
             "failureEvent": "Déploiement en échec",
             "failureRecipients": "Owners du workspace + Utilisateur déclencheur"
         },

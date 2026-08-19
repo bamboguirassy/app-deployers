@@ -363,9 +363,9 @@
             "hint": "Enable or disable each notification to match your preferences. These settings apply to all deployments for this application.",
             "activeCount": "{{count}}/{{total}} active",
             "startEvent": "Deployment started",
-            "startRecipients": "Triggering user",
+            "startRecipients": "All active application members",
             "successEvent": "Deployment succeeded",
-            "successRecipients": "Triggering user",
+            "successRecipients": "All active application members",
             "failureEvent": "Deployment failed",
             "failureRecipients": "Workspace owners + Triggering user"
         },
