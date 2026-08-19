@@ -20,6 +20,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 # Crawlers IA — autorisés à indexer/citer les mêmes pages publiques que les
@@ -46,6 +47,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: ChatGPT-User
@@ -70,6 +72,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: ClaudeBot
@@ -94,6 +97,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: Claude-User
@@ -118,6 +122,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: anthropic-ai
@@ -142,6 +147,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: PerplexityBot
@@ -166,6 +172,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: Google-Extended
@@ -190,6 +197,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: CCBot
@@ -214,6 +222,7 @@ Allow: /comment-ca-marche
 Allow: /tarifs
 Allow: /securite
 Allow: /logos/
+Allow: /sitemap.xml
 Disallow: /
 
 Sitemap: https://app-deployer.dev/sitemap.xml
