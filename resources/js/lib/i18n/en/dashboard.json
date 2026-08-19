@@ -39,6 +39,50 @@
         "contactSupport": "Contact support",
         "contactSupportDescription": "A question or an issue? Get in touch"
     },
+    "onboarding": {
+        "title": "Get started with App Deploy Supervisor",
+        "subtitle": "{{done}} of {{total}} steps completed",
+        "celebrationTitle": "🎉 Setup complete!",
+        "celebrationSubtitle": "You're ready for your first deployment. This guide will disappear in a moment.",
+        "dismiss": "Hide this guide",
+        "steps": {
+            "account": {
+                "title": "Account created",
+                "description": "Your account is active and your workspace is ready.",
+                "link": ""
+            },
+            "server": {
+                "title": "Add a server",
+                "description": "Register the target server(s) where your applications will be deployed.",
+                "link": "Add a server"
+            },
+            "application": {
+                "title": "Create an Application",
+                "description": "An Application groups your Targets, Environments and deployment pipelines.",
+                "link": "Create an application"
+            },
+            "target": {
+                "title": "Create a Target",
+                "description": "A Target is a deployable component (API, Frontend, Worker…) tied to a framework.",
+                "link": "Create a target"
+            },
+            "environment": {
+                "title": "Add an Environment",
+                "description": "Define your deployment environments (e.g. Production, Staging) to organise your releases.",
+                "link": "Manage environments"
+            },
+            "pipeline": {
+                "title": "Configure the pipeline",
+                "description": "Add the shell steps executed on every deployment (pull, build, restart…).",
+                "link": "Configure the pipeline"
+            },
+            "deployment": {
+                "title": "Trigger your first deployment",
+                "description": "Deploy manually or via webhook and watch the execution stream in real time.",
+                "link": "Go to application"
+            }
+        }
+    },
     "page": {
         "header": "Dashboard",
         "welcome": "Welcome, {{name}}",

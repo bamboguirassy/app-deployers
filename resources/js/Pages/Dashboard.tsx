@@ -1,4 +1,5 @@
 import { SourceIcon } from '@/Components/Deployments/DeploymentIcons';
+import SetupChecklist, { OnboardingData } from '@/Components/Onboarding/SetupChecklist';
 import StatusTag from '@/Components/StatusTag';
 import TrendHint, { Trend } from '@/Components/TrendHint';
 import { getSourceLabel } from '@/constants/deployments';
@@ -63,12 +64,14 @@ const BREAKDOWN_SEGMENT_DEFS: { key: keyof StatusBreakdown; labelKey: string; co
 export default function Dashboard({
     stats,
     trends,
+    onboarding,
     statusBreakdown,
     recentDeployments,
     applications,
 }: {
     stats: DashboardStats;
     trends: DashboardTrends;
+    onboarding: OnboardingData;
     statusBreakdown: StatusBreakdown;
     recentDeployments: Deployment[];
     applications: ApplicationOverview[];
@@ -204,6 +207,8 @@ export default function Dashboard({
     return (
         <AuthenticatedLayout header={t('page.header')}>
             <Head title={t('page.header')} />
+
+            <SetupChecklist onboarding={onboarding} />
 
             <Title level={4} style={{ marginBottom: 4 }}>
                 {t('page.welcome', { name: user.name })} 👋
@@ -367,14 +372,6 @@ export default function Dashboard({
                 </Col>
             </Row>
 
-            {applications.length === 0 && (
-                <Card style={{ marginTop: 16 }}>
-                    <Paragraph type="secondary" style={{ margin: 0 }}>
-                        {t('page.emptyState.prefix')}{' '}
-                        <Link href={route('applications.create', workspace!.slug)}>{t('page.emptyState.link')}</Link> {t('page.emptyState.suffix')}
-                    </Paragraph>
-                </Card>
-            )}
         </AuthenticatedLayout>
     );
 }

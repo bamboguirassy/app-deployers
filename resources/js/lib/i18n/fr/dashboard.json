@@ -39,6 +39,50 @@
         "contactSupport": "Contacter le support",
         "contactSupportDescription": "Une question, un problème ? Écrivez-nous"
     },
+    "onboarding": {
+        "title": "Commencer avec App Deploy Supervisor",
+        "subtitle": "{{done}} sur {{total}} étapes complétées",
+        "celebrationTitle": "🎉 Configuration terminée !",
+        "celebrationSubtitle": "Votre premier déploiement est prêt. Ce guide va disparaître dans un instant.",
+        "dismiss": "Masquer ce guide",
+        "steps": {
+            "account": {
+                "title": "Compte créé",
+                "description": "Votre compte est actif et votre workspace est configuré.",
+                "link": ""
+            },
+            "server": {
+                "title": "Ajouter un serveur",
+                "description": "Enregistrez le ou les serveurs cibles sur lesquels vos applications seront déployées.",
+                "link": "Ajouter un serveur"
+            },
+            "application": {
+                "title": "Créer une Application",
+                "description": "Une Application regroupe vos Cibles, Environnements et pipelines de déploiement.",
+                "link": "Créer une application"
+            },
+            "target": {
+                "title": "Créer une Cible (Target)",
+                "description": "Une Cible représente un composant déployable (API, Frontend, Worker…) lié à un framework.",
+                "link": "Créer une cible"
+            },
+            "environment": {
+                "title": "Ajouter un Environnement",
+                "description": "Définissez vos environnements (ex : Production, Staging) pour organiser vos déploiements.",
+                "link": "Gérer les environnements"
+            },
+            "pipeline": {
+                "title": "Configurer le pipeline",
+                "description": "Ajoutez les étapes shell exécutées à chaque déploiement (pull, build, restart…).",
+                "link": "Configurer le pipeline"
+            },
+            "deployment": {
+                "title": "Lancer votre premier déploiement",
+                "description": "Déclenchez manuellement ou via webhook et suivez l'exécution en temps réel.",
+                "link": "Aller à l'application"
+            }
+        }
+    },
     "page": {
         "header": "Dashboard",
         "welcome": "Bienvenue, {{name}}",

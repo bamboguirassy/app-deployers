@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\Deployment;
 use App\Models\Environment;
+use App\Models\PipelineStep;
+use App\Models\Server;
 use App\Models\Target;
 use App\Models\Workspace;
 use Illuminate\Support\Facades\DB;
@@ -100,9 +102,22 @@ class DashboardController extends Controller
                 ];
             });
 
+        $firstApp = (clone $applications)->first();
+
+        $onboarding = [
+            'has_server' => Server::where('workspace_id', $workspace->id)->exists(),
+            'has_application' => $stats['applications'] > 0,
+            'has_target' => $stats['targets'] > 0,
+            'has_environment' => $stats['environments'] > 0,
+            'has_pipeline_step' => PipelineStep::whereHas('target', fn ($q) => $q->whereIn('application_id', $applicationIds))->exists(),
+            'has_deployment' => $deploymentsBase()->exists(),
+            'first_application_slug' => $firstApp?->slug,
+        ];
+
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'trends' => $trends,
+            'onboarding' => $onboarding,
             'statusBreakdown' => [
                 'pending' => (int) ($statusBreakdown['pending'] ?? 0),
                 'running' => (int) ($statusBreakdown['running'] ?? 0),
