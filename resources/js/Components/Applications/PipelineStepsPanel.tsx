@@ -299,7 +299,7 @@ function StepEditorDrawer({
                         <Input.TextArea
                             ref={commandRef}
                             className="step-editor__mono"
-                            rows={6}
+                            autoSize={{ minRows: 6, maxRows: 20 }}
                             value={(config as CommandStepConfig).command ?? ''}
                             onChange={(e) => {
                                 const command = e.target.value;
@@ -311,6 +311,9 @@ function StepEditorDrawer({
                             }}
                             placeholder={t('pipelineSteps.drawer.commandPlaceholder')}
                         />
+                        <p className="step-editor__field-hint">
+                            {t('pipelineSteps.drawer.commandHint')}
+                        </p>
                     </div>
                 )}
 

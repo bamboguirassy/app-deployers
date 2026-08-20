@@ -168,6 +168,12 @@
     font-size: 13px;
 }
 
+.step-editor__field-hint {
+    margin-top: space('1');
+    font-size: 11px;
+    color: theme('color-text-muted');
+}
+
 .step-editor__segment {
     display: inline-flex;
     align-items: center;

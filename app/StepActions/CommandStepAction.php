@@ -19,7 +19,7 @@ class CommandStepAction implements StepActionContract
     public static function rules(): array
     {
         return [
-            'command' => ['required', 'string', 'max:2000'],
+            'command' => ['required', 'string', 'max:10000'],
         ];
     }
 
