@@ -19,6 +19,7 @@
             'marketing.features.en', 'marketing.how-it-works.en', 'marketing.pricing.en', 'marketing.security.en',
         ]);
         $ownsTitleOnly = in_array($currentRoute, ['login', 'register']);
+        $isPublicPage = $ownsFullSeoMeta || $ownsTitleOnly;
     @endphp
     <head>
         <meta charset="utf-8">
@@ -103,6 +104,7 @@
             <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet">
         </noscript>
 
+        @if ($isPublicPage)
         <!-- Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YL7YNFGES"></script>
         <script>
@@ -111,6 +113,7 @@
             gtag('js', new Date());
             gtag('config', 'G-5YL7YNFGES');
         </script>
+        @endif
 
         <!-- Scripts -->
         @routes
