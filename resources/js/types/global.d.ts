@@ -6,6 +6,8 @@ import { PageProps as AppPageProps } from './';
 declare global {
     interface Window {
         axios: AxiosInstance;
+        gtag: (...args: unknown[]) => void;
+        dataLayer: unknown[];
     }
 
     /* eslint-disable no-var */

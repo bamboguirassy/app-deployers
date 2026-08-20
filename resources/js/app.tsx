@@ -12,6 +12,16 @@ import { watchLocaleOnNavigate } from './lib/i18n/LocaleSync';
 
 watchLocaleOnNavigate();
 
+// Envoie une pageview GA à chaque navigation Inertia (SPA)
+import { router } from '@inertiajs/react';
+router.on('navigate', () => {
+    if (typeof window.gtag === 'function') {
+        window.gtag('event', 'page_view', {
+            page_path: window.location.pathname + window.location.search,
+        });
+    }
+});
+
 configureEcho({
     broadcaster: 'reverb',
 });

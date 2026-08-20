@@ -103,6 +103,15 @@
             <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet">
         </noscript>
 
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YL7YNFGES"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-5YL7YNFGES');
+        </script>
+
         <!-- Scripts -->
         @routes
         @viteReactRefresh
