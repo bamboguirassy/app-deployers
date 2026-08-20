@@ -18,4 +18,9 @@ return [
     // job) et repassé en échec. Doit rester nettement supérieur à la durée
     // maximale attendue d'un déploiement (somme des timeouts de pipeline).
     'stuck_running_after_minutes' => (int) env('DEPLOY_STUCK_RUNNING_AFTER_MINUTES', 60),
+
+    // Explorateur de dossiers local (filesystem du serveur d'application).
+    // Désactivé par défaut — l'admin doit l'activer explicitement.
+    'local_browse_enabled' => (bool) env('LOCAL_BROWSE_ENABLED', false),
+    'local_browse_root' => env('LOCAL_BROWSE_ROOT', '/var/www'),
 ];

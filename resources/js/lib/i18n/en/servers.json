@@ -80,6 +80,7 @@
     "directoryBrowser": {
         "titleWithServer": "Browse {{name}}",
         "title": "Browse",
+        "titleLocal": "Browse local server",
         "cancel": "Cancel",
         "select": "Select this folder",
         "searchPlaceholder": "Search a folder...",

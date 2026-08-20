@@ -136,6 +136,7 @@
             "deployPathPlaceholder": "/var/www/api",
             "browse": "Browse",
             "chooseServerHint": "Choose a server first to browse its folders.",
+            "localBrowseHint": "No server selected — the Browse button explores the local server.",
             "branchLabel": "Git branch",
             "branchPlaceholder": "main",
             "repositoryReadOnly": "repository linked to this target",

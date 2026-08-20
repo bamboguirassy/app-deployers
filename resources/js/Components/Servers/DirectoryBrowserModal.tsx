@@ -26,6 +26,7 @@ export default function DirectoryBrowserModal({
     workspaceSlug,
     server,
     credentials,
+    local,
     initialPath,
     open,
     onClose,
@@ -36,6 +37,8 @@ export default function DirectoryBrowserModal({
     server?: Server | null;
     /** Credentials bruts non enregistrés (mode création après test réussi). */
     credentials?: AnonCredentials | null;
+    /** Parcourir le système de fichiers local (aucun serveur requis). */
+    local?: boolean;
     initialPath?: string;
     open: boolean;
     onClose: () => void;
@@ -53,9 +56,11 @@ export default function DirectoryBrowserModal({
         setLoading(true);
         setError(null);
 
-        const request = server
-            ? axios.post(route('servers.browse-directory', [workspaceSlug, server.uuid]), { path: targetPath })
-            : axios.post(route('servers.browse-directory-anon', workspaceSlug), { ...credentials, path: targetPath });
+        const request = local
+            ? axios.post(route('servers.browse-directory-local', workspaceSlug), { path: targetPath })
+            : server
+              ? axios.post(route('servers.browse-directory', [workspaceSlug, server.uuid]), { path: targetPath })
+              : axios.post(route('servers.browse-directory-anon', workspaceSlug), { ...credentials, path: targetPath });
 
         request
             .then((res) => {
@@ -68,15 +73,15 @@ export default function DirectoryBrowserModal({
 
     const visibleEntries = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return query ? entries.filter((entry) => entry.name.toLowerCase().includes(query)) : entries;
+        return query ? entries.filter((entry) => entry.name?.toLowerCase().includes(query)) : entries;
     }, [entries, search]);
 
     useEffect(() => {
-        if (open && (server || credentials)) {
+        if (open && (server || credentials || local)) {
             load(initialPath && initialPath.trim() !== '' ? initialPath : '/');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, server, credentials]);
+    }, [open, server, credentials, local]);
 
     const segments = path.split('/').filter(Boolean);
     const breadcrumbItems = [
@@ -93,9 +98,11 @@ export default function DirectoryBrowserModal({
         ),
     }));
 
-    const title = server
-        ? t('directoryBrowser.titleWithServer', { name: server.name })
-        : t('directoryBrowser.title');
+    const title = local
+        ? t('directoryBrowser.titleLocal')
+        : server
+          ? t('directoryBrowser.titleWithServer', { name: server.name })
+          : t('directoryBrowser.title');
 
     return (
         <Modal
@@ -133,7 +140,7 @@ export default function DirectoryBrowserModal({
                     prefix={<Search size={14} />}
                     placeholder={t('directoryBrowser.searchPlaceholder')}
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => setSearch(e.target.value ?? '')}
                     onKeyDown={(e) => e.stopPropagation()}
                     allowClear
                 />

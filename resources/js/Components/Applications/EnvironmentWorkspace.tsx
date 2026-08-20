@@ -104,6 +104,7 @@ function ConfigDrawer({
     const { workspace, gitConnections } = usePage<PageProps>().props;
     const existing = target.target_environments.find((te) => te.environment_id === environment.id);
     const [browsing, setBrowsing] = useState(false);
+    const [browsingLocal, setBrowsingLocal] = useState(false);
     const [addingServer, setAddingServer] = useState(false);
 
     const linkedRepository = target.repository ?? null;
@@ -257,20 +258,21 @@ function ConfigDrawer({
                         <Input
                             placeholder={t('environmentWorkspace.drawer.deployPathPlaceholder')}
                             value={data.deploy_path}
-                            readOnly
+                            onChange={(e) => setData('deploy_path', e.target.value)}
+                            disabled={!canManage}
                             status={errors.deploy_path ? 'error' : undefined}
                         />
                         <SecondaryButton
                             htmlType="button"
                             icon={<FolderSearch size={14} />}
-                            onClick={() => setBrowsing(true)}
-                            disabled={!canManage || !selectedServer}
+                            onClick={() => selectedServer ? setBrowsing(true) : setBrowsingLocal(true)}
+                            disabled={!canManage}
                         >
                             {t('environmentWorkspace.drawer.browse')}
                         </SecondaryButton>
                     </div>
                     {!selectedServer && (
-                        <span className="section-hint">{t('environmentWorkspace.drawer.chooseServerHint')}</span>
+                        <span className="section-hint">{t('environmentWorkspace.drawer.localBrowseHint')}</span>
                     )}
                     <InputError message={errors.deploy_path} />
                 </div>
@@ -348,6 +350,15 @@ function ConfigDrawer({
                 initialPath={data.deploy_path || selectedServer?.default_path || '/'}
                 open={browsing}
                 onClose={() => setBrowsing(false)}
+                onSelect={(path) => setData('deploy_path', path)}
+            />
+
+            <DirectoryBrowserModal
+                workspaceSlug={workspace!.slug}
+                local
+                initialPath={data.deploy_path || '/'}
+                open={browsingLocal}
+                onClose={() => setBrowsingLocal(false)}
                 onSelect={(path) => setData('deploy_path', path)}
             />
 

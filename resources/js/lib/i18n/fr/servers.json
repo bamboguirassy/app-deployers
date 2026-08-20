@@ -80,6 +80,7 @@
     "directoryBrowser": {
         "titleWithServer": "Parcourir {{name}}",
         "title": "Parcourir",
+        "titleLocal": "Parcourir le serveur local",
         "cancel": "Annuler",
         "select": "Sélectionner ce dossier",
         "searchPlaceholder": "Rechercher un dossier...",

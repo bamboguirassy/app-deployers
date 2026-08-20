@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\FiltersLists;
 use App\Models\Server;
 use App\Models\Workspace;
+use App\Services\LocalDirectoryBrowser;
 use App\Services\SftpDirectoryBrowser;
 use App\Services\SshConnectionTester;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,7 @@ class ServerController extends Controller
     public function __construct(
         private SshConnectionTester $sshTester,
         private SftpDirectoryBrowser $directoryBrowser,
+        private LocalDirectoryBrowser $localBrowser,
     ) {
     }
 
@@ -309,6 +311,28 @@ class ServerController extends Controller
                 $data['passphrase'] ?? null,
                 $data['path'] ?? '/',
             );
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Parcourt le système de fichiers local du serveur d'application.
+     */
+    public function browseDirectoryLocal(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('manageServers', $workspace);
+
+        abort_unless(config('deploy.local_browse_enabled'), 403, 'L\'exploration locale est désactivée.');
+
+        $data = $request->validate([
+            'path' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $result = $this->localBrowser->listDirectories($data['path'] ?? '/');
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

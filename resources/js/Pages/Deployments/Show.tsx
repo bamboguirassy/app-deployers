@@ -115,7 +115,7 @@ export default function Show({
 
                 {/* ── Nav bar ── */}
                 <div className="dp-topbar" aria-label={t('show.nav.label')}>
-                    <Link href={route('deployments.index', [workspace!.slug, application.slug])} className="dp-topbar__back">
+                    <Link href={`${route('applications.show', [workspace!.slug, application.slug])}?tab=deployments`} className="dp-topbar__back">
                         <History size={14} /><span>{t('show.nav.history')}</span>
                     </Link>
                     <Link href={route('applications.show', [workspace!.slug, application.slug])} className="dp-topbar__app">
