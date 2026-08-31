@@ -13,6 +13,7 @@ use App\Models\TargetEnvironment;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
+use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
 use App\Services\TargetEnvironmentMissingServerException;
 use Database\Seeders\PlanSeeder;
@@ -135,5 +136,70 @@ class DeploymentServiceTest extends TestCase
         $second = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
 
         $this->assertNotSame($first->id, $second->id);
+    }
+
+    public function test_resume_from_failure_replays_only_the_failed_step_and_the_ones_after_it(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Test',
+            'type' => 'command',
+            'config' => ['command' => 'echo test'],
+            'order' => 1,
+        ]);
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Publish',
+            'type' => 'command',
+            'config' => ['command' => 'echo publish'],
+            'order' => 2,
+        ]);
+
+        $deployment = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
+
+        $steps = $deployment->steps()->orderBy('order')->get();
+        $steps[0]->update(['status' => 'succes', 'exit_code' => 0]);
+        $steps[1]->update(['status' => 'echec', 'exit_code' => 1, 'output' => 'boom']);
+        $steps[2]->update(['status' => 'skipped']);
+        $deployment->update(['status' => 'echec']);
+
+        app(DeploymentService::class)->resumeFromFailure($deployment->fresh());
+
+        $deployment->refresh();
+        $steps = $deployment->steps()->orderBy('order')->get();
+
+        $this->assertSame('succes', $steps[0]->status);
+        $this->assertSame('pending', $steps[1]->status);
+        $this->assertNull($steps[1]->exit_code);
+        $this->assertSame('pending', $steps[2]->status);
+        $this->assertSame('pending', $deployment->status);
+
+        Queue::assertPushed(RunDeploymentJob::class, fn ($job) => $job->deploymentId === $deployment->id);
+    }
+
+    public function test_resume_from_failure_is_rejected_when_a_more_recent_deployment_exists(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+
+        $first = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
+        $first->update(['status' => 'echec']);
+
+        $second = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
+        $second->update(['status' => 'succes']);
+
+        $this->expectException(DeploymentNotResumableException::class);
+
+        app(DeploymentService::class)->resumeFromFailure($first->fresh());
     }
 }

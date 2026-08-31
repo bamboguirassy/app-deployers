@@ -10,6 +10,7 @@ use App\Models\Environment;
 use App\Models\TargetEnvironment;
 use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
+use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
 use App\Services\MissingEnvironmentVariablesException;
 use App\Services\TargetEnvironmentMissingServerException;
@@ -254,6 +255,7 @@ class DeploymentController extends Controller
         abort_unless($deployment->belongsToWorkspace($workspace), 404);
 
         $deployment->load(['steps', 'targetEnvironment.target', 'targetEnvironment.environment', 'triggeredBy']);
+        $deployment->setAttribute('is_latest_for_target_environment', $deployment->isLatestForTargetEnvironment());
 
         return Inertia::render('Deployments/Show', [
             'application' => $application,
@@ -302,6 +304,26 @@ class DeploymentController extends Controller
         }
 
         return redirect()->route('deployments.show', [$workspace->slug, $application->slug, $retried->uuid]);
+    }
+
+    /**
+     * Reprend le déploiement existant à partir de son étape en échec (les
+     * étapes déjà réussies ne sont pas rejouées) — à la différence de retry()
+     * qui crée toujours un nouveau Deployment. Seulement possible si aucun
+     * déploiement plus récent n'existe sur ce même target/environnement.
+     */
+    public function resume(Workspace $workspace, Application $application, Deployment $deployment): RedirectResponse
+    {
+        $this->authorize('deploy', $application);
+        abort_unless($deployment->belongsToWorkspace($workspace), 404);
+
+        try {
+            $this->deployments->resumeFromFailure($deployment);
+        } catch (DeploymentAlreadyRunningException|DeploymentNotResumableException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('deployments.show', [$workspace->slug, $application->slug, $deployment->uuid]);
     }
 
     /**

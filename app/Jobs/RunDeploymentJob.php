@@ -99,6 +99,12 @@ class RunDeploymentJob implements ShouldQueue
             $aborted = false;
 
             foreach ($deployment->steps as $step) {
+                if ($step->status === 'succes') {
+                    // Étape déjà réussie sur une reprise (resumeFromFailure) — on
+                    // ne la rejoue pas, son résultat/historique reste tel quel.
+                    continue;
+                }
+
                 if ($aborted) {
                     $step->update(['status' => 'skipped']);
                     broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));

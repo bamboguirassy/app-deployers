@@ -356,7 +356,7 @@ export default function Dashboard({
                                     const href = route('deployments.show', [
                                         workspace!.slug,
                                         record.target_environment.target.application!.slug,
-                                        record.id,
+                                        record.uuid,
                                     ]);
 
                                     return {

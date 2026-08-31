@@ -163,4 +163,5 @@ export interface Deployment {
     steps: DeploymentStep[];
     target_environment: TargetEnvironmentLink & { target: Target };
     triggered_by: { id: number; uuid: string; name: string } | null;
+    is_latest_for_target_environment?: boolean;
 }

@@ -61,4 +61,17 @@ class Deployment extends Model
     {
         return $this->targetEnvironment->resolveWorkspaceId();
     }
+
+    /**
+     * Vrai si aucun déploiement plus récent n'existe sur le même
+     * TargetEnvironment — condition requise pour pouvoir reprendre ce
+     * déploiement depuis son étape en échec (resumeFromFailure), afin de ne
+     * pas rejouer une config obsolète par-dessus un déploiement plus récent.
+     */
+    public function isLatestForTargetEnvironment(): bool
+    {
+        return ! static::where('target_environment_id', $this->target_environment_id)
+            ->where('id', '>', $this->id)
+            ->exists();
+    }
 }

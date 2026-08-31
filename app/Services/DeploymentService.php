@@ -7,6 +7,7 @@ use App\Models\Deployment;
 use App\Models\TargetEnvironment;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DeploymentService
 {
@@ -99,6 +100,76 @@ class DeploymentService
                 'status' => 'pending',
             ]);
         }
+
+        RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));
+
+        return $deployment;
+    }
+
+    /**
+     * Reprend un déploiement en échec à partir de sa première étape en
+     * échec, en conservant l'historique des étapes déjà réussies (contexte :
+     * évite de rejouer inutilement des étapes longues/coûteuses déjà
+     * passées). Réutilise le même Deployment/DeploymentStep — contrairement
+     * à trigger(), aucun nouveau Deployment n'est créé.
+     *
+     * @throws DeploymentAlreadyRunningException
+     * @throws DeploymentNotResumableException
+     */
+    public function resumeFromFailure(Deployment $deployment): Deployment
+    {
+        if ($deployment->status !== 'echec') {
+            throw new DeploymentNotResumableException(
+                'Seul un déploiement en échec peut être repris.'
+            );
+        }
+
+        if (! $deployment->isLatestForTargetEnvironment()) {
+            throw new DeploymentNotResumableException(
+                'Un déploiement plus récent existe sur cet environnement — impossible de reprendre celui-ci.'
+            );
+        }
+
+        $targetEnvironmentId = $deployment->target_environment_id;
+
+        $acquired = Cache::add(
+            self::lockKey($targetEnvironmentId),
+            true,
+            now()->addMinutes(config('deploy.lock_ttl_minutes')),
+        );
+
+        if (! $acquired) {
+            throw new DeploymentAlreadyRunningException(
+                'Un déploiement est déjà en cours pour cet environnement.'
+            );
+        }
+
+        DB::transaction(function () use ($deployment) {
+            $steps = $deployment->steps()->orderBy('order')->get();
+            $firstFailureOrder = $steps->firstWhere('status', 'echec')?->order;
+
+            foreach ($steps as $step) {
+                if ($step->order < $firstFailureOrder || $step->status === 'succes') {
+                    continue;
+                }
+
+                $step->update([
+                    'status' => 'pending',
+                    'exit_code' => null,
+                    'output' => null,
+                    'pid' => null,
+                    'started_at' => null,
+                    'finished_at' => null,
+                    'duration_ms' => null,
+                ]);
+            }
+
+            $deployment->update([
+                'status' => 'pending',
+                'finished_at' => null,
+                'duration_ms' => null,
+            ]);
+        });
 
         RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));
 

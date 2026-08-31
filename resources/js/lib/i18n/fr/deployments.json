@@ -71,6 +71,16 @@
             "okText": "Revenir à cette version",
             "cancelText": "Annuler"
         },
+        "resume": {
+            "button": "Reprendre depuis l'échec",
+            "tooltip": "Rejouer uniquement l'étape en échec et les suivantes, sans refaire les étapes déjà réussies",
+            "disabledTooltip": "Un déploiement plus récent existe sur cet environnement — impossible de reprendre celui-ci",
+            "ariaLabel": "Reprendre le déploiement depuis l'étape en échec",
+            "confirmTitle": "Reprendre ce déploiement ?",
+            "confirmContent": "Les étapes déjà réussies ne seront pas rejouées ; la reprise démarre à la première étape en échec sur {{target}} → {{environment}}.",
+            "okText": "Reprendre",
+            "cancelText": "Annuler"
+        },
         "summary": {
             "pipeline": "Pipeline",
             "step_one": "étape",

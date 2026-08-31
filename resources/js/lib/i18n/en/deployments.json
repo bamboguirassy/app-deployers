@@ -71,6 +71,16 @@
             "okText": "Roll back to this version",
             "cancelText": "Cancel"
         },
+        "resume": {
+            "button": "Resume from failure",
+            "tooltip": "Only replay the failed step and the ones after it, without redoing steps that already succeeded",
+            "disabledTooltip": "A more recent deployment exists on this environment — this one can't be resumed",
+            "ariaLabel": "Resume the deployment from the failed step",
+            "confirmTitle": "Resume this deployment?",
+            "confirmContent": "Steps that already succeeded won't be replayed; the resume starts at the first failed step on {{target}} → {{environment}}.",
+            "okText": "Resume",
+            "cancelText": "Cancel"
+        },
         "summary": {
             "pipeline": "Pipeline",
             "step_one": "step",

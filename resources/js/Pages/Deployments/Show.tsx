@@ -8,7 +8,7 @@ import { Application, Deployment, DeploymentStep } from '@/types/models';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { Avatar, Button, Tooltip } from 'antd';
-import { Boxes, ExternalLink, GitBranch, History, Pencil, RotateCcw, Square, User, Webhook } from 'lucide-react';
+import { Boxes, ExternalLink, GitBranch, History, Pencil, PlayCircle, RotateCcw, Square, User, Webhook } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +36,7 @@ export default function Show({
     );
     const [retrying, setRetrying] = useState(false);
     const [rollingBack, setRollingBack] = useState(false);
+    const [resuming, setResuming] = useState(false);
     const [liveOutput, setLiveOutput] = useState<Record<number, string>>({});
     const liveOutputRef = useRef<Record<number, string>>({});
     const liveOutputEls = useRef<Record<number, HTMLDivElement | null>>({});
@@ -86,6 +87,8 @@ export default function Show({
     const isActive = deployment.status === 'pending' || deployment.status === 'running';
     const canRetry = deployment.status === 'echec' || deployment.status === 'annule';
     const canRollback = deployment.status === 'succes';
+    const isLatestForTargetEnvironment = deployment.is_latest_for_target_environment ?? true;
+    const canResume = deployment.status === 'echec';
 
     const cancel = () => confirm.confirm({
         title: t('show.cancel.confirmTitle'), content: t('show.cancel.confirmContent'),
@@ -105,6 +108,13 @@ export default function Show({
         content: t('show.rollback.confirmContent', { target: target.name, environment: environment.name }),
         okText: t('show.rollback.okText'), cancelText: t('show.rollback.cancelText'),
         onOk: () => { setRollingBack(true); router.post(route('deployments.rollback', [workspace!.slug, application.slug, deployment.uuid]), {}, { onFinish: () => setRollingBack(false) }); },
+    });
+
+    const resume = () => confirm.confirm({
+        title: t('show.resume.confirmTitle'),
+        content: t('show.resume.confirmContent', { target: target.name, environment: environment.name }),
+        okText: t('show.resume.okText'), cancelText: t('show.resume.cancelText'),
+        onOk: () => { setResuming(true); router.post(route('deployments.resume', [workspace!.slug, application.slug, deployment.uuid]), {}, { onFinish: () => setResuming(false) }); },
     });
 
     return (
@@ -288,6 +298,20 @@ export default function Show({
                                 <Button danger icon={<Square size={13} />} onClick={cancel} aria-label={t('show.cancel.ariaLabel')}>
                                     {t('show.cancel.button')}
                                 </Button>
+                            )}
+                            {canResume && (
+                                <Tooltip title={isLatestForTargetEnvironment ? t('show.resume.tooltip') : t('show.resume.disabledTooltip')}>
+                                    <Button
+                                        type="primary"
+                                        icon={<PlayCircle size={13} />}
+                                        loading={resuming}
+                                        disabled={!isLatestForTargetEnvironment}
+                                        onClick={resume}
+                                        aria-label={t('show.resume.ariaLabel')}
+                                    >
+                                        {t('show.resume.button')}
+                                    </Button>
+                                </Tooltip>
                             )}
                             {canRetry && (
                                 <Button type="primary" icon={<RotateCcw size={13} />} loading={retrying} onClick={retry} aria-label={t('show.retry.ariaLabel')}>

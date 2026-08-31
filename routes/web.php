@@ -181,6 +181,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/deployments/{deployment}/cancel', [DeploymentController::class, 'cancel'])->name('deployments.cancel');
             Route::post('/deployments/{deployment}/retry', [DeploymentController::class, 'retry'])->name('deployments.retry');
             Route::post('/deployments/{deployment}/rollback', [DeploymentController::class, 'rollback'])->name('deployments.rollback');
+            Route::post('/deployments/{deployment}/resume', [DeploymentController::class, 'resume'])->name('deployments.resume');
 
             Route::post('/members/search', [ApplicationMemberController::class, 'search'])->name('members.search');
             Route::post('/members', [ApplicationMemberController::class, 'store'])->name('members.store');
