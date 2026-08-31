@@ -4,6 +4,34 @@
     to { transform: rotate(360deg); }
 }
 
+@keyframes deploy-shake {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-8px) rotate(-0.5deg); }
+    30%       { transform: translateX(7px)  rotate(0.5deg); }
+    45%       { transform: translateX(-6px) rotate(-0.3deg); }
+    60%       { transform: translateX(5px)  rotate(0.3deg); }
+    75%       { transform: translateX(-3px); }
+    90%       { transform: translateX(2px); }
+}
+
+@keyframes deploy-flash-red {
+    0%   { opacity: .35; }
+    100% { opacity: 0; }
+}
+
+.deploy-shake {
+    animation: deploy-shake 0.55s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.deploy-flash-red {
+    position: fixed;
+    inset: 0;
+    background: var(--color-danger, #dc2626);
+    pointer-events: none;
+    z-index: 9999;
+    animation: deploy-flash-red 0.6s ease-out forwards;
+}
+
 @keyframes pulse-ring {
     0%   { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb, 79 70 229) / .4); }
     70%  { box-shadow: 0 0 0 7px rgba(var(--color-primary-rgb, 79 70 229) / 0); }

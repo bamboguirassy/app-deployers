@@ -2,6 +2,7 @@ import { ActiveDeploymentEntry, PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { Progress } from 'antd';
+import confetti from 'canvas-confetti';
 import { ArrowRight, Rocket } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +28,15 @@ export default function ActiveDeploymentBanner() {
                 const withoutThisOne = prev.filter((item) => item.id !== payload.deployment_id);
 
                 if (!isActive) {
+                    if (payload.statut === 'succes') {
+                        const end = Date.now() + 3000;
+                        const colors = ['#4f46e5', '#a5b4fc', '#ffffff', '#818cf8'];
+                        (function frame() {
+                            confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors });
+                            confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors });
+                            if (Date.now() < end) requestAnimationFrame(frame);
+                        })();
+                    }
                     return withoutThisOne;
                 }
 

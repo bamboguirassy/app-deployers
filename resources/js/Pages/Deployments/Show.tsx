@@ -40,6 +40,7 @@ export default function Show({
     const [liveOutput, setLiveOutput] = useState<Record<number, string>>({});
     const liveOutputRef = useRef<Record<number, string>>({});
     const liveOutputEls = useRef<Record<number, HTMLDivElement | null>>({});
+    const prevStatusRef = useRef<Deployment['status']>(initialDeployment.status);
     const confirm = useConfirm();
 
     useEffect(() => {
@@ -49,6 +50,26 @@ export default function Show({
             if (el) el.scrollTop = el.scrollHeight;
         });
     }, [liveOutput]);
+
+    useEffect(() => {
+        const prev = prevStatusRef.current;
+        prevStatusRef.current = deployment.status;
+
+        if (deployment.status === 'echec' && prev !== 'echec') {
+            // Flash rouge
+            const flash = document.createElement('div');
+            flash.className = 'deploy-flash-red';
+            document.body.appendChild(flash);
+            flash.addEventListener('animationend', () => flash.remove(), { once: true });
+
+            // Shake du conteneur de la page
+            const container = document.getElementById('deploy-show-root');
+            if (container) {
+                container.classList.add('deploy-shake');
+                container.addEventListener('animationend', () => container.classList.remove('deploy-shake'), { once: true });
+            }
+        }
+    }, [deployment.status]);
 
     const toggleStep = (id: number) =>
         setExpandedSteps((prev) => {
@@ -121,7 +142,7 @@ export default function Show({
         <AuthenticatedLayout header={t('show.header')}>
             <Head title={t('show.pageTitle', { id: deployment.id })} />
 
-            <div className="dp-page">
+            <div id="deploy-show-root" className="dp-page">
 
                 {/* ── Nav bar ── */}
                 <div className="dp-topbar" aria-label={t('show.nav.label')}>
