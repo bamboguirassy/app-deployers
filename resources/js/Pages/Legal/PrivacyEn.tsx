@@ -16,7 +16,7 @@ export default function PrivacyEn() {
             }
         >
             <p>
-                This policy describes how <strong>Bambocloud</strong> ("we", the "Publisher"), the publisher
+                This policy describes how <strong>BARALA KEBA</strong> ("we", the "Publisher"), the publisher
                 of the App Deployer platform, collects, uses and protects your personal data when you use the
                 Service.
             </p>

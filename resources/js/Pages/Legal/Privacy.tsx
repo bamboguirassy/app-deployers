@@ -8,7 +8,7 @@ export default function Privacy() {
             updatedAt="12 août 2026"
         >
             <p>
-                Cette politique décrit comment <strong>BAMBOCLOUD</strong> (« nous »), éditeur de
+                Cette politique décrit comment <strong>BARALA KEBA</strong> (« nous »), éditeur de
                 la plateforme App Deployer, collecte, utilise et protège vos données personnelles lorsque vous
                 utilisez le Service.
             </p>
