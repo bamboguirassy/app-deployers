@@ -4,13 +4,13 @@ export default function Terms() {
     return (
         <LegalLayout
             title="Conditions d'utilisation"
-            description="Conditions d'utilisation de la plateforme App Deployer, éditée par BAMBOCLOUD : accès au service, comptes, engagements et responsabilités."
+            description="Conditions d'utilisation de la plateforme App Deployer, éditée par BARALA KEBA : accès au service, comptes, engagements et responsabilités."
             updatedAt="12 août 2026"
         >
             <p>
                 Les présentes conditions d'utilisation (les « <strong>Conditions</strong> ») régissent l'accès et
                 l'utilisation de la plateforme App Deployer (le « <strong>Service</strong> »), éditée par{' '}
-                <strong>BAMBOCLOUD</strong>, SARL, immatriculée sous le numéro
+                <strong>BARALA KEBA</strong>, SARL, immatriculée sous le numéro
                 009687362-2R5, dont le siège social est situé à HLM Grand Médine, Villa n°380 (l'«{' '}
                 <strong>Éditeur</strong> »). En créant un compte ou en utilisant le Service, vous acceptez d'être lié
                 par les présentes Conditions.

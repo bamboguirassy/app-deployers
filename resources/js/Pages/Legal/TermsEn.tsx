@@ -4,7 +4,7 @@ export default function TermsEn() {
     return (
         <LegalLayout
             title="Terms of Service"
-            description="Terms of Service for the App Deployer platform, published by Bambocloud: access to the service, accounts, commitments and liability."
+            description="Terms of Service for the App Deployer platform, published by BARALA KELA: access to the service, accounts, commitments and liability."
             updatedAt="August 12, 2026"
             locale="en"
             headChildren={
@@ -17,7 +17,7 @@ export default function TermsEn() {
         >
             <p>
                 These Terms of Service (the "<strong>Terms</strong>") govern access to and use of the App
-                Deployer platform (the "<strong>Service</strong>"), published by <strong>Bambocloud</strong>,
+                Deployer platform (the "<strong>Service</strong>"), published by <strong>BARAKA KELA</strong>,
                 a limited liability company (the "<strong>Publisher</strong>"). By creating an account or
                 using the Service, you agree to be bound by these Terms.
             </p>
