@@ -87,11 +87,18 @@
             "email": "Email / password"
         },
         "resetPasswordTooltip": "Send reset link",
+        "roleTooltip": "This role applies to this user's entire workspace, across all their applications.",
         "confirms": {
             "resetPassword": {
                 "title": "Send a reset link?",
                 "content": "An email will be sent to {{email}} to set a new password. The user will then be able to sign in with their email and that password, regardless of the provider they used before.",
                 "okText": "Send",
+                "cancelText": "Cancel"
+            },
+            "changeRole": {
+                "title": "Change {{name}}'s role?",
+                "content": "They will now have the \"{{role}}\" role across the entire workspace, affecting every application, not just one.",
+                "okText": "Confirm",
                 "cancelText": "Cancel"
             }
         },

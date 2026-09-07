@@ -5,9 +5,9 @@ import { useConfirm } from '@/theme/ConfirmContext';
 import { useListSearch } from '@/hooks/useListSearch';
 import { PageProps, User } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import { Avatar, Button, Card, Space, Spin, Table, Tag, Tooltip, Typography } from 'antd';
+import { Avatar, Button, Card, Select, Space, Spin, Table, Tag, Tooltip, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckCircle2, KeyRound, ShieldAlert, ShieldCheck, Users as UsersIcon, XCircle } from 'lucide-react';
+import { CheckCircle2, Info, KeyRound, ShieldAlert, ShieldCheck, Users as UsersIcon, XCircle } from 'lucide-react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dateLocale } from '@/lib/i18n';
@@ -31,7 +31,8 @@ export default forwardRef<UsersListHandle, {
     initialItems: User[];
     initialKpis: UserKpis;
     getRowHref: (user: User) => string;
-}>(function UsersList({ searchUrl, initialItems, initialKpis, getRowHref }, ref) {
+    canManage?: boolean;
+}>(function UsersList({ searchUrl, initialItems, initialKpis, getRowHref, canManage }, ref) {
     const { t, i18n } = useTranslation('users');
     const { workspace } = usePage<PageProps>().props;
     const confirm = useConfirm();
@@ -50,6 +51,22 @@ export default forwardRef<UsersListHandle, {
             cancelText: t('list.confirms.resetPassword.cancelText'),
             onOk: () => router.post(route('users.send-password-reset', [workspace!.slug, user.uuid])),
         });
+
+    const changeRole = (user: User, role: string) => {
+        if (role === user.role) return;
+        confirm.confirm({
+            title: t('list.confirms.changeRole.title', { name: user.name }),
+            content: t('list.confirms.changeRole.content', { name: user.name, role: getRoleLabel(t, role) }),
+            okText: t('list.confirms.changeRole.okText'),
+            cancelText: t('list.confirms.changeRole.cancelText'),
+            onOk: () =>
+                router.patch(
+                    route('users.update', [workspace!.slug, user.uuid]),
+                    { role },
+                    { preserveScroll: true, onSuccess: () => search.refresh() },
+                ),
+        });
+    };
 
     const columns: ColumnsType<User> = [
         {
@@ -83,7 +100,26 @@ export default forwardRef<UsersListHandle, {
         {
             title: t('list.columns.role'),
             key: 'role',
-            render: (_value, user) => (user.role ? <Tag color={ROLE_COLORS[user.role]}>{getRoleLabel(t, user.role)}</Tag> : '—'),
+            render: (_value, user) =>
+                canManage && user.role ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e) => e.stopPropagation()}>
+                        <Select
+                            value={user.role}
+                            onChange={(role) => changeRole(user, role)}
+                            options={getRoleOptions(t)}
+                            size="small"
+                            style={{ minWidth: 140 }}
+                            popupMatchSelectWidth={false}
+                        />
+                        <Tooltip title={t('list.roleTooltip')}>
+                            <Info size={14} color="var(--color-text-muted)" aria-label={t('list.roleTooltip')} />
+                        </Tooltip>
+                    </span>
+                ) : user.role ? (
+                    <Tag color={ROLE_COLORS[user.role]}>{getRoleLabel(t, user.role)}</Tag>
+                ) : (
+                    '—'
+                ),
         },
         {
             title: t('list.columns.provider'),

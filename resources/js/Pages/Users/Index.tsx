@@ -72,6 +72,7 @@ export default function Index({
                 initialItems={users.data}
                 initialKpis={kpis}
                 getRowHref={(user) => route('users.show', [workspace!.slug, user.uuid])}
+                canManage={canManage}
             />
 
             <Modal

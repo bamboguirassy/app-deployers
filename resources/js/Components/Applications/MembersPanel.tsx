@@ -8,8 +8,8 @@ import { ApplicationMember, PageProps } from '@/types';
 import { Application } from '@/types/models';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Modal, Select, Tag } from 'antd';
-import { Plus, ShieldCheck, Trash2 } from 'lucide-react';
+import { Modal, Select, Tag, Tooltip } from 'antd';
+import { Info, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { FormEventHandler, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -44,11 +44,18 @@ export default function MembersPanel({
 
     const changeRole = (member: ApplicationMember, role: string) => {
         if (role === member.role) return;
-        router.patch(
-            route('members.update-role', [workspace!.slug, application.slug, member.uuid]),
-            { role },
-            { preserveScroll: true, onSuccess: () => listRef.current?.refresh() },
-        );
+        confirm.confirm({
+            title: t('membersPanel.confirmRoleChange.title', { name: member.name }),
+            content: t('membersPanel.confirmRoleChange.content', { name: member.name, role: getRoleLabel(t, role) }),
+            okText: t('membersPanel.confirmRoleChange.okText'),
+            cancelText: t('membersPanel.confirmRoleChange.cancelText'),
+            onOk: () =>
+                router.patch(
+                    route('members.update-role', [workspace!.slug, application.slug, member.uuid]),
+                    { role },
+                    { preserveScroll: true, onSuccess: () => listRef.current?.refresh() },
+                ),
+        });
     };
 
     const removeMember = (member: ApplicationMember) => {
@@ -88,14 +95,19 @@ export default function MembersPanel({
                 initialKpis={kpis}
                 renderRole={(member) =>
                     canManage && member.role ? (
-                        <Select
-                            value={member.role}
-                            onChange={(role) => changeRole(member, role)}
-                            options={getRoleOptions(t)}
-                            size="small"
-                            style={{ minWidth: 140 }}
-                            popupMatchSelectWidth={false}
-                        />
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <Select
+                                value={member.role}
+                                onChange={(role) => changeRole(member, role)}
+                                options={getRoleOptions(t)}
+                                size="small"
+                                style={{ minWidth: 140 }}
+                                popupMatchSelectWidth={false}
+                            />
+                            <Tooltip title={t('membersPanel.roleTooltip')}>
+                                <Info size={14} color="var(--color-text-muted)" aria-label={t('membersPanel.roleTooltip')} />
+                            </Tooltip>
+                        </span>
                     ) : member.role ? (
                         <Tag color={ROLE_COLORS[member.role]}>{getRoleLabel(t, member.role)}</Tag>
                     ) : (

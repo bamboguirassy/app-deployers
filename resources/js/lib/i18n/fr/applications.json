@@ -181,6 +181,13 @@
         "emailPlaceholder": "collegue@exemple.com",
         "roleLabel": "Rôle dans le workspace",
         "roleHint": "S’applique uniquement aux nouveaux utilisateurs ou à ceux pas encore membres du workspace.",
+        "roleTooltip": "Ce rôle s’applique à tout le workspace de ce membre, pas seulement à cette application.",
+        "confirmRoleChange": {
+            "title": "Changer le rôle de {{name}} ?",
+            "content": "Ce rôle s’applique à tout le workspace de {{name}}, sur toutes ses applications — pas seulement celle-ci. Il aura désormais le rôle « {{role}} » partout.",
+            "okText": "Confirmer",
+            "cancelText": "Annuler"
+        },
         "submit": "Inviter"
     },
     "pipelineSteps": {

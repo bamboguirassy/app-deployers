@@ -87,11 +87,18 @@
             "email": "Email/mot de passe"
         },
         "resetPasswordTooltip": "Envoyer lien réinitialisation",
+        "roleTooltip": "Ce rôle s'applique à tout le workspace de cet utilisateur, sur toutes ses applications.",
         "confirms": {
             "resetPassword": {
                 "title": "Envoyer un lien de réinitialisation ?",
                 "content": "Un email sera envoyé à {{email}} pour définir un nouveau mot de passe. L'utilisateur pourra ensuite se connecter avec son email et ce mot de passe, quel que soit le provider utilisé jusqu'ici.",
                 "okText": "Envoyer",
+                "cancelText": "Annuler"
+            },
+            "changeRole": {
+                "title": "Changer le rôle de {{name}} ?",
+                "content": "Il aura désormais le rôle « {{role}} » sur tout le workspace, avec effet sur toutes ses applications, pas seulement une seule.",
+                "okText": "Confirmer",
                 "cancelText": "Annuler"
             }
         },
