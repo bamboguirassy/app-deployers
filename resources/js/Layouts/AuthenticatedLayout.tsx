@@ -78,6 +78,10 @@ export default function Authenticated({
         if (flash?.status) message.success(flash.status);
     }, [flash?.status]);
 
+    useEffect(() => {
+        if (flash?.error) message.error(flash.error);
+    }, [flash?.error]);
+
     const wsSlug = workspace?.slug;
     const canManageServers = workspace?.role === 'owner' || workspace?.role === 'manager';
     const canCreateApplication = workspace?.role === 'owner' || workspace?.role === 'manager';

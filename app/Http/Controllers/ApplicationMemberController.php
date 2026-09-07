@@ -140,6 +140,42 @@ class ApplicationMemberController extends Controller
         return back()->with('status', "{$user->email} a désormais accès à cette application.");
     }
 
+    /**
+     * Change le rôle workspace d'un membre (le rôle est porté par le workspace,
+     * pas par l'application — voir membersQuery()). Empêche de rétrograder le
+     * dernier owner du workspace, pour ne jamais se retrouver sans owner.
+     */
+    public function updateRole(Request $request, Workspace $workspace, Application $application, User $user): RedirectResponse
+    {
+        $this->authorize('update', $application);
+
+        $data = $request->validate([
+            'role' => ['required', 'in:'.implode(',', self::ROLES)],
+        ]);
+
+        $oldRole = $user->roleInWorkspace($workspace);
+
+        if ($oldRole === 'owner' && $data['role'] !== 'owner') {
+            $ownersCount = DB::table('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('model_has_roles.model_type', User::class)
+                ->where('model_has_roles.workspace_id', $workspace->id)
+                ->where('roles.name', 'owner')
+                ->count();
+
+            if ($ownersCount <= 1) {
+                return back()->with('error', 'Impossible de retirer le dernier owner du workspace.');
+            }
+        }
+
+        app(PermissionRegistrar::class)->setPermissionsTeamId($workspace->id);
+        $user->syncRoles([$data['role']]);
+
+        AuditLogger::log($application, 'member.role_changed', $user, ['old_role' => $oldRole, 'new_role' => $data['role']]);
+
+        return back()->with('status', "Rôle de {$user->email} mis à jour.");
+    }
+
     public function destroy(Workspace $workspace, Application $application, User $user): RedirectResponse
     {
         $this->authorize('update', $application);

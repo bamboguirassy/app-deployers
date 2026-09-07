@@ -185,6 +185,7 @@ Route::middleware('auth')->group(function () {
 
             Route::post('/members/search', [ApplicationMemberController::class, 'search'])->name('members.search');
             Route::post('/members', [ApplicationMemberController::class, 'store'])->name('members.store');
+            Route::patch('/members/{user}', [ApplicationMemberController::class, 'updateRole'])->name('members.update-role');
             Route::delete('/members/{user}', [ApplicationMemberController::class, 'destroy'])->name('members.destroy');
         });
     });

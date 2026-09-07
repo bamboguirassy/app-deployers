@@ -89,7 +89,7 @@ export default forwardRef<MembersListHandle, {
                                             </Tag>
                                         )}
                                     </Space>
-                                    <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{member.email}</span>
+                                    <span style={{ fontSize: 12, color: 'var(--color-text-muted)', marginLeft: 6 }}>{member.email}</span>
                                 </div>
                             </Space>
                         ),

@@ -42,6 +42,15 @@ export default function MembersPanel({
         });
     };
 
+    const changeRole = (member: ApplicationMember, role: string) => {
+        if (role === member.role) return;
+        router.patch(
+            route('members.update-role', [workspace!.slug, application.slug, member.uuid]),
+            { role },
+            { preserveScroll: true, onSuccess: () => listRef.current?.refresh() },
+        );
+    };
+
     const removeMember = (member: ApplicationMember) => {
         confirm.confirm({
             title: t('membersPanel.confirmRemove.title', { name: member.name }),
@@ -77,7 +86,22 @@ export default function MembersPanel({
                 searchUrl={route('members.search', [workspace!.slug, application.slug])}
                 initialItems={members}
                 initialKpis={kpis}
-                renderRole={(member) => (member.role ? <Tag color={ROLE_COLORS[member.role]}>{getRoleLabel(t, member.role)}</Tag> : '—')}
+                renderRole={(member) =>
+                    canManage && member.role ? (
+                        <Select
+                            value={member.role}
+                            onChange={(role) => changeRole(member, role)}
+                            options={getRoleOptions(t)}
+                            size="small"
+                            style={{ minWidth: 140 }}
+                            popupMatchSelectWidth={false}
+                        />
+                    ) : member.role ? (
+                        <Tag color={ROLE_COLORS[member.role]}>{getRoleLabel(t, member.role)}</Tag>
+                    ) : (
+                        '—'
+                    )
+                }
                 renderActions={
                     canManage
                         ? (member) => (
