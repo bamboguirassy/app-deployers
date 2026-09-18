@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Server;
 use phpseclib3\Crypt\PublicKeyLoader;
+use phpseclib3\Net\SFTP;
 use phpseclib3\Net\SSH2;
 use RuntimeException;
 use Throwable;
@@ -17,8 +18,28 @@ class SshAuthenticator
      */
     public function connect(Server $server, int $timeoutSeconds = 10): SSH2
     {
+        return $this->open(fn () => new SSH2($server->host, $server->port, $timeoutSeconds), $server);
+    }
+
+    /**
+     * Même authentification que connect(), mais pour le transport `sftp`
+     * (App\Transports\SftpTransport) — phpseclib3\Net\SFTP étend SSH2, donc
+     * la logique de login est strictement identique.
+     */
+    public function connectSftp(Server $server, int $timeoutSeconds = 10): SFTP
+    {
+        return $this->open(fn () => new SFTP($server->host, $server->port, $timeoutSeconds), $server);
+    }
+
+    /**
+     * @template T of SSH2
+     * @param  callable(): T  $factory
+     * @return T
+     */
+    private function open(callable $factory, Server $server): SSH2
+    {
         try {
-            $ssh = new SSH2($server->host, $server->port, $timeoutSeconds);
+            $ssh = $factory();
         } catch (Throwable $e) {
             throw new RuntimeException("Impossible d'initialiser la connexion SSH : {$e->getMessage()}");
         }

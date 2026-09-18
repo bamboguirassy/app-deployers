@@ -19,6 +19,11 @@ return [
     // maximale attendue d'un déploiement (somme des timeouts de pipeline).
     'stuck_running_after_minutes' => (int) env('DEPLOY_STUCK_RUNNING_AFTER_MINUTES', 60),
 
+    // Délai maximal pour la synchronisation post-build (App\Transports) en
+    // mode centralisé — potentiellement plus long qu'un step de pipeline
+    // classique (transfert d'un build entier plutôt qu'une commande).
+    'sync_timeout_seconds' => (int) env('DEPLOY_SYNC_TIMEOUT_SECONDS', 1800),
+
     // Explorateur de dossiers local (filesystem du serveur d'application).
     // Désactivé par défaut — l'admin doit l'activer explicitement.
     'local_browse_enabled' => (bool) env('LOCAL_BROWSE_ENABLED', false),
