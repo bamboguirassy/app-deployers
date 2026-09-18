@@ -12,7 +12,24 @@ class Target extends Model
 {
     use BelongsToWorkspace;
 
-    protected $fillable = ['application_id', 'framework_id', 'name', 'slug', 'order', 'repository', 'repository_provider'];
+    protected $fillable = [
+        'application_id', 'framework_id', 'name', 'slug', 'order', 'repository', 'repository_provider',
+        'git_credential_type', 'git_credential_secret',
+    ];
+
+    /**
+     * Credential dédiée au clone du dépôt par le runner en build centralisé
+     * (App\Transports) — sans rapport avec les accès déjà présents sur le
+     * serveur cible pour le mode on_target, jamais gérés par l'app.
+     */
+    protected $hidden = ['git_credential_secret'];
+
+    protected function casts(): array
+    {
+        return [
+            'git_credential_secret' => 'encrypted',
+        ];
+    }
 
     protected static function booted(): void
     {
