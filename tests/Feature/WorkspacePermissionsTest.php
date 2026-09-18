@@ -150,7 +150,7 @@ class WorkspacePermissionsTest extends TestCase
         $this->assertSame('owner', $owner2->fresh()->roleInWorkspace($workspace));
     }
 
-    public function test_granting_application_access_requires_target_user_to_already_be_a_workspace_member(): void
+    public function test_granting_application_access_requires_a_role(): void
     {
         $workspace = $this->makeWorkspace();
         $manager = User::factory()->create();
@@ -164,15 +164,28 @@ class WorkspacePermissionsTest extends TestCase
             ->from(route('applications.show', [$workspace->slug, $application->slug]))
             ->post(route('members.store', [$workspace->slug, $application->slug]), ['email' => $stranger->email]);
 
-        $response->assertSessionHasErrors('email');
+        $response->assertSessionHasErrors('role');
         $this->assertFalse($stranger->fresh()->hasAccessToApplication($application));
+    }
 
-        $this->assignRole($stranger, $workspace, 'viewer');
+    public function test_granting_application_access_to_a_non_member_auto_assigns_the_given_workspace_role(): void
+    {
+        $workspace = $this->makeWorkspace();
+        $manager = User::factory()->create();
+        $this->assignRole($manager, $workspace, 'manager');
+        $application = $this->makeApplication($workspace, $manager);
+        $application->users()->attach($manager->id);
+
+        $stranger = User::factory()->create(['email' => 'stranger@example.com']);
 
         $this->actingAs($manager)
-            ->post(route('members.store', [$workspace->slug, $application->slug]), ['email' => $stranger->email])
+            ->post(route('members.store', [$workspace->slug, $application->slug]), [
+                'email' => $stranger->email,
+                'role' => 'viewer',
+            ])
             ->assertRedirect();
 
         $this->assertTrue($stranger->fresh()->hasAccessToApplication($application));
+        $this->assertSame('viewer', $stranger->fresh()->roleInWorkspace($workspace));
     }
 }

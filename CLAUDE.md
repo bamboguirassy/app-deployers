@@ -25,7 +25,8 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
   `TargetEnvironment`s, `WebhookConfig`s.
 - `Environment` — a named stage per Application (slug auto-generated).
 - `TargetEnvironment` — pivot of Target+Environment (`deploy_path`, `git_branch`); has
-  `EnvironmentVariable`s and `Deployment`s.
+  `EnvironmentVariable`s and `Deployment`s. `git_branch` is also how inbound webhooks are
+  routed to an environment — see `WebhookConfig` below.
 - `EnvironmentVariable` — key/value (value is `encrypted` cast) + `is_secret` flag.
 - `PipelineStep` — ordered command template (`label`, `command`, `timeout_seconds`,
   `continue_on_failure`).
@@ -36,8 +37,9 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
   trigger time).
 - `DeploymentStep` — `status`: `pending|running|succes|echec|annule|skipped`, `exit_code`,
   `output`, `pid`, timing.
-- `WebhookConfig` — per Target+provider, encrypted secret; has `WebhookBranchMapping`
-  (branch → environment).
+- `WebhookConfig` — per Target+provider, encrypted secret. No separate branch→environment
+  mapping model: `WebhookReceiverController::handle()` matches the pushed branch directly
+  against `TargetEnvironment.git_branch` on the target's environments.
 - `AuditLog` — polymorphic, written via `App\Support\AuditLogger::log()`.
 - `Framework` — seeded catalog used for a Target's tech icon/type.
 - `User` — Spatie `HasRoles`; `isPlatformAdmin()` means "owner role on at least one

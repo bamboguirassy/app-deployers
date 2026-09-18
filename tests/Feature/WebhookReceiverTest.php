@@ -67,19 +67,15 @@ class WebhookReceiverTest extends TestCase
             'git_branch' => 'main',
         ]);
 
-        $webhookConfig = WebhookConfig::create([
+        // Le routage branche -> environnement se fait via `git_branch` sur
+        // TargetEnvironment (voir WebhookReceiverController::handle()), pas
+        // via un mapping séparé sur WebhookConfig.
+        return WebhookConfig::create([
             'target_id' => $target->id,
             'provider' => 'github',
             'secret' => self::SECRET,
             'enabled' => true,
         ]);
-
-        $webhookConfig->branchMappings()->create([
-            'environment_id' => $environment->id,
-            'branch' => 'main',
-        ]);
-
-        return $webhookConfig;
     }
 
     private function sign(string $body): string

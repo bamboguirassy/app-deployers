@@ -18,12 +18,15 @@ class ExampleTest extends TestCase
         $response->assertInertia(fn ($page) => $page->component('Welcome'));
     }
 
-    public function test_authenticated_users_are_redirected_away_from_the_landing_page(): void
+    public function test_the_landing_page_stays_accessible_to_authenticated_users(): void
     {
+        // Volontaire (voir routes/web.php) : un utilisateur connecté doit
+        // pouvoir consulter librement la home publique.
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->get('/');
 
-        $response->assertRedirect(route('home'));
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page->component('Welcome'));
     }
 }

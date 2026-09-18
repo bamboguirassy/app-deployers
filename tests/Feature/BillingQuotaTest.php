@@ -43,21 +43,23 @@ class BillingQuotaTest extends TestCase
         app(PermissionRegistrar::class)->setPermissionsTeamId($workspace->id);
         $owner->assignRole('owner');
 
-        Application::create([
-            'workspace_id' => $workspace->id,
-            'name' => 'Première app',
-            'created_by' => $owner->id,
-        ]);
+        $maxApplications = Plan::free()->max_applications;
 
-        $this->assertSame(1, Plan::free()->max_applications);
+        for ($i = 1; $i <= $maxApplications; $i++) {
+            Application::create([
+                'workspace_id' => $workspace->id,
+                'name' => "App {$i}",
+                'created_by' => $owner->id,
+            ]);
+        }
 
         $response = $this->actingAs($owner)
             ->from(route('applications.create', $workspace->slug))
-            ->post(route('applications.store', $workspace->slug), ['name' => 'Deuxième app']);
+            ->post(route('applications.store', $workspace->slug), ['name' => 'App en trop']);
 
         $response->assertRedirect(route('applications.create', $workspace->slug));
         $response->assertSessionHas('error');
-        $this->assertDatabaseMissing('applications', ['workspace_id' => $workspace->id, 'name' => 'Deuxième app']);
+        $this->assertDatabaseMissing('applications', ['workspace_id' => $workspace->id, 'name' => 'App en trop']);
     }
 
     public function test_a_workspace_without_any_subscription_row_falls_back_to_the_free_plan(): void
