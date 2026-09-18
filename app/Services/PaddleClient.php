@@ -52,4 +52,23 @@ class PaddleClient
 
         return $response->json('data');
     }
+
+    /**
+     * Récupère la transaction à régler pour remettre à jour le moyen de
+     * paiement d'un abonnement. Si l'abonnement est `past_due`, Paddle
+     * renvoie la transaction en échec existante (montant dû inclus) plutôt
+     * que d'en créer une nouvelle — c'est ce qui permet de "rejouer" le
+     * paiement raté sans ouvrir un nouveau cycle de facturation.
+     *
+     * @return array{id: string}
+     */
+    public function getUpdatePaymentMethodTransaction(string $paddleSubscriptionId): array
+    {
+        $response = Http::withToken(config('paddle.api_key'))
+            ->baseUrl($this->baseUrl())
+            ->get("/subscriptions/{$paddleSubscriptionId}/update-payment-method-transaction")
+            ->throw();
+
+        return $response->json('data');
+    }
 }

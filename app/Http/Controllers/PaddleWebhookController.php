@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\SubscriptionHistory;
+use App\Models\User;
 use App\Models\Workspace;
+use App\Notifications\SubscriptionPastDueNotification;
 use App\Services\PaddleSignatureVerifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class PaddleWebhookController extends Controller
 {
@@ -108,6 +111,25 @@ class PaddleWebhookController extends Controller
         ]);
 
         $this->logHistory($subscription);
+        $this->notifyOwners($subscription, new SubscriptionPastDueNotification($subscription));
+    }
+
+    /**
+     * Les owners d'un workspace sont dérivés du pivot Spatie "team"
+     * (Workspace::members()), pas d'une table de membres dédiée — voir
+     * Workspace::members() et le même pattern dans NotifyOnDeploymentFailure.
+     */
+    private function notifyOwners(Subscription $subscription, $notification): void
+    {
+        $workspace = $subscription->workspace;
+        $ownerIds = $workspace->members()->where('role', 'owner')->pluck('id');
+        $owners = User::whereIn('id', $ownerIds)->get();
+
+        if ($owners->isEmpty()) {
+            return;
+        }
+
+        Notification::send($owners, $notification);
     }
 
     private function handleSubscriptionCanceled(array $data): void

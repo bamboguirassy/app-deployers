@@ -3,9 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Plan;
+use App\Models\User;
 use App\Models\Workspace;
+use App\Notifications\SubscriptionPastDueNotification;
 use Database\Seeders\PlanSeeder;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class PaddleWebhookTest extends TestCase
@@ -18,6 +23,7 @@ class PaddleWebhookTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(RolesAndPermissionsSeeder::class);
         $this->seed(PlanSeeder::class);
         config(['paddle.webhook_secret' => self::SECRET, 'paddle.signature_tolerance_seconds' => 300, 'paddle.grace_period_days' => 7]);
     }
@@ -75,8 +81,14 @@ class PaddleWebhookTest extends TestCase
 
     public function test_subscription_past_due_starts_a_grace_period(): void
     {
+        Notification::fake();
+
         $workspace = $this->makeWorkspaceOnFreePlan();
         $workspace->subscription->update(['paddle_subscription_id' => 'sub_456']);
+
+        $owner = User::factory()->create();
+        app(PermissionRegistrar::class)->setPermissionsTeamId($workspace->id);
+        $owner->assignRole('owner');
 
         $this->postSignedWebhook([
             'event_type' => 'subscription.past_due',
@@ -87,6 +99,8 @@ class PaddleWebhookTest extends TestCase
         $this->assertSame('past_due', $workspace->subscription->status);
         $this->assertNotNull($workspace->subscription->grace_period_ends_at);
         $this->assertTrue($workspace->subscription->grace_period_ends_at->isFuture());
+
+        Notification::assertSentTo($owner, SubscriptionPastDueNotification::class);
     }
 
     public function test_subscription_canceled_falls_back_to_free_without_grace(): void

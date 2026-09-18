@@ -108,4 +108,17 @@ class BillingController extends Controller
 
         return response()->json(['transaction_id' => $transaction['id']]);
     }
+
+    public function retryPayment(Workspace $workspace): JsonResponse
+    {
+        $this->authorize('manageBilling', $workspace);
+
+        $subscription = $workspace->subscription;
+
+        abort_if(! $subscription || $subscription->status !== 'past_due', 422, 'Aucun paiement en échec à régulariser pour ce workspace.');
+
+        $transaction = $this->paddle->getUpdatePaymentMethodTransaction($subscription->paddle_subscription_id);
+
+        return response()->json(['transaction_id' => $transaction['id']]);
+    }
 }

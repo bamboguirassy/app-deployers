@@ -74,6 +74,7 @@ export default function Show({
     const { t, i18n } = useTranslation('billing');
     const { workspace } = usePage<PageProps>().props;
     const [upgrading, setUpgrading] = useState(false);
+    const [retrying, setRetrying] = useState(false);
     const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
     const paddleReady = useRef(false);
 
@@ -141,6 +142,26 @@ export default function Show({
         }
     };
 
+    const retryPayment = async () => {
+        if (!paddle.client_token || !window.Paddle) {
+            message.error(t('errors.notConfigured'));
+            return;
+        }
+
+        setRetrying(true);
+
+        try {
+            const { data } = await axios.post(route('billing.retry-payment', workspace!.slug));
+            window.Paddle.Checkout.open({ transactionId: data.transaction_id });
+        } catch (error) {
+            const description =
+                axios.isAxiosError(error) && error.response?.data?.message ? error.response.data.message : t('errors.retryFailed');
+            message.error(description);
+        } finally {
+            setRetrying(false);
+        }
+    };
+
     const intervalConfigured = interval === 'monthly' ? proPlan?.monthlyConfigured : proPlan?.yearlyConfigured;
     const upgradeDisabled = !can.manageBilling || upgrading || !intervalConfigured || !paddle.client_token;
 
@@ -198,7 +219,14 @@ export default function Show({
                     style={{ marginBottom: 20 }}
                     message={t('pastDue.title')}
                     description={
-                        daysLeft !== null ? t('pastDue.descriptionWithDays', { days: daysLeft }) : t('pastDue.description')
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+                            <span>{daysLeft !== null ? t('pastDue.descriptionWithDays', { days: daysLeft }) : t('pastDue.description')}</span>
+                            {can.manageBilling && (
+                                <Button type="primary" danger loading={retrying} onClick={retryPayment}>
+                                    {t('pastDue.retryButton')}
+                                </Button>
+                            )}
+                        </div>
                     }
                 />
             )}

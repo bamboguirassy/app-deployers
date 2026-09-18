@@ -7,12 +7,14 @@
     },
     "errors": {
         "notConfigured": "Online billing isn't set up yet. Please contact support.",
-        "checkoutFailed": "We couldn't start the checkout right now."
+        "checkoutFailed": "We couldn't start the checkout right now.",
+        "retryFailed": "We couldn't retrieve the payment to settle right now."
     },
     "pastDue": {
         "title": "Payment failed",
         "descriptionWithDays": "Your last payment failed. Your current plan stays active for {{days}} more day(s) before automatically reverting to the Free plan.",
-        "description": "Your last payment failed."
+        "description": "Your last payment failed.",
+        "retryButton": "Retry payment"
     },
     "interval": {
         "monthly": "Monthly",
