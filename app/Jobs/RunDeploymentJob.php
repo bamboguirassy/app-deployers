@@ -10,6 +10,7 @@ use App\Models\DeploymentStep;
 use App\Models\TargetEnvironment;
 use App\Services\DeploymentConcurrencyExceededException;
 use App\Services\DeploymentService;
+use App\Services\GitCloner;
 use App\Services\QuotaGuard;
 use App\Services\SshAuthenticator;
 use App\StepActions\StepActionRegistry;
@@ -18,6 +19,7 @@ use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use phpseclib3\Net\SSH2;
 use Throwable;
@@ -42,7 +44,7 @@ class RunDeploymentJob implements ShouldQueue
         return now()->addMinutes(config('deploy.queue_wait_timeout_minutes'));
     }
 
-    public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions): void
+    public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions, GitCloner $gitCloner): void
     {
         $deployment = Deployment::with([
             'steps',
@@ -83,6 +85,7 @@ class RunDeploymentJob implements ShouldQueue
         }
 
         $ssh = null;
+        $workspaceDir = null;
 
         try {
             $deployment->update(['status' => 'running', 'started_at' => now()]);
@@ -90,13 +93,39 @@ class RunDeploymentJob implements ShouldQueue
 
             $env = $this->buildEnv($targetEnvironment);
 
-            // Une seule connexion SSH ouverte pour tout le déploiement (pas une par
-            // étape) : on évite de payer la poignée de main SSH à chaque commande.
-            if ($targetEnvironment->server) {
+            // executionTargetEnvironment n'est distinct de targetEnvironment
+            // qu'en build centralisé (deploy_path redirigé vers le workspace
+            // de build local pour les steps de build) — voir plus bas. En
+            // on_target, c'est littéralement le même objet : aucun
+            // changement de comportement pour ce chemin.
+            $executionTargetEnvironment = $targetEnvironment;
+            $aborted = false;
+
+            if ($targetEnvironment->isCentralizedBuild()) {
+                if (Cache::get($cancelKey)) {
+                    $aborted = true;
+                } else {
+                    $workspaceDir = storage_path("app/deployments/{$deployment->id}/workspace");
+                    File::ensureDirectoryExists($workspaceDir);
+
+                    $resolvedSha = $gitCloner->clone($targetEnvironment->target, $deployment->branch, $workspaceDir, $deployment->commit_sha);
+
+                    if ($deployment->commit_sha === null) {
+                        $deployment->update(['commit_sha' => $resolvedSha]);
+                    }
+
+                    $executionTargetEnvironment = clone $targetEnvironment;
+                    $executionTargetEnvironment->deploy_path = $workspaceDir;
+                }
+            } elseif ($targetEnvironment->server) {
+                // Une seule connexion SSH ouverte pour tout le déploiement (pas une
+                // par étape) : on évite de payer la poignée de main SSH à chaque
+                // commande. Jamais ouverte en build centralisé : les steps de build
+                // s'exécutent localement (CommandStepAction::runLocal()), et la
+                // synchronisation finale (SyncStepAction) ouvre sa propre connexion
+                // via le transport résolu.
                 $ssh = $sshAuthenticator->connect($targetEnvironment->server);
             }
-
-            $aborted = false;
 
             foreach ($deployment->steps as $step) {
                 if ($step->status === 'succes') {
@@ -121,7 +150,7 @@ class RunDeploymentJob implements ShouldQueue
                     continue;
                 }
 
-                $this->runStep($step, $deployment, $targetEnvironment, $env, $ssh, $cancelKey, $applicationId, $workspaceId, $stepActions);
+                $this->runStep($step, $deployment, $executionTargetEnvironment, $env, $ssh, $cancelKey, $applicationId, $workspaceId, $stepActions);
 
                 if ($step->status === 'annule') {
                     $deployment->update(['status' => 'annule']);
@@ -139,6 +168,10 @@ class RunDeploymentJob implements ShouldQueue
                     ->exists();
 
                 $deployment->update(['status' => $hasFailure ? 'echec' : 'succes']);
+
+                if (! $hasFailure && $targetEnvironment->isCentralizedBuild()) {
+                    $targetEnvironment->update(['last_deployed_sha' => $deployment->commit_sha]);
+                }
             }
         } catch (Throwable $e) {
             Log::error('Deployment failed with an unhandled exception', [
@@ -168,6 +201,13 @@ class RunDeploymentJob implements ShouldQueue
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
             $quotaGuard->releaseDeploymentSlot($workspace);
             $ssh?->disconnect();
+
+            // Nettoyage systématique du workspace éphémère (succès, échec ou
+            // annulation) — jamais partagé entre déploiements (chemin dérivé
+            // de deployment->id).
+            if ($workspaceDir) {
+                File::deleteDirectory($workspaceDir);
+            }
         }
     }
 

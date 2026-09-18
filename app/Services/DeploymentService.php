@@ -77,6 +77,7 @@ class DeploymentService
             'target.application.workspace',
             'target.variables',
             'variables',
+            'server',
         );
 
         $this->assertVariablesComplete($targetEnvironment);
@@ -101,9 +102,39 @@ class DeploymentService
             ]);
         }
 
+        if ($targetEnvironment->isCentralizedBuild()) {
+            $this->appendSyncStep($deployment, $targetEnvironment);
+        }
+
         RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));
 
         return $deployment;
+    }
+
+    /**
+     * Ajoute le step système de synchronisation (App\StepActions\SyncStepAction)
+     * après les steps de build — jamais visible/éditable dans le Pipeline de
+     * l'utilisateur, uniquement injecté ici pour un build_mode centralisé.
+     * Le workspace de build n'existe pas encore à cet instant (créé par
+     * RunDeploymentJob au démarrage) mais son chemin est déterministe à
+     * partir de l'id du déploiement, déjà connu.
+     */
+    private function appendSyncStep(Deployment $deployment, TargetEnvironment $targetEnvironment): void
+    {
+        $workspaceDir = storage_path("app/deployments/{$deployment->id}/workspace");
+        $localPath = rtrim($workspaceDir, '/').'/'.trim((string) $targetEnvironment->build_output_path, '/');
+
+        $deployment->steps()->create([
+            'pipeline_step_id' => null,
+            'label_snapshot' => 'Synchronisation',
+            'type' => 'sync',
+            'config_snapshot' => [
+                'local_path' => $localPath,
+                'connection_type' => $targetEnvironment->server->connection_type,
+            ],
+            'order' => $targetEnvironment->target->pipelineSteps->count(),
+            'status' => 'pending',
+        ]);
     }
 
     /**

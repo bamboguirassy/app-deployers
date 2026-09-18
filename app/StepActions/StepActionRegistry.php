@@ -17,6 +17,7 @@ class StepActionRegistry
     private array $actions = [
         CommandStepAction::class,
         EmailStepAction::class,
+        SyncStepAction::class,
     ];
 
     public function get(string $type): StepActionContract
