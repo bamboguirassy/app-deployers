@@ -144,7 +144,17 @@
             "urlPlaceholder": "https://example.com",
             "openUrl": "Open",
             "deploy": "Deploy",
-            "variablesSectionTitle": "Environment variables"
+            "variablesSectionTitle": "Environment variables",
+            "buildModeLabel": "Where to build?",
+            "buildMode": {
+                "on_target": "On the target server",
+                "centralized": "Centralized build"
+            },
+            "buildModeOnTargetDisabledHint": "This server ({{connectionType}}) can't run the pipeline remotely — only a centralized build is possible.",
+            "buildOutputPathLabel": "Build output folder",
+            "buildOutputPathPlaceholder": "e.g. dist, public/build",
+            "buildOutputPathHint": "Subfolder of the cloned repo to sync to the target — never the whole workspace.",
+            "lastDeployedShaLabel": "Last synced commit"
         }
     },
     "frameworkSelect": {

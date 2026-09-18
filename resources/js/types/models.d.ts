@@ -53,6 +53,9 @@ export interface TargetEnvironmentLink {
     deploy_path: string;
     git_branch: string;
     url: string | null;
+    build_mode: 'on_target' | 'centralized';
+    build_output_path: string | null;
+    last_deployed_sha: string | null;
     environment: Environment;
     variables: EnvironmentVariable[];
     server?: Server | null;
@@ -75,6 +78,7 @@ export interface Server {
     port: number;
     username: string;
     auth_method: 'password' | 'ssh_key';
+    connection_type: 'ssh_exec' | 'ssh_rsync' | 'sftp' | 'ftp';
     default_path: string;
     created_at: string;
 }
@@ -97,6 +101,7 @@ export interface Target {
     order: number;
     repository: string | null;
     repository_provider: 'github' | 'gitlab' | 'bitbucket' | null;
+    git_credential_type: 'token' | 'ssh_key' | null;
     variables: TargetVariable[];
     pipeline_steps: PipelineStep[];
     target_environments: TargetEnvironmentLink[];

@@ -144,7 +144,17 @@
             "urlPlaceholder": "https://exemple.com",
             "openUrl": "Ouvrir",
             "deploy": "Déployer",
-            "variablesSectionTitle": "Variables d'environnement"
+            "variablesSectionTitle": "Variables d'environnement",
+            "buildModeLabel": "Où builder ?",
+            "buildMode": {
+                "on_target": "Sur le serveur cible",
+                "centralized": "Build centralisé"
+            },
+            "buildModeOnTargetDisabledHint": "Ce serveur ({{connectionType}}) ne permet pas d'exécuter le pipeline à distance — seul le build centralisé est possible.",
+            "buildOutputPathLabel": "Dossier de sortie du build",
+            "buildOutputPathPlaceholder": "ex: dist, public/build",
+            "buildOutputPathHint": "Sous-dossier du dépôt cloné à synchroniser vers la cible — jamais le workspace entier.",
+            "lastDeployedShaLabel": "Dernier commit synchronisé"
         }
     },
     "frameworkSelect": {

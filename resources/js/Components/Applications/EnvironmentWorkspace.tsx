@@ -11,7 +11,7 @@ import { PageProps } from '@/types';
 import { Application, Environment, Framework, Server, Target, TargetEnvironmentLink } from '@/types/models';
 import { GitConnection } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Select, Tag, Typography } from 'antd';
+import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Segmented, Select, Tag, Tooltip, Typography } from 'antd';
 import axios from 'axios';
 import { CheckCircle2, ExternalLink, FolderSearch, GitBranch, Layers, MoreHorizontal, Plus, RefreshCcw, Rocket, Trash2 } from 'lucide-react';
 import { FormEventHandler, Fragment, useEffect, useState } from 'react';
@@ -49,6 +49,11 @@ function EnvironmentCell({
             <div className="env-cell__row">
                 <span className="env-cell__dot env-cell__dot--ok" />
                 <span className="env-cell__branch">{link.git_branch}</span>
+                {link.build_mode === 'centralized' && (
+                    <Tag color="purple" style={{ margin: 0, lineHeight: '16px', fontSize: 10 }}>
+                        {t('environmentWorkspace.drawer.buildMode.centralized')}
+                    </Tag>
+                )}
                 {hasSecrets && <span className="env-cell__dot env-cell__dot--secret" />}
             </div>
             <div className="env-cell__path">{link.deploy_path}</div>
@@ -135,9 +140,22 @@ function ConfigDrawer({
         deploy_path: existing?.deploy_path ?? '',
         git_branch: existing?.git_branch ?? 'main',
         url: existing?.url ?? '',
+        build_mode: existing?.build_mode ?? ('on_target' as 'on_target' | 'centralized'),
+        build_output_path: existing?.build_output_path ?? '',
     });
 
     const selectedServer = servers.find((s) => s.id === data.server_id) ?? null;
+    // ssh_exec ne fournit aucun mécanisme de synchronisation : un build
+    // centralisé n'est possible qu'avec un serveur configuré pour ça
+    // (ssh_rsync/sftp/ftp) — voir TargetEnvironmentController::assertBuildModeCompatibleWithServer().
+    const onTargetDisabled = !!selectedServer && selectedServer.connection_type !== 'ssh_exec';
+
+    useEffect(() => {
+        if (onTargetDisabled && data.build_mode === 'on_target') {
+            setData('build_mode', 'centralized');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onTargetDisabled]);
 
     const save = () => {
         if (existing) {
@@ -335,6 +353,51 @@ function ConfigDrawer({
                     </div>
                     <InputError message={errors.url} />
                 </div>
+                <div>
+                    <InputLabel value={t('environmentWorkspace.drawer.buildModeLabel')} />
+                    <Tooltip
+                        title={
+                            onTargetDisabled
+                                ? t('environmentWorkspace.drawer.buildModeOnTargetDisabledHint', { connectionType: selectedServer?.connection_type })
+                                : null
+                        }
+                    >
+                        <Segmented
+                            value={data.build_mode}
+                            onChange={(value) => setData('build_mode', value as 'on_target' | 'centralized')}
+                            disabled={!canManage}
+                            options={[
+                                { label: t('environmentWorkspace.drawer.buildMode.on_target'), value: 'on_target', disabled: onTargetDisabled },
+                                { label: t('environmentWorkspace.drawer.buildMode.centralized'), value: 'centralized' },
+                            ]}
+                        />
+                    </Tooltip>
+                    <InputError message={errors.build_mode} />
+                </div>
+                {data.build_mode === 'centralized' && (
+                    <div>
+                        <InputLabel htmlFor="build-output-path" value={t('environmentWorkspace.drawer.buildOutputPathLabel')} />
+                        <Input
+                            id="build-output-path"
+                            placeholder={t('environmentWorkspace.drawer.buildOutputPathPlaceholder')}
+                            value={data.build_output_path}
+                            onChange={(e) => setData('build_output_path', e.target.value)}
+                            disabled={!canManage}
+                            status={errors.build_output_path ? 'error' : undefined}
+                        />
+                        <InputError message={errors.build_output_path} />
+                        <p className="section-hint" style={{ marginTop: 4 }}>
+                            {t('environmentWorkspace.drawer.buildOutputPathHint')}
+                        </p>
+                    </div>
+                )}
+                {existing?.last_deployed_sha && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                            {t('environmentWorkspace.drawer.lastDeployedShaLabel')} : <code>{existing.last_deployed_sha.slice(0, 10)}</code>
+                        </Text>
+                    </div>
+                )}
             </form>
 
             <ServerFormModal

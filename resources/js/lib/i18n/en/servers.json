@@ -57,6 +57,26 @@
         "defaultPathLabel": "Default root directory",
         "browse": "Browse",
         "defaultPathHint": "Starting point suggested when choosing the deploy path for this server.",
+        "connectionTypeLabel": "Connection type",
+        "connectionType": {
+            "ssh_exec": {
+                "label": "Full SSH",
+                "hint": "Runs the pipeline directly on this server (historical behavior)."
+            },
+            "ssh_rsync": {
+                "label": "SSH + rsync",
+                "hint": "Builds on the platform, delivered by rsync over SSH."
+            },
+            "sftp": {
+                "label": "SFTP",
+                "hint": "Builds on the platform, delivered file by file — no remote execution."
+            },
+            "ftp": {
+                "label": "FTP",
+                "hint": "Like SFTP, for hosting without SSH access.",
+                "authHint": "FTP doesn't support key authentication — password only."
+            }
+        },
         "authMethodLabel": "Authentication method",
         "authMethod": {
             "sshKey": "SSH key",
