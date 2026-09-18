@@ -57,26 +57,6 @@
         "defaultPathLabel": "Répertoire racine par défaut",
         "browse": "Parcourir",
         "defaultPathHint": "Point de départ proposé lors du choix du chemin de déploiement pour ce serveur.",
-        "connectionTypeLabel": "Type de connexion",
-        "connectionType": {
-            "ssh_exec": {
-                "label": "SSH complet",
-                "hint": "Exécute le pipeline directement sur ce serveur (comportement historique)."
-            },
-            "ssh_rsync": {
-                "label": "SSH + rsync",
-                "hint": "Build sur la plateforme, livré par rsync via SSH."
-            },
-            "sftp": {
-                "label": "SFTP",
-                "hint": "Build sur la plateforme, livré fichier par fichier — aucune exécution distante."
-            },
-            "ftp": {
-                "label": "FTP",
-                "hint": "Comme SFTP, pour les hébergements sans accès SSH.",
-                "authHint": "FTP ne supporte pas l'authentification par clé — mot de passe uniquement."
-            }
-        },
         "authMethodLabel": "Méthode d'authentification",
         "authMethod": {
             "sshKey": "Clé SSH",

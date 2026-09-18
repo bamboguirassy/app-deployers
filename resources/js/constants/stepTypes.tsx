@@ -1,11 +1,13 @@
-import { CommandStepConfig, EmailStepConfig, PipelineStep, StepType } from '@/types/models';
+import { CloneStepConfig, CommandStepConfig, EmailStepConfig, PipelineStep, StepType, SyncStepConfig } from '@/types/models';
 import { TFunction } from 'i18next';
-import { Mail, Terminal } from 'lucide-react';
+import { GitBranch, Mail, Terminal, UploadCloud } from 'lucide-react';
 import { ReactNode } from 'react';
 
 export const STEP_TYPE_COLORS: Record<StepType, string> = {
     command: 'blue',
     email: 'purple',
+    clone: 'green',
+    sync: 'orange',
 };
 
 export function stepTypeIcon(type: StepType, size = 14): ReactNode {
@@ -14,6 +16,10 @@ export function stepTypeIcon(type: StepType, size = 14): ReactNode {
             return <Terminal size={size} />;
         case 'email':
             return <Mail size={size} />;
+        case 'clone':
+            return <GitBranch size={size} />;
+        case 'sync':
+            return <UploadCloud size={size} />;
     }
 }
 
@@ -27,19 +33,23 @@ export function getStepTypeLabel(t: TFunction, type: StepType): string {
 }
 
 export function getStepTypeOptions(t: TFunction): { value: StepType; label: string; icon: ReactNode }[] {
-    return (['command', 'email'] as const).map((value) => ({
+    return (['command', 'email', 'clone', 'sync'] as const).map((value) => ({
         value,
         label: getStepTypeLabel(t, value),
         icon: stepTypeIcon(value),
     }));
 }
 
-export function defaultConfigFor(type: StepType): CommandStepConfig | EmailStepConfig {
+export function defaultConfigFor(type: StepType): CommandStepConfig | EmailStepConfig | CloneStepConfig | SyncStepConfig {
     switch (type) {
         case 'command':
             return { command: '' };
         case 'email':
             return { to: [], subject: '', body: '' };
+        case 'clone':
+            return {};
+        case 'sync':
+            return { transport: 'sftp', local_path: '' };
     }
 }
 
@@ -54,9 +64,22 @@ export function stepSummary(step: Pick<PipelineStep, 'type' | 'config'>, t: TFun
         return config.command || t('applications:pipelineSteps.emptyCommand');
     }
 
-    const config = step.config as EmailStepConfig;
-    const to = config.to?.length ? config.to.join(', ') : t('applications:pipelineSteps.noRecipient');
-    const subject = config.subject || t('applications:pipelineSteps.noSubject');
+    if (step.type === 'email') {
+        const config = step.config as EmailStepConfig;
+        const to = config.to?.length ? config.to.join(', ') : t('applications:pipelineSteps.noRecipient');
+        const subject = config.subject || t('applications:pipelineSteps.noSubject');
 
-    return t('applications:pipelineSteps.emailSummary', { to, subject });
+        return t('applications:pipelineSteps.emailSummary', { to, subject });
+    }
+
+    if (step.type === 'clone') {
+        return t('applications:pipelineSteps.cloneSummary');
+    }
+
+    const config = step.config as SyncStepConfig;
+
+    return t('applications:pipelineSteps.syncSummary', {
+        transport: config.transport,
+        path: config.local_path || '.',
+    });
 }

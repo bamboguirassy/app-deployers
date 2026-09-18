@@ -138,13 +138,11 @@ class DeploymentConcurrencyTest extends TestCase
             app(\App\Services\SshAuthenticator::class),
             app(QuotaGuard::class),
             app(\App\StepActions\StepActionRegistry::class),
-            app(\App\Services\GitCloner::class),
         );
         app(RunDeploymentJob::class, ['deploymentId' => $deploymentB->id])->handle(
             app(\App\Services\SshAuthenticator::class),
             app(QuotaGuard::class),
             app(\App\StepActions\StepActionRegistry::class),
-            app(\App\Services\GitCloner::class),
         );
 
         $this->assertSame('succes', $deploymentA->refresh()->status);
@@ -191,7 +189,6 @@ class DeploymentConcurrencyTest extends TestCase
             app(\App\Services\SshAuthenticator::class),
             app(QuotaGuard::class),
             app(\App\StepActions\StepActionRegistry::class),
-            app(\App\Services\GitCloner::class),
         );
 
         // B n'a pas pu acquérir de slot : reste "pending", pas "running"/"echec".

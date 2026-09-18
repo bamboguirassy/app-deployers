@@ -145,15 +145,6 @@
             "openUrl": "Open",
             "deploy": "Deploy",
             "variablesSectionTitle": "Environment variables",
-            "buildModeLabel": "Where to build?",
-            "buildMode": {
-                "on_target": "On the target server",
-                "centralized": "Centralized build"
-            },
-            "buildModeOnTargetDisabledHint": "This server ({{connectionType}}) can't run the pipeline remotely — only a centralized build is possible.",
-            "buildOutputPathLabel": "Build output folder",
-            "buildOutputPathPlaceholder": "e.g. dist, public/build",
-            "buildOutputPathHint": "Subfolder of the cloned repo to sync to the target — never the whole workspace.",
             "lastDeployedShaLabel": "Last synced commit"
         }
     },
@@ -206,12 +197,16 @@
         "addStep": "Add a step",
         "stepTypes": {
             "command": "Shell command",
-            "email": "Email"
+            "email": "Email",
+            "clone": "Clone repository",
+            "sync": "Sync"
         },
         "emptyCommand": "(empty command)",
         "noRecipient": "(no recipient)",
         "noSubject": "(no subject)",
         "emailSummary": "To: {{to}} — {{subject}}",
+        "cloneSummary": "Clones the deployment's branch/commit into a local workspace",
+        "syncSummary": "{{transport}} → {{path}}",
         "templateVariables": {
             "application.name": "Application name",
             "environment.name": "Environment name",
@@ -238,6 +233,8 @@
         "row": {
             "commandTooltip": "Shell command",
             "emailTooltip": "Email",
+            "cloneTooltip": "Clone repository",
+            "syncTooltip": "Sync",
             "timeoutTooltip": "Timeout",
             "continueTooltip": "Continue on failure",
             "yes": "Yes",
@@ -259,6 +256,16 @@
             "commandLabel": "Command",
             "commandPlaceholder": "cd /var/www/app\nnpm ci\nnpm run build\nphp artisan migrate --force",
             "commandHint": "Each line is a shell command. Newlines and && are equivalent.",
+            "cloneHint": "Clones the deployment's branch/commit into a temporary local workspace, so a following \"sync\" step can deliver all or part of it to the target.",
+            "transportLabel": "Transport",
+            "transport": {
+                "ssh_rsync": "rsync over SSH",
+                "sftp": "SFTP",
+                "ftp": "FTP"
+            },
+            "localPathLabel": "Subfolder to sync",
+            "localPathPlaceholder": "e.g. dist, public/build (leave empty for the whole workspace)",
+            "localPathHint": "Path relative to the cloned workspace — never the whole workspace by default.",
             "labelLabel": "Step name",
             "labelPlaceholder": "e.g. Build & deploy",
             "recipientsLabel": "Recipients",

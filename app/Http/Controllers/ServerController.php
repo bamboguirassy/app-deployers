@@ -351,7 +351,6 @@ class ServerController extends Controller
             'port' => ['nullable', 'integer', 'min:1', 'max:65535'],
             'username' => ['required', 'string', 'max:255'],
             'auth_method' => ['required', 'in:password,ssh_key'],
-            'connection_type' => ['sometimes', 'in:ssh_exec,ssh_rsync,sftp,ftp'],
             'default_path' => ['nullable', 'string', 'max:500'],
             'password' => ['nullable', 'string'],
             'private_key' => ['nullable', 'string'],
@@ -359,14 +358,7 @@ class ServerController extends Controller
         ]);
 
         $data['port'] = $data['port'] ?? 22;
-        $data['connection_type'] = $data['connection_type'] ?? 'ssh_exec';
         $data['default_path'] = ($data['default_path'] ?? '') !== '' ? rtrim($data['default_path'], '/') ?: '/' : '/';
-
-        // FTP n'a pas de notion de clé — un serveur configuré en ftp ne peut
-        // s'authentifier que par mot de passe, quel que soit auth_method soumis.
-        if ($data['connection_type'] === 'ftp') {
-            $data['auth_method'] = 'password';
-        }
 
         if ($data['auth_method'] === 'password') {
             $data['private_key'] = null;

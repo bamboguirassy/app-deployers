@@ -74,8 +74,6 @@ class SftpTransportIntegrationTest extends TestCase
             'environment_id' => $environment->id,
             'server_id' => $server->id,
             'deploy_path' => $deployPath,
-            'build_mode' => 'centralized',
-            'build_output_path' => 'dist',
         ]);
     }
 
@@ -94,7 +92,6 @@ class SftpTransportIntegrationTest extends TestCase
             'username' => $this->sshServer->username,
             'auth_method' => 'ssh_key',
             'private_key' => $this->sshServer->privateKey,
-            'connection_type' => 'sftp',
         ]);
 
         $remoteRoot = $this->sshServer->rootDir.'/app';
@@ -143,7 +140,6 @@ class SftpTransportIntegrationTest extends TestCase
             'username' => $this->sshServer->username,
             'auth_method' => 'ssh_key',
             'private_key' => $this->sshServer->privateKey,
-            'connection_type' => 'sftp',
         ]);
 
         $remoteRoot = $this->sshServer->rootDir.'/app';

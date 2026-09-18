@@ -7,7 +7,7 @@ import { Server } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { Alert, Input, InputNumber, Modal, Radio } from 'antd';
-import { FolderOpen, FolderTree, Globe, KeyRound, Lock, PlugZap, RefreshCw, Terminal } from 'lucide-react';
+import { FolderOpen, KeyRound, Lock, PlugZap } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -40,7 +40,6 @@ export default function ServerFormModal({
         port: server?.port ?? 22,
         username: server?.username ?? '',
         auth_method: server?.auth_method ?? ('ssh_key' as 'ssh_key' | 'password'),
-        connection_type: server?.connection_type ?? ('ssh_exec' as Server['connection_type']),
         default_path: server?.default_path ?? '/',
         password: '',
         private_key: '',
@@ -64,7 +63,6 @@ export default function ServerFormModal({
                 port: server?.port ?? 22,
                 username: server?.username ?? '',
                 auth_method: server?.auth_method ?? 'ssh_key',
-                connection_type: server?.connection_type ?? 'ssh_exec',
                 default_path: server?.default_path ?? '/',
                 password: '',
                 private_key: '',
@@ -218,54 +216,13 @@ export default function ServerFormModal({
                 </div>
 
                 <div>
-                    <InputLabel value={t('form.connectionTypeLabel')} />
-                    <Radio.Group
-                        value={data.connection_type}
-                        onChange={(e) => {
-                            const value = e.target.value as Server['connection_type'];
-                            setData('connection_type', value);
-                            // FTP n'a pas de notion de clé — cohérent avec la
-                            // contrainte déjà appliquée côté serveur.
-                            if (value === 'ftp' && data.auth_method !== 'password') {
-                                setData('auth_method', 'password');
-                            }
-                        }}
-                        className="connection-type-grid"
-                        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4, width: '100%' }}
-                    >
-                        {(
-                            [
-                                { value: 'ssh_exec', icon: <Terminal size={14} /> },
-                                { value: 'ssh_rsync', icon: <RefreshCw size={14} /> },
-                                { value: 'sftp', icon: <FolderTree size={14} /> },
-                                { value: 'ftp', icon: <Globe size={14} /> },
-                            ] as const
-                        ).map((option) => (
-                            <Radio.Button key={option.value} value={option.value} style={{ height: 'auto', textAlign: 'left', padding: '8px 10px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    {option.icon}
-                                    <strong style={{ fontSize: 12 }}>{t(`form.connectionType.${option.value}.label`)}</strong>
-                                </div>
-                                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                                    {t(`form.connectionType.${option.value}.hint`)}
-                                </div>
-                            </Radio.Button>
-                        ))}
-                    </Radio.Group>
-                </div>
-
-                <div>
                     <InputLabel value={t('form.authMethodLabel')} />
                     <Radio.Group
                         value={data.auth_method}
                         onChange={(e) => setData('auth_method', e.target.value)}
                         style={{ display: 'flex', gap: 8, marginTop: 4 }}
                     >
-                        <Radio.Button
-                            value="ssh_key"
-                            disabled={data.connection_type === 'ftp'}
-                            style={{ flex: 1, textAlign: 'center', height: 'auto' }}
-                        >
+                        <Radio.Button value="ssh_key" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
                                 <KeyRound size={13} />
                                 {t('form.authMethod.sshKey')}
@@ -278,11 +235,6 @@ export default function ServerFormModal({
                             </span>
                         </Radio.Button>
                     </Radio.Group>
-                    {data.connection_type === 'ftp' && (
-                        <p className="section-hint" style={{ marginTop: 4 }}>
-                            {t('form.connectionType.ftp.authHint')}
-                        </p>
-                    )}
                 </div>
 
                 {data.auth_method === 'password' ? (

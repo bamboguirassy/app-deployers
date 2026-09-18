@@ -56,11 +56,7 @@ class PipelineStepController extends Controller
     {
         $rules = [
             'label' => ['required', 'string', 'max:255'],
-            // 'sync' est exclu : c'est un step système injecté uniquement par
-            // DeploymentService::trigger() pour les environnements en build
-            // centralisé (App\StepActions\SyncStepAction), jamais créable
-            // manuellement par l'utilisateur.
-            'type' => ['required', 'string', Rule::in(array_diff($this->stepActions->types(), ['sync']))],
+            'type' => ['required', 'string', Rule::in($this->stepActions->types())],
             'timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:3600'],
             'continue_on_failure' => ['boolean'],
         ];

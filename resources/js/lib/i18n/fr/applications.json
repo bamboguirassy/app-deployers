@@ -145,15 +145,6 @@
             "openUrl": "Ouvrir",
             "deploy": "Déployer",
             "variablesSectionTitle": "Variables d'environnement",
-            "buildModeLabel": "Où builder ?",
-            "buildMode": {
-                "on_target": "Sur le serveur cible",
-                "centralized": "Build centralisé"
-            },
-            "buildModeOnTargetDisabledHint": "Ce serveur ({{connectionType}}) ne permet pas d'exécuter le pipeline à distance — seul le build centralisé est possible.",
-            "buildOutputPathLabel": "Dossier de sortie du build",
-            "buildOutputPathPlaceholder": "ex: dist, public/build",
-            "buildOutputPathHint": "Sous-dossier du dépôt cloné à synchroniser vers la cible — jamais le workspace entier.",
             "lastDeployedShaLabel": "Dernier commit synchronisé"
         }
     },
@@ -206,12 +197,16 @@
         "addStep": "Ajouter une étape",
         "stepTypes": {
             "command": "Commande shell",
-            "email": "Email"
+            "email": "Email",
+            "clone": "Cloner le dépôt",
+            "sync": "Synchroniser"
         },
         "emptyCommand": "(commande vide)",
         "noRecipient": "(aucun destinataire)",
         "noSubject": "(sans objet)",
         "emailSummary": "À : {{to}} — {{subject}}",
+        "cloneSummary": "Clone la branche/le commit du déploiement dans un workspace local",
+        "syncSummary": "{{transport}} → {{path}}",
         "templateVariables": {
             "application.name": "Nom de l'application",
             "environment.name": "Nom de l'environnement",
@@ -238,6 +233,8 @@
         "row": {
             "commandTooltip": "Commande shell",
             "emailTooltip": "Email",
+            "cloneTooltip": "Cloner le dépôt",
+            "syncTooltip": "Synchroniser",
             "timeoutTooltip": "Timeout",
             "continueTooltip": "Continue en cas d'échec",
             "yes": "Oui",
@@ -259,6 +256,16 @@
             "commandLabel": "Commande",
             "commandPlaceholder": "cd /var/www/app\nnpm ci\nnpm run build\nphp artisan migrate --force",
             "commandHint": "Chaque ligne est une commande shell. Les sauts de ligne et && sont équivalents.",
+            "cloneHint": "Clone la branche/le commit du déploiement dans un workspace local temporaire, pour qu'un step \"sync\" suivant puisse en livrer tout ou partie vers la cible.",
+            "transportLabel": "Transport",
+            "transport": {
+                "ssh_rsync": "rsync par-dessus SSH",
+                "sftp": "SFTP",
+                "ftp": "FTP"
+            },
+            "localPathLabel": "Sous-dossier à synchroniser",
+            "localPathPlaceholder": "ex: dist, public/build (laisser vide pour tout le workspace)",
+            "localPathHint": "Chemin relatif au workspace cloné — jamais le workspace entier par défaut.",
             "labelLabel": "Nom de l'étape",
             "labelPlaceholder": "ex: Build & déploiement",
             "recipientsLabel": "Destinataires",

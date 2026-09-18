@@ -54,7 +54,6 @@ class FtpTransportTest extends TestCase
             'username' => 'nobody',
             'auth_method' => 'password',
             'password' => 'secret',
-            'connection_type' => 'ftp',
         ]);
 
         $application = Application::create([
@@ -70,8 +69,6 @@ class FtpTransportTest extends TestCase
             'environment_id' => $environment->id,
             'server_id' => $server->id,
             'deploy_path' => '/var/www/app',
-            'build_mode' => 'centralized',
-            'build_output_path' => 'dist',
         ])->fresh(['server']);
 
         $transport = new FtpTransport();

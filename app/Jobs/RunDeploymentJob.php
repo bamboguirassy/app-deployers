@@ -10,7 +10,6 @@ use App\Models\DeploymentStep;
 use App\Models\TargetEnvironment;
 use App\Services\DeploymentConcurrencyExceededException;
 use App\Services\DeploymentService;
-use App\Services\GitCloner;
 use App\Services\QuotaGuard;
 use App\Services\SshAuthenticator;
 use App\StepActions\StepActionRegistry;
@@ -44,7 +43,7 @@ class RunDeploymentJob implements ShouldQueue
         return now()->addMinutes(config('deploy.queue_wait_timeout_minutes'));
     }
 
-    public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions, GitCloner $gitCloner): void
+    public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions): void
     {
         $deployment = Deployment::with([
             'steps',
@@ -85,7 +84,11 @@ class RunDeploymentJob implements ShouldQueue
         }
 
         $ssh = null;
-        $workspaceDir = null;
+        // Chemin déterministe (basé sur l'id du déploiement, jamais partagé
+        // entre déploiements concurrents) — calculé systématiquement, que le
+        // pipeline contienne ou non un step clone/sync ; nettoyé dans le
+        // finally dans tous les cas (no-op si jamais créé).
+        $workspaceDir = storage_path("app/deployments/{$deployment->id}/workspace");
 
         try {
             $deployment->update(['status' => 'running', 'started_at' => now()]);
@@ -93,39 +96,17 @@ class RunDeploymentJob implements ShouldQueue
 
             $env = $this->buildEnv($targetEnvironment);
 
-            // executionTargetEnvironment n'est distinct de targetEnvironment
-            // qu'en build centralisé (deploy_path redirigé vers le workspace
-            // de build local pour les steps de build) — voir plus bas. En
-            // on_target, c'est littéralement le même objet : aucun
-            // changement de comportement pour ce chemin.
-            $executionTargetEnvironment = $targetEnvironment;
-            $aborted = false;
-
-            if ($targetEnvironment->isCentralizedBuild()) {
-                if (Cache::get($cancelKey)) {
-                    $aborted = true;
-                } else {
-                    $workspaceDir = storage_path("app/deployments/{$deployment->id}/workspace");
-                    File::ensureDirectoryExists($workspaceDir);
-
-                    $resolvedSha = $gitCloner->clone($targetEnvironment->target, $deployment->branch, $workspaceDir, $deployment->commit_sha);
-
-                    if ($deployment->commit_sha === null) {
-                        $deployment->update(['commit_sha' => $resolvedSha]);
-                    }
-
-                    $executionTargetEnvironment = clone $targetEnvironment;
-                    $executionTargetEnvironment->deploy_path = $workspaceDir;
-                }
-            } elseif ($targetEnvironment->server) {
-                // Une seule connexion SSH ouverte pour tout le déploiement (pas une
-                // par étape) : on évite de payer la poignée de main SSH à chaque
-                // commande. Jamais ouverte en build centralisé : les steps de build
-                // s'exécutent localement (CommandStepAction::runLocal()), et la
-                // synchronisation finale (SyncStepAction) ouvre sa propre connexion
-                // via le transport résolu.
+            // Une seule connexion SSH ouverte pour tout le déploiement (pas une
+            // par étape) : on évite de payer la poignée de main SSH à chaque
+            // commande — comportement inchangé, un step `command` s'exécute
+            // toujours à distance sur le serveur du client (jamais sur
+            // l'infra d'App Deployer). Les éventuels steps clone/sync
+            // travaillent sur $workspaceDir en local, indépendamment de $ssh.
+            if ($targetEnvironment->server) {
                 $ssh = $sshAuthenticator->connect($targetEnvironment->server);
             }
+
+            $aborted = false;
 
             foreach ($deployment->steps as $step) {
                 if ($step->status === 'succes') {
@@ -150,7 +131,7 @@ class RunDeploymentJob implements ShouldQueue
                     continue;
                 }
 
-                $this->runStep($step, $deployment, $executionTargetEnvironment, $env, $ssh, $cancelKey, $applicationId, $workspaceId, $stepActions);
+                $this->runStep($step, $deployment, $targetEnvironment, $env, $ssh, $cancelKey, $applicationId, $workspaceId, $stepActions, $workspaceDir);
 
                 if ($step->status === 'annule') {
                     $deployment->update(['status' => 'annule']);
@@ -169,7 +150,7 @@ class RunDeploymentJob implements ShouldQueue
 
                 $deployment->update(['status' => $hasFailure ? 'echec' : 'succes']);
 
-                if (! $hasFailure && $targetEnvironment->isCentralizedBuild()) {
+                if (! $hasFailure && $deployment->commit_sha) {
                     $targetEnvironment->update(['last_deployed_sha' => $deployment->commit_sha]);
                 }
             }
@@ -203,9 +184,9 @@ class RunDeploymentJob implements ShouldQueue
             $ssh?->disconnect();
 
             // Nettoyage systématique du workspace éphémère (succès, échec ou
-            // annulation) — jamais partagé entre déploiements (chemin dérivé
-            // de deployment->id).
-            if ($workspaceDir) {
+            // annulation), qu'il ait été créé ou non par un step clone/sync —
+            // jamais partagé entre déploiements (chemin dérivé de deployment->id).
+            if (File::isDirectory($workspaceDir)) {
                 File::deleteDirectory($workspaceDir);
             }
         }
@@ -244,13 +225,14 @@ class RunDeploymentJob implements ShouldQueue
         int $applicationId,
         int $workspaceId,
         StepActionRegistry $stepActions,
+        string $workspaceDir,
     ): void {
         $step->update(['status' => 'running', 'started_at' => now()]);
         broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
 
         $pipelineStep = $step->pipelineStep;
         $timeout = $pipelineStep?->timeout_seconds ?? config('deploy.default_timeout_seconds');
-        $context = DeploymentContextBuilder::build($deployment, $step);
+        $context = DeploymentContextBuilder::build($deployment, $step, $workspaceDir);
 
         $result = $stepActions->get($step->type)->execute(
             $step,

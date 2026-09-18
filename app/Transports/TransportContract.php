@@ -5,16 +5,18 @@ namespace App\Transports;
 use App\Models\TargetEnvironment;
 
 /**
- * Contrat commun à tout transport de livraison d'un build centralisé
- * (rsync par-dessus SSH, SFTP, FTP). Miroir volontaire de
- * App\StepActions\StepActionContract : RunDeploymentJob ne connaît que ce
- * contrat via TransportRegistry — ajouter un nouveau transport ne demande
- * aucune modification du job.
+ * Contrat commun à tout transport de synchronisation de fichiers (rsync
+ * par-dessus SSH, SFTP, FTP), consommé par App\StepActions\SyncStepAction —
+ * un step de pipeline ordinaire, choisi librement par l'utilisateur. Miroir
+ * volontaire de App\StepActions\StepActionContract : ni RunDeploymentJob ni
+ * SyncStepAction n'ont besoin de connaître la liste des transports
+ * existants, juste TransportRegistry.
  */
 interface TransportContract
 {
     /**
-     * Identifiant stable stocké en base (`servers.connection_type`).
+     * Identifiant stable choisi par l'utilisateur dans la config du step
+     * `sync` (`config.transport`, voir SyncStepAction::rules()).
      */
     public static function type(): string;
 

@@ -19,7 +19,6 @@ class Server extends Model
         'port',
         'username',
         'auth_method',
-        'connection_type',
         'default_path',
         'password',
         'private_key',
@@ -63,15 +62,6 @@ class Server extends Model
     public function usesSshKey(): bool
     {
         return $this->auth_method === 'ssh_key';
-    }
-
-    /**
-     * Seuls ssh_exec et ssh_rsync ont besoin d'une session SSH exécutable
-     * (SshAuthenticator::connect()) — sftp/ftp utilisent leur propre client.
-     */
-    public function requiresRemoteExec(): bool
-    {
-        return in_array($this->connection_type, ['ssh_exec', 'ssh_rsync'], true);
     }
 
     public function workspace(): BelongsTo

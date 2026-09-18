@@ -14,7 +14,7 @@ class TargetEnvironment extends Model
 
     protected $fillable = [
         'target_id', 'environment_id', 'server_id', 'deploy_path', 'git_branch', 'url',
-        'build_mode', 'build_output_path', 'last_deployed_sha',
+        'last_deployed_sha',
     ];
 
     protected static function booted(): void
@@ -42,11 +42,6 @@ class TargetEnvironment extends Model
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
-    }
-
-    public function isCentralizedBuild(): bool
-    {
-        return $this->build_mode === 'centralized';
     }
 
     public function variables(): HasMany

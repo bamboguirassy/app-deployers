@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class TransportRegistryTest extends TestCase
 {
-    public function test_it_resolves_each_known_connection_type(): void
+    public function test_it_resolves_each_known_transport(): void
     {
         $registry = app(TransportRegistry::class);
 

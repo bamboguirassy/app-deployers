@@ -5,10 +5,11 @@ namespace App\Transports;
 use InvalidArgumentException;
 
 /**
- * Point d'entrée unique pour résoudre un `connection_type` vers son
- * implémentation — miroir de App\StepActions\StepActionRegistry. Ajouter un
- * nouveau transport = créer une classe implémentant TransportContract et
- * l'ajouter à $transports ci-dessous.
+ * Point d'entrée unique pour résoudre le `transport` choisi dans la config
+ * d'un step `sync` (App\StepActions\SyncStepAction) vers son implémentation
+ * — miroir de App\StepActions\StepActionRegistry. Ajouter un nouveau
+ * transport = créer une classe implémentant TransportContract et l'ajouter
+ * à $transports ci-dessous.
  */
 class TransportRegistry
 {

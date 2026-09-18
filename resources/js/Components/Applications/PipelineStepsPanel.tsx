@@ -2,7 +2,7 @@ import { defaultConfigFor, getStepTypeOptions, stepSummary, stepTypeIcon } from 
 import { getTemplateVariables, interpolatePreview } from '@/constants/templateVariables';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
-import { Application, CommandStepConfig, EmailStepConfig, PipelineStep, StepType, Target } from '@/types/models';
+import { Application, CloneStepConfig, CommandStepConfig, EmailStepConfig, PipelineStep, StepType, SyncStepConfig, Target } from '@/types/models';
 import {
     DndContext,
     DragEndEvent,
@@ -41,7 +41,7 @@ import { useTranslation } from 'react-i18next';
 
 const persistOptions = { preserveScroll: true, preserveState: true } as const;
 
-type DraftConfig = Partial<CommandStepConfig & EmailStepConfig>;
+type DraftConfig = Partial<CommandStepConfig & EmailStepConfig & CloneStepConfig & SyncStepConfig>;
 
 function insertAtCursor(el: HTMLTextAreaElement | HTMLInputElement | null | undefined, current: string, insert: string): string {
     if (!el) return current + insert;
@@ -179,6 +179,8 @@ function StepEditorDrawer({
     const canSubmit = useMemo(() => {
         if (!label.trim()) return false;
         if (type === 'command') return !!(config as CommandStepConfig).command?.trim();
+        if (type === 'clone') return true;
+        if (type === 'sync') return !!(config as SyncStepConfig).transport;
         const email = config as EmailStepConfig;
         return (email.to?.length ?? 0) > 0 && !!email.subject?.trim() && !!email.body?.trim();
     }, [label, type, config]);
@@ -315,6 +317,37 @@ function StepEditorDrawer({
                             {t('pipelineSteps.drawer.commandHint')}
                         </p>
                     </div>
+                )}
+
+                {type === 'clone' && (
+                    <Alert type="info" showIcon message={t('pipelineSteps.drawer.cloneHint')} />
+                )}
+
+                {type === 'sync' && (
+                    <>
+                        <div>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.transportLabel')}</label>
+                            <Select
+                                className="w-full"
+                                value={(config as SyncStepConfig).transport ?? 'sftp'}
+                                onChange={(transport) => setConfig((c) => ({ ...c, transport }))}
+                                options={[
+                                    { value: 'ssh_rsync', label: t('pipelineSteps.drawer.transport.ssh_rsync') },
+                                    { value: 'sftp', label: t('pipelineSteps.drawer.transport.sftp') },
+                                    { value: 'ftp', label: t('pipelineSteps.drawer.transport.ftp') },
+                                ]}
+                            />
+                        </div>
+                        <div>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.localPathLabel')}</label>
+                            <Input
+                                value={(config as SyncStepConfig).local_path ?? ''}
+                                onChange={(e) => setConfig((c) => ({ ...c, local_path: e.target.value }))}
+                                placeholder={t('pipelineSteps.drawer.localPathPlaceholder')}
+                            />
+                            <p className="step-editor__field-hint">{t('pipelineSteps.drawer.localPathHint')}</p>
+                        </div>
+                    </>
                 )}
 
                 <div>
@@ -460,7 +493,7 @@ function SortableStepRow({
 
             <span className="step-row__order">{index + 1}</span>
 
-            <Tooltip title={step.type === 'command' ? t('pipelineSteps.row.commandTooltip') : t('pipelineSteps.row.emailTooltip')}>
+            <Tooltip title={t(`pipelineSteps.row.${step.type}Tooltip`)}>
                 <span className={`step-row__type step-row__type--${step.type}`}>{stepTypeIcon(step.type)}</span>
             </Tooltip>
 

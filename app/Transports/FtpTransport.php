@@ -97,7 +97,7 @@ class FtpTransport implements TransportContract
      */
     private function connect(Server $server)
     {
-        // Pas de connection_type distinct FTP/FTPS explicite dans ce ticket
+        // Pas de distinction FTP/FTPS explicite dans la config du step
         // ("ftp" couvre les deux) : on tente FTPS d'abord, avec repli
         // silencieux sur FTP en clair si le serveur ne le supporte pas.
         $connection = function_exists('ftp_ssl_connect') ? @ftp_ssl_connect($server->host, $server->port ?: 21, 10) : false;
