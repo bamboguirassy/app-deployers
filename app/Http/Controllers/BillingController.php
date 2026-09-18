@@ -109,6 +109,34 @@ class BillingController extends Controller
         return response()->json(['transaction_id' => $transaction['id']]);
     }
 
+    public function changeInterval(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('manageBilling', $workspace);
+
+        $data = $request->validate([
+            'interval' => ['required', 'in:monthly,yearly'],
+        ]);
+
+        $subscription = $workspace->subscription;
+
+        abort_if(
+            ! $subscription || $subscription->status !== 'active' || ! $subscription->paddle_subscription_id,
+            422,
+            "L'intervalle de facturation ne peut être changé que pour un abonnement Pro actif."
+        );
+
+        abort_if($subscription->interval === $data['interval'], 422, 'Le workspace est déjà sur cet intervalle de facturation.');
+
+        $proPlan = Plan::query()->where('slug', 'pro')->firstOrFail();
+        $priceId = $proPlan->paddlePriceIdFor($data['interval']);
+
+        abort_if(! $priceId, 422, "Le plan Pro ({$data['interval']}) n'est pas encore configuré côté facturation.");
+
+        $this->paddle->changeSubscriptionPrice($subscription->paddle_subscription_id, $priceId);
+
+        return response()->json(['message' => 'ok']);
+    }
+
     public function retryPayment(Workspace $workspace): JsonResponse
     {
         $this->authorize('manageBilling', $workspace);

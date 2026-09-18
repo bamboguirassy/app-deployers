@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/billing', [BillingController::class, 'show'])->name('billing.show');
         Route::post('/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
         Route::post('/billing/retry-payment', [BillingController::class, 'retryPayment'])->name('billing.retry-payment');
+        Route::post('/billing/change-interval', [BillingController::class, 'changeInterval'])->name('billing.change-interval');
 
         Route::get('/deployments', [DeploymentController::class, 'indexAll'])->name('deployments.all');
         Route::post('/deployments/search', [DeploymentController::class, 'searchAll'])->name('deployments.all.search');

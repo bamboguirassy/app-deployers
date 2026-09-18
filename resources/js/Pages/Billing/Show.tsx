@@ -2,12 +2,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_MONTHLY_EQUIVALENT_EUR, PRO_YEARLY_PRICE_EUR, PRO_YEARLY_SAVINGS_EUR } from '@/constants/pricing';
 import { PageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Alert, Button, Segmented, Tag, Tooltip, Typography, message } from 'antd';
+import { Alert, Badge, Button, Segmented, Tag, Tooltip, Typography, message } from 'antd';
 import { Check, CalendarClock, History, Rocket, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dateLocale } from '@/lib/i18n';
+import { useConfirm } from '@/theme/ConfirmContext';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -73,9 +74,11 @@ export default function Show({
 }) {
     const { t, i18n } = useTranslation('billing');
     const { workspace } = usePage<PageProps>().props;
+    const confirm = useConfirm();
     const [upgrading, setUpgrading] = useState(false);
     const [retrying, setRetrying] = useState(false);
-    const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
+    const [changingInterval, setChangingInterval] = useState(false);
+    const [interval, setInterval] = useState<'monthly' | 'yearly'>(subscription?.interval ?? 'monthly');
     const paddleReady = useRef(false);
 
     const formatLimit = (value: number | null, singularUnitKey: string, pluralUnitKey: string) =>
@@ -162,7 +165,35 @@ export default function Show({
         }
     };
 
+    const changeInterval = () => {
+        confirm.confirm({
+            title: t('changeInterval.confirmTitle'),
+            content: t(`changeInterval.confirmContent.${interval}`),
+            okText: t('changeInterval.confirmOk'),
+            cancelText: t('changeInterval.confirmCancel'),
+            onOk: async () => {
+                setChangingInterval(true);
+
+                try {
+                    await axios.post(route('billing.change-interval', workspace!.slug), { interval });
+                    message.success(t('changeInterval.success'));
+                    router.reload({ only: ['subscription'] });
+                } catch (error) {
+                    const description =
+                        axios.isAxiosError(error) && error.response?.data?.message
+                            ? error.response.data.message
+                            : t('errors.changeIntervalFailed');
+                    message.error(description);
+                } finally {
+                    setChangingInterval(false);
+                }
+            },
+        });
+    };
+
     const intervalConfigured = interval === 'monthly' ? proPlan?.monthlyConfigured : proPlan?.yearlyConfigured;
+    const isCurrentInterval = !isFree && subscription?.interval === interval;
+    const canChangeInterval = !isFree && !isCurrentInterval && !subscription?.is_comped && subscription?.status === 'active';
     const upgradeDisabled = !can.manageBilling || upgrading || !intervalConfigured || !paddle.client_token;
 
     const upgradeTooltip = !can.manageBilling
@@ -236,11 +267,30 @@ export default function Show({
                     value={interval}
                     onChange={(value) => setInterval(value as 'monthly' | 'yearly')}
                     options={[
-                        { label: t('interval.monthly'), value: 'monthly' },
-                        { label: t('interval.yearly'), value: 'yearly' },
+                        {
+                            label: subscription?.interval === 'monthly' && !isFree ? (
+                                <Badge status="success" text={t('interval.monthly')} />
+                            ) : (
+                                t('interval.monthly')
+                            ),
+                            value: 'monthly',
+                        },
+                        {
+                            label: subscription?.interval === 'yearly' && !isFree ? (
+                                <Badge status="success" text={t('interval.yearly')} />
+                            ) : (
+                                t('interval.yearly')
+                            ),
+                            value: 'yearly',
+                        },
                     ]}
                     size="large"
                 />
+                {!isFree && (
+                    <Text type="secondary" style={{ marginLeft: 12, fontSize: 13 }}>
+                        {t('changeInterval.currentlyOn', { interval: t(`interval.${subscription?.interval ?? 'monthly'}Label`) })}
+                    </Text>
+                )}
             </div>
 
             <div className="plans-grid">
@@ -280,8 +330,8 @@ export default function Show({
                     </div>
                 </div>
 
-                <div className={`plan-card plan-card--pro ${!isFree ? 'plan-card--current' : ''}`}>
-                    {!isFree && <div className="plan-card__badge plan-card__badge--pro">{t('plans.currentPlan')}</div>}
+                <div className={`plan-card plan-card--pro ${isCurrentInterval ? 'plan-card--current' : ''}`}>
+                    {isCurrentInterval && <div className="plan-card__badge plan-card__badge--pro">{t('plans.currentPlan')}</div>}
                     {isFree && (
                         <div className="plan-card__ribbon">
                             <Sparkles size={13} /> {t('plans.pro.recommended')}
@@ -327,6 +377,21 @@ export default function Show({
                             ) : (
                                 upgradeButton
                             )
+                        ) : canChangeInterval ? (
+                            <Tooltip title={!can.manageBilling ? t('tooltip.ownerOnly') : null}>
+                                <span style={{ display: 'block' }}>
+                                    <Button
+                                        type="primary"
+                                        size="large"
+                                        block
+                                        disabled={!can.manageBilling}
+                                        loading={changingInterval}
+                                        onClick={changeInterval}
+                                    >
+                                        {t(`changeInterval.switchTo.${interval}`)}
+                                    </Button>
+                                </span>
+                            </Tooltip>
                         ) : (
                             <Button size="large" block disabled>
                                 {subscription?.is_comped ? (

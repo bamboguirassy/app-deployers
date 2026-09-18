@@ -8,7 +8,23 @@
     "errors": {
         "notConfigured": "Online billing isn't set up yet. Please contact support.",
         "checkoutFailed": "We couldn't start the checkout right now.",
-        "retryFailed": "We couldn't retrieve the payment to settle right now."
+        "retryFailed": "We couldn't retrieve the payment to settle right now.",
+        "changeIntervalFailed": "We couldn't change the billing interval right now."
+    },
+    "changeInterval": {
+        "currentlyOn": "Currently billed: {{interval}}",
+        "switchTo": {
+            "monthly": "Switch to monthly",
+            "yearly": "Switch to yearly"
+        },
+        "confirmTitle": "Change billing interval?",
+        "confirmContent": {
+            "monthly": "Your subscription will switch to monthly billing right away. Paddle will calculate and apply the corresponding proration immediately.",
+            "yearly": "Your subscription will switch to yearly billing right away. Paddle will calculate and apply the corresponding proration immediately."
+        },
+        "confirmOk": "Confirm",
+        "confirmCancel": "Cancel",
+        "success": "Billing interval updated."
     },
     "pastDue": {
         "title": "Payment failed",

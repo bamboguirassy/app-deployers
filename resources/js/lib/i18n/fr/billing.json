@@ -8,7 +8,23 @@
     "errors": {
         "notConfigured": "La facturation en ligne n'est pas encore configurée. Contactez le support.",
         "checkoutFailed": "Impossible de lancer le paiement pour le moment.",
-        "retryFailed": "Impossible de récupérer le paiement à régulariser pour le moment."
+        "retryFailed": "Impossible de récupérer le paiement à régulariser pour le moment.",
+        "changeIntervalFailed": "Impossible de changer l'intervalle de facturation pour le moment."
+    },
+    "changeInterval": {
+        "currentlyOn": "Facturation actuelle : {{interval}}",
+        "switchTo": {
+            "monthly": "Passer au mensuel",
+            "yearly": "Passer à l'annuel"
+        },
+        "confirmTitle": "Changer l'intervalle de facturation ?",
+        "confirmContent": {
+            "monthly": "Votre abonnement passera immédiatement en facturation mensuelle. Le prorata correspondant sera calculé par Paddle et appliqué tout de suite.",
+            "yearly": "Votre abonnement passera immédiatement en facturation annuelle. Le prorata correspondant sera calculé par Paddle et appliqué tout de suite."
+        },
+        "confirmOk": "Confirmer",
+        "confirmCancel": "Annuler",
+        "success": "Intervalle de facturation mis à jour."
     },
     "pastDue": {
         "title": "Échec de paiement",

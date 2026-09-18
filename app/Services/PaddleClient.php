@@ -71,4 +71,27 @@ class PaddleClient
 
         return $response->json('data');
     }
+
+    /**
+     * Change l'intervalle de facturation (mensuel <-> annuel) d'un abonnement
+     * actif — entièrement côté serveur chez Paddle, pas de nouveau checkout.
+     * `prorated_immediately` facture/crédite immédiatement le prorata entre
+     * l'ancien et le nouveau prix plutôt que d'attendre le prochain cycle.
+     *
+     * @return array{id: string}
+     */
+    public function changeSubscriptionPrice(string $paddleSubscriptionId, string $newPriceId): array
+    {
+        $response = Http::withToken(config('paddle.api_key'))
+            ->baseUrl($this->baseUrl())
+            ->patch("/subscriptions/{$paddleSubscriptionId}", [
+                'items' => [
+                    ['price_id' => $newPriceId, 'quantity' => 1],
+                ],
+                'proration_billing_mode' => 'prorated_immediately',
+            ])
+            ->throw();
+
+        return $response->json('data');
+    }
 }
