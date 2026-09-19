@@ -132,6 +132,10 @@
             "serverLabel": "Server",
             "serverPlaceholder": "Choose a workspace server",
             "noServerHint": "No server yet. Add one in the Servers workspace.",
+            "ftpCredentialLabel": "FTP account (for FTP sync steps)",
+            "sftpCredentialLabel": "SFTP account (optional)",
+            "credentialPlaceholder": "None (required for an FTP sync step)",
+            "sftpCredentialFallbackPlaceholder": "None — will use the server's SSH",
             "deployPathLabel": "Deploy path",
             "deployPathPlaceholder": "/var/www/api",
             "browse": "Browse",
@@ -267,6 +271,12 @@
             "commandHint": "Each line is a shell command. Newlines and && are equivalent.",
             "cloneHint": "Clones the deployment's branch/commit into a temporary local workspace, so a following \"sync\" step can deliver all or part of it to the target.",
             "transportLabel": "Transport",
+            "transportMissingAccess": {
+                "command": "No matching environment has SSH configured on its server — this step will fail until that's fixed.",
+                "ssh_rsync": "No matching environment has SSH configured on its server — rsync will fail until that's fixed.",
+                "sftp": "No matching environment has SSH nor a dedicated SFTP account — configure one of the two on the relevant server/environment.",
+                "ftp": "No matching environment has a dedicated FTP account — create one on the relevant server (Server page or from the Environments screen)."
+            },
             "transport": {
                 "ssh_rsync": "rsync over SSH",
                 "sftp": "SFTP",

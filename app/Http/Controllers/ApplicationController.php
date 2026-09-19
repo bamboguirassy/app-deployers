@@ -255,7 +255,9 @@ class ApplicationController extends Controller
             ],
             'notificationSettings' => $application->getOrCreateNotificationSettings()->only('notify_on_start', 'notify_on_success', 'notify_on_failure'),
             'frameworks' => Framework::orderBy('order')->get(['id', 'name', 'slug', 'category', 'logo_url']),
-            'servers' => $workspace->servers()->orderBy('name')->get(['id', 'uuid', 'name', 'host', 'port', 'username', 'auth_method', 'default_path']),
+            'servers' => $workspace->servers()->orderBy('name')
+                ->with(['credentials' => fn ($q) => $q->orderBy('label')])
+                ->get(['id', 'uuid', 'name', 'host', 'port', 'username', 'auth_method', 'default_path']),
             'workspaceApplications' => $workspace->visibleApplicationsFor($user)
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug', 'logo_path']),

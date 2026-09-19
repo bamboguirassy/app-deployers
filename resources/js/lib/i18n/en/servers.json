@@ -16,8 +16,10 @@
         },
         "authOptions": {
             "sshKey": "SSH key",
-            "password": "Password"
+            "password": "Password",
+            "none": "No SSH"
         },
+        "credentialsCount": "{{count}} FTP/SFTP account(s)",
         "toolbar": {
             "searchPlaceholder": "Search by name, host or user...",
             "authPlaceholder": "Authentication",
@@ -52,6 +54,9 @@
         "hostLabel": "Address (IP or hostname)",
         "hostPlaceholder": "e.g. 203.0.113.10",
         "portLabel": "Port",
+        "sshEnabledLabel": "This server is reachable over SSH",
+        "sshEnabledHint": "Needed to run commands or sync via SSH/rsync/SFTP.",
+        "sshDisabledHint": "This server won't have SSH — usable only through dedicated FTP/SFTP accounts (\"FTP/SFTP accounts\" section once the server is created).",
         "usernameLabel": "Username",
         "usernamePlaceholder": "e.g. deploy",
         "defaultPathLabel": "Default root directory",
@@ -97,5 +102,21 @@
         "connecting": "Connecting...",
         "responseTime": "Response time: {{ms}} ms",
         "unexpectedError": "Unexpected error during the test."
+    },
+    "credentials": {
+        "sectionTitle": "FTP/SFTP accounts",
+        "sectionHint": "Dedicated accounts, independent from the SSH access above — used by pipeline \"sync\" steps. Several accounts are possible (e.g. one per app hosted on this server).",
+        "empty": "No FTP/SFTP account configured on this server.",
+        "add": "Add an account",
+        "edit": "Edit",
+        "labelLabel": "Account name",
+        "labelPlaceholder": "e.g. Client A account",
+        "privateKeyOptionalLabel": "Private key (optional — otherwise password)",
+        "save": "Save",
+        "confirmDelete": {
+            "title": "Delete the \"{{label}}\" account?",
+            "okText": "Delete",
+            "cancelText": "Cancel"
+        }
     }
 }

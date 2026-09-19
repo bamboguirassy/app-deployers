@@ -5,25 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\Server;
 use App\Models\ServerCredential;
 use App\Models\Workspace;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ServerCredentialController extends Controller
 {
-    public function store(Request $request, Workspace $workspace, Server $server): RedirectResponse
+    public function store(Request $request, Workspace $workspace, Server $server): RedirectResponse|JsonResponse
     {
         $this->authorize('manageServers', $workspace);
         abort_unless($server->belongsToWorkspace($workspace), 404);
 
         $data = $this->validated($request);
 
-        $server->credentials()->create($data);
+        $credential = $server->credentials()->create($data);
+
+        if ($request->wantsJson()) {
+            return response()->json($credential->fresh());
+        }
 
         return back()->with('status', 'Compte ajouté.');
     }
 
-    public function update(Request $request, Workspace $workspace, Server $server, ServerCredential $serverCredential): RedirectResponse
+    public function update(Request $request, Workspace $workspace, Server $server, ServerCredential $serverCredential): RedirectResponse|JsonResponse
     {
         $this->authorize('manageServers', $workspace);
         abort_unless($server->belongsToWorkspace($workspace) && $serverCredential->server_id === $server->id, 404);
@@ -32,10 +37,14 @@ class ServerCredentialController extends Controller
 
         $serverCredential->update($data);
 
+        if ($request->wantsJson()) {
+            return response()->json($serverCredential->fresh());
+        }
+
         return back()->with('status', 'Compte mis à jour.');
     }
 
-    public function destroy(Workspace $workspace, Server $server, ServerCredential $serverCredential): RedirectResponse
+    public function destroy(Request $request, Workspace $workspace, Server $server, ServerCredential $serverCredential): RedirectResponse|JsonResponse
     {
         $this->authorize('manageServers', $workspace);
         abort_unless($server->belongsToWorkspace($workspace) && $serverCredential->server_id === $server->id, 404);
@@ -44,10 +53,20 @@ class ServerCredentialController extends Controller
             $query->where('ftp_credential_id', $serverCredential->id)
                 ->orWhere('sftp_credential_id', $serverCredential->id);
         })->exists()) {
-            return back()->with('error', 'Ce compte est utilisé par au moins un environnement et ne peut pas être supprimé.');
+            $message = 'Ce compte est utilisé par au moins un environnement et ne peut pas être supprimé.';
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->with('error', $message);
         }
 
         $serverCredential->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['deleted' => true]);
+        }
 
         return back()->with('status', 'Compte supprimé.');
     }

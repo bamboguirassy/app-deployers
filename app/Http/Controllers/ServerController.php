@@ -32,7 +32,9 @@ class ServerController extends Controller
     {
         $this->authorize('manageServers', $workspace);
 
-        $servers = $workspace->servers()->orderBy('name')->paginate(20);
+        $servers = $workspace->servers()->orderBy('name')
+            ->with(['credentials' => fn ($q) => $q->orderBy('label')])
+            ->paginate(20);
 
         return Inertia::render('Servers/Index', [
             'servers' => ['data' => $servers->items()],
@@ -64,7 +66,7 @@ class ServerController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $query = $workspace->servers();
+        $query = $workspace->servers()->with(['credentials' => fn ($q) => $q->orderBy('label')]);
         $this->applySearch($query, $data['search'] ?? null, ['servers.name', 'servers.host', 'servers.username']);
 
         if (! empty($data['auth_method'])) {

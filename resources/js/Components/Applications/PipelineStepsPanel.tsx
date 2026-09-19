@@ -107,6 +107,29 @@ function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }
     );
 }
 
+/**
+ * Vérifie si le(s) environnement(s) donnés ont les accès nécessaires pour un
+ * transport de sync donné — reflète exactement la logique serveur
+ * (DeploymentService::assertTransportRequirementsAreMet(), FtpTransport,
+ * SftpTransport) pour avertir l'utilisateur avant le déploiement plutôt
+ * qu'après. `environments` contient soit l'unique environnement actif (mode
+ * pipeline non-uniforme), soit tous les environnements du target (mode
+ * uniforme, où le step est partagé) — voir PipelineStepsPanel.
+ */
+function transportIsSupportedByAtLeastOne(transport: string, environments: TargetEnvironmentLink[]): boolean {
+    if (environments.length === 0) return true; // rien à valider tant qu'aucun environnement n'existe
+
+    return environments.some((env) => {
+        const hasSsh = !!env.server?.auth_method;
+
+        if (transport === 'ssh_rsync' || transport === 'command') return hasSsh;
+        if (transport === 'sftp') return hasSsh || !!env.sftp_credential_id;
+        if (transport === 'ftp') return !!env.ftp_credential_id;
+
+        return true;
+    });
+}
+
 function StepEditorDrawer({
     open,
     onClose,
@@ -116,6 +139,7 @@ function StepEditorDrawer({
     activeMembers,
     targetVariables,
     hasRepository,
+    transportCheckEnvironments,
 }: {
     open: boolean;
     onClose: () => void;
@@ -127,6 +151,8 @@ function StepEditorDrawer({
     submitting: boolean;
     activeMembers: { id: number; name: string; email: string }[];
     targetVariables: import('@/types/models').TargetVariable[];
+    /** Environnement(s) à valider pour l'avertissement transport ftp/sftp/ssh_rsync — voir transportIsSupportedByAtLeastOne(). */
+    transportCheckEnvironments: TargetEnvironmentLink[];
     hasRepository: boolean;
 }) {
     const { t } = useTranslation('applications');
@@ -286,6 +312,14 @@ function StepEditorDrawer({
 
                 {type === 'command' && (
                     <div>
+                        {!transportIsSupportedByAtLeastOne('command', transportCheckEnvironments) && (
+                            <Alert
+                                style={{ marginBottom: 8 }}
+                                type="warning"
+                                showIcon
+                                message={t('pipelineSteps.drawer.transportMissingAccess.command')}
+                            />
+                        )}
                         <div className="step-editor__field-header">
                             <label className="step-editor__field-label">{t('pipelineSteps.drawer.commandLabel')}</label>
                             {targetVariables.length > 0 && (
@@ -360,6 +394,14 @@ function StepEditorDrawer({
                                     { value: 'ftp', label: t('pipelineSteps.drawer.transport.ftp') },
                                 ]}
                             />
+                            {!transportIsSupportedByAtLeastOne((config as SyncStepConfig).transport ?? 'sftp', transportCheckEnvironments) && (
+                                <Alert
+                                    style={{ marginTop: 8 }}
+                                    type="warning"
+                                    showIcon
+                                    message={t(`pipelineSteps.drawer.transportMissingAccess.${(config as SyncStepConfig).transport ?? 'sftp'}`)}
+                                />
+                            )}
                         </div>
                         <div>
                             <label className="step-editor__field-label">{t('pipelineSteps.drawer.localPathLabel')}</label>
@@ -834,6 +876,13 @@ export default function PipelineStepsPanel({
                 activeMembers={activeMembers}
                 targetVariables={target.variables}
                 hasRepository={!!target.repository}
+                transportCheckEnvironments={
+                    target.uniform_pipeline
+                        ? target.target_environments
+                        : activeEnvironment
+                          ? [activeEnvironment]
+                          : []
+                }
             />
         </div>
     );

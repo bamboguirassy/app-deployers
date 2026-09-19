@@ -77,6 +77,84 @@
     font-size: 12px;
 }
 
+.server-ssh-toggle {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    font-size: 13px;
+    font-weight: 600;
+    color: theme('color-text');
+}
+
+.server-credentials-panel {
+    border-top: 1px solid theme('color-border');
+    padding-top: space('3');
+    margin-top: space('1');
+}
+
+.server-credentials-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space('2');
+}
+
+.server-credentials-panel__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: space('1');
+}
+
+.server-credentials-panel__item {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    padding: space('2');
+    border-radius: 8px;
+    background: theme('color-bg');
+}
+
+.server-credentials-panel__label {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.server-credentials-panel__username {
+    font-size: 12px;
+    color: theme('color-text-muted');
+    flex: 1;
+}
+
+.server-credentials-panel__edit {
+    font-size: 12px;
+    color: theme('color-primary');
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.server-credentials-panel__delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: theme('color-danger');
+    cursor: pointer;
+    padding: 2px;
+}
+
+.server-credentials-panel__form {
+    margin-top: space('2');
+    padding: space('3');
+    border-radius: 8px;
+    background: theme('color-bg');
+}
+
 .directory-browser-search {
     margin-bottom: space('3');
 }

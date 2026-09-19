@@ -77,6 +77,8 @@ export interface TargetEnvironmentLink {
     variables: EnvironmentVariable[];
     server?: Server | null;
     pipeline_steps?: PipelineStep[];
+    ftp_credential_id: number | null;
+    sftp_credential_id: number | null;
 }
 
 export interface WebhookConfig {
@@ -87,6 +89,15 @@ export interface WebhookConfig {
     enabled: boolean;
 }
 
+export interface ServerCredential {
+    id: number;
+    uuid: string;
+    server_id: number;
+    type: 'ftp' | 'sftp';
+    label: string;
+    username: string;
+}
+
 export interface Server {
     id: number;
     uuid: string;
@@ -94,10 +105,11 @@ export interface Server {
     name: string;
     host: string;
     port: number;
-    username: string;
-    auth_method: 'password' | 'ssh_key';
+    username: string | null;
+    auth_method: 'password' | 'ssh_key' | null;
     default_path: string;
     created_at: string;
+    credentials?: ServerCredential[];
 }
 
 export interface Framework {
