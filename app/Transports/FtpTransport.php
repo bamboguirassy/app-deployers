@@ -3,6 +3,7 @@
 namespace App\Transports;
 
 use App\Models\Server;
+use App\Models\ServerCredential;
 use App\Models\TargetEnvironment;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
@@ -39,6 +40,17 @@ class FtpTransport implements TransportContract
             throw new RuntimeException('Aucun serveur configuré pour cet environnement.');
         }
 
+        $credential = $targetEnvironment->ftpCredential;
+
+        if (! $credential) {
+            // Contrairement au SFTP, le FTP classique n'a pas de notion de
+            // clé/utilisateur SSH — pas de repli possible sur le SSH
+            // principal du serveur, un compte FTP dédié est obligatoire.
+            throw new RuntimeException(
+                "Aucun compte FTP dédié n'est configuré pour cet environnement (serveur « {$server->name} »)."
+            );
+        }
+
         $output = '';
         $log = function (string $line) use (&$output, $onOutput) {
             $output .= $line."\n";
@@ -49,7 +61,7 @@ class FtpTransport implements TransportContract
         };
 
         try {
-            $connection = $this->connect($server);
+            $connection = $this->connect($server, $credential);
         } catch (Throwable $e) {
             return new TransportSyncResult($e->getMessage(), success: false);
         }
@@ -95,7 +107,7 @@ class FtpTransport implements TransportContract
     /**
      * @return resource
      */
-    private function connect(Server $server)
+    private function connect(Server $server, ServerCredential $credential)
     {
         // Pas de distinction FTP/FTPS explicite dans la config du step
         // ("ftp" couvre les deux) : on tente FTPS d'abord, avec repli
@@ -107,10 +119,10 @@ class FtpTransport implements TransportContract
             throw new RuntimeException("Connexion FTP impossible sur {$server->host}:{$server->port}.");
         }
 
-        if (! @ftp_login($connection, $server->username, (string) $server->password)) {
+        if (! @ftp_login($connection, $credential->username, (string) $credential->password)) {
             ftp_close($connection);
 
-            throw new RuntimeException("Authentification FTP refusée pour l'utilisateur « {$server->username} ».");
+            throw new RuntimeException("Authentification FTP refusée pour le compte « {$credential->label} ».");
         }
 
         return $connection;

@@ -20,6 +20,7 @@ use App\Http\Controllers\PaddleWebhookController;
 use App\Http\Controllers\PipelineStepController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
+use App\Http\Controllers\ServerCredentialController;
 use App\Http\Controllers\TargetController;
 use App\Http\Controllers\TargetEnvironmentController;
 use App\Http\Controllers\ApplicationNotificationSettingController;
@@ -123,6 +124,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/servers/{server}', [ServerController::class, 'destroy'])->name('servers.destroy');
         Route::post('/servers/{server}/test-connection', [ServerController::class, 'testExisting'])->name('servers.test-existing');
         Route::post('/servers/{server}/browse-directory', [ServerController::class, 'browseDirectory'])->name('servers.browse-directory');
+        Route::post('/servers/{server}/credentials', [ServerCredentialController::class, 'store'])->name('server-credentials.store');
+        Route::patch('/servers/{server}/credentials/{serverCredential}', [ServerCredentialController::class, 'update'])->name('server-credentials.update');
+        Route::delete('/servers/{server}/credentials/{serverCredential}', [ServerCredentialController::class, 'destroy'])->name('server-credentials.destroy');
 
         Route::get('/git-connections/{provider}/redirect', [GitConnectionController::class, 'redirect'])->name('git-connections.redirect');
         Route::delete('/git-connections/{gitConnection}', [GitConnectionController::class, 'destroy'])->name('git-connections.destroy');

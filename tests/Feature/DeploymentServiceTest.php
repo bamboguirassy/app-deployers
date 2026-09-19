@@ -15,7 +15,9 @@ use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
+use App\Models\ServerCredential;
 use App\Services\MissingRepositoryException;
+use App\Services\MissingTransportCredentialsException;
 use App\Services\TargetEnvironmentMissingServerException;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,6 +56,15 @@ class DeploymentServiceTest extends TestCase
         ]);
     }
 
+    private function makeServerWithoutSsh(Workspace $workspace): Server
+    {
+        return Server::create([
+            'workspace_id' => $workspace->id,
+            'name' => 'ftp-only',
+            'host' => '10.0.0.2',
+        ]);
+    }
+
     private function makeTargetEnvironment(Workspace $workspace, ?Server $server = null): TargetEnvironment
     {
         $application = Application::create([
@@ -88,6 +99,102 @@ class DeploymentServiceTest extends TestCase
         $this->expectException(TargetEnvironmentMissingServerException::class);
 
         app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+    }
+
+    public function test_trigger_throws_when_a_command_step_targets_a_server_without_ssh(): void
+    {
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServerWithoutSsh($workspace));
+
+        $this->expectException(MissingTransportCredentialsException::class);
+
+        app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+    }
+
+    public function test_trigger_throws_when_a_sync_ftp_step_has_no_dedicated_ftp_credential(): void
+    {
+        $workspace = $this->makeWorkspace();
+        $server = $this->makeServer($workspace);
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $server);
+        $targetEnvironment->pipelineSteps()->delete();
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Sync FTP',
+            'type' => 'sync',
+            'config' => ['transport' => 'ftp', 'local_path' => '', 'remote_path' => ''],
+            'order' => 0,
+        ]);
+
+        $this->expectException(MissingTransportCredentialsException::class);
+
+        app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+    }
+
+    public function test_trigger_succeeds_for_sync_ftp_when_a_dedicated_credential_is_assigned(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $server = $this->makeServer($workspace);
+        $credential = ServerCredential::create([
+            'server_id' => $server->id, 'type' => 'ftp', 'label' => 'FTP', 'username' => 'u', 'password' => 'p',
+        ]);
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $server);
+        $targetEnvironment->update(['ftp_credential_id' => $credential->id]);
+        $targetEnvironment->pipelineSteps()->delete();
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Sync FTP',
+            'type' => 'sync',
+            'config' => ['transport' => 'ftp', 'local_path' => '', 'remote_path' => ''],
+            'order' => 0,
+        ]);
+
+        $deployment = app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+
+        $this->assertSame('pending', $deployment->status);
+    }
+
+    public function test_trigger_succeeds_for_sync_sftp_falling_back_to_the_server_ssh(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+        $targetEnvironment->pipelineSteps()->delete();
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Sync SFTP',
+            'type' => 'sync',
+            'config' => ['transport' => 'sftp', 'local_path' => '', 'remote_path' => ''],
+            'order' => 0,
+        ]);
+
+        $deployment = app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+
+        $this->assertSame('pending', $deployment->status);
+    }
+
+    public function test_trigger_throws_when_a_sync_sftp_step_has_no_credential_and_no_server_ssh(): void
+    {
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServerWithoutSsh($workspace));
+        $targetEnvironment->pipelineSteps()->delete();
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Sync SFTP',
+            'type' => 'sync',
+            'config' => ['transport' => 'sftp', 'local_path' => '', 'remote_path' => ''],
+            'order' => 0,
+        ]);
+
+        $this->expectException(MissingTransportCredentialsException::class);
+
+        app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
     }
 
     public function test_trigger_throws_when_pipeline_has_a_clone_step_but_no_repository_is_connected(): void

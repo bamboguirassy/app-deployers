@@ -14,6 +14,7 @@ use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
 use App\Services\MissingEnvironmentVariablesException;
 use App\Services\MissingRepositoryException;
+use App\Services\MissingTransportCredentialsException;
 use App\Services\TargetEnvironmentMissingServerException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -190,7 +191,7 @@ class DeploymentController extends Controller
                 source: 'manual',
                 user: auth()->user(),
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException|MissingTransportCredentialsException $e) {
             return back()->with('error', $e->getMessage());
         }
 
@@ -231,7 +232,7 @@ class DeploymentController extends Controller
                 $triggered++;
             } catch (DeploymentAlreadyRunningException) {
                 $skipped[] = $targetEnvironment->target->name;
-            } catch (TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException) {
+            } catch (TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException|MissingTransportCredentialsException) {
                 $missingServer[] = $targetEnvironment->target->name;
             }
         }
@@ -244,7 +245,7 @@ class DeploymentController extends Controller
             $message .= ' Déjà en cours, ignoré(s) : '.implode(', ', $skipped).'.';
         }
         if (! empty($missingServer)) {
-            $message .= ' Non configuré(s) (serveur, variables ou dépôt manquant), ignoré(s) : '.implode(', ', $missingServer).'.';
+            $message .= ' Non configuré(s) (serveur, variables, dépôt ou accès FTP/SFTP manquant), ignoré(s) : '.implode(', ', $missingServer).'.';
         }
 
         return back()->with($triggered > 0 ? 'status' : 'error', $message);
@@ -300,7 +301,7 @@ class DeploymentController extends Controller
                 commitSha: $deployment->commit_sha,
                 branch: $deployment->branch,
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException|MissingTransportCredentialsException $e) {
             return back()->with('error', $e->getMessage());
         }
 
@@ -352,7 +353,7 @@ class DeploymentController extends Controller
                 commitSha: $deployment->commit_sha,
                 branch: $deployment->branch,
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException|MissingTransportCredentialsException $e) {
             return back()->with('error', $e->getMessage());
         }
 

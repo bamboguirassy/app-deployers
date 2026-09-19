@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\Environment;
 use App\Models\Plan;
 use App\Models\Server;
+use App\Models\ServerCredential;
 use App\Models\Target;
 use App\Models\TargetEnvironment;
 use App\Models\User;
@@ -64,12 +65,21 @@ class FtpTransportTest extends TestCase
         $target = Target::create(['application_id' => $application->id, 'name' => 'API', 'slug' => 'api']);
         $environment = Environment::create(['application_id' => $application->id, 'name' => 'Prod', 'slug' => 'prod']);
 
+        $credential = ServerCredential::create([
+            'server_id' => $server->id,
+            'type' => 'ftp',
+            'label' => 'Compte FTP test',
+            'username' => 'nobody',
+            'password' => 'secret',
+        ]);
+
         $targetEnvironment = TargetEnvironment::create([
             'target_id' => $target->id,
             'environment_id' => $environment->id,
             'server_id' => $server->id,
+            'ftp_credential_id' => $credential->id,
             'deploy_path' => '/var/www/app',
-        ])->fresh(['server']);
+        ])->fresh(['server', 'ftpCredential']);
 
         $transport = new FtpTransport();
         $result = $transport->sync(sys_get_temp_dir(), $targetEnvironment, 'test:cancel:ftp:1');

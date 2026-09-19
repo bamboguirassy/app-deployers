@@ -39,6 +39,14 @@ class SftpTransport implements TransportContract
             throw new RuntimeException('Aucun serveur configuré pour cet environnement.');
         }
 
+        $credential = $targetEnvironment->sftpCredential;
+
+        if (! $credential && ! $server->hasSsh()) {
+            throw new RuntimeException(
+                "Aucun compte SFTP dédié n'est configuré pour cet environnement, et le serveur « {$server->name} » n'a pas de SSH principal en repli."
+            );
+        }
+
         $output = '';
         $log = function (string $line) use (&$output, $onOutput) {
             $output .= $line."\n";
@@ -49,7 +57,14 @@ class SftpTransport implements TransportContract
         };
 
         try {
-            $sftp = $this->authenticator->connectSftp($server);
+            // Un compte SFTP dédié (ServerCredential) prend le pas s'il est
+            // choisi sur cet environnement ; sinon on retombe sur le SSH
+            // principal du serveur (décision produit : simple par défaut,
+            // dédié seulement quand plusieurs comptes coexistent sur un même
+            // serveur mutualisé).
+            $sftp = $credential
+                ? $this->authenticator->connectSftpWithCredential($server, $credential)
+                : $this->authenticator->connectSftp($server);
         } catch (Throwable $e) {
             return new TransportSyncResult($e->getMessage(), success: false);
         }
