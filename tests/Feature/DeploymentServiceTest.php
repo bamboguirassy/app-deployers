@@ -154,6 +154,65 @@ class DeploymentServiceTest extends TestCase
         $this->assertSame('pending', $deployment->status);
     }
 
+    public function test_trigger_snapshots_only_the_steps_of_the_targeted_environment_when_pipeline_is_not_uniform(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $server = $this->makeServer($workspace);
+
+        $application = Application::create([
+            'workspace_id' => $workspace->id,
+            'name' => 'API',
+            'created_by' => User::factory()->create()->id,
+        ]);
+        $target = Target::create([
+            'application_id' => $application->id,
+            'name' => 'API',
+            'slug' => 'api',
+            'uniform_pipeline' => false,
+        ]);
+        $prodEnv = Environment::create(['application_id' => $application->id, 'name' => 'Prod', 'slug' => 'prod']);
+        $stagingEnv = Environment::create(['application_id' => $application->id, 'name' => 'Staging', 'slug' => 'staging']);
+
+        $prod = TargetEnvironment::create([
+            'target_id' => $target->id,
+            'environment_id' => $prodEnv->id,
+            'server_id' => $server->id,
+            'deploy_path' => '/var/www/prod',
+            'git_branch' => 'main',
+        ]);
+        $staging = TargetEnvironment::create([
+            'target_id' => $target->id,
+            'environment_id' => $stagingEnv->id,
+            'server_id' => $server->id,
+            'deploy_path' => '/var/www/staging',
+            'git_branch' => 'develop',
+        ]);
+
+        PipelineStep::create([
+            'target_id' => $target->id,
+            'target_environment_id' => $prod->id,
+            'label' => 'Deploy prod',
+            'type' => 'command',
+            'config' => ['command' => 'echo prod'],
+            'order' => 0,
+        ]);
+        PipelineStep::create([
+            'target_id' => $target->id,
+            'target_environment_id' => $staging->id,
+            'label' => 'Deploy staging',
+            'type' => 'command',
+            'config' => ['command' => 'echo staging'],
+            'order' => 0,
+        ]);
+
+        $deployment = app(DeploymentService::class)->trigger($prod->fresh(), 'manual');
+
+        $this->assertSame(1, $deployment->steps()->count());
+        $this->assertSame('Deploy prod', $deployment->steps()->first()->label_snapshot);
+    }
+
     public function test_trigger_snapshots_pipeline_steps_and_dispatches_the_job(): void
     {
         Queue::fake();

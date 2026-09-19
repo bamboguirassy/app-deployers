@@ -44,7 +44,7 @@ class DeploymentService
     private function assertRepositoryConnectedIfCloneStepPresent(TargetEnvironment $targetEnvironment): void
     {
         $target = $targetEnvironment->target;
-        $hasCloneStep = $target->pipelineSteps->contains(fn ($step) => $step->type === 'clone');
+        $hasCloneStep = $target->pipelineStepsFor($targetEnvironment)->get()->contains(fn ($step) => $step->type === 'clone');
 
         if ($hasCloneStep && (! $target->repository || ! $target->repository_provider)) {
             Cache::forget(self::lockKey($targetEnvironment->id));
@@ -96,7 +96,6 @@ class DeploymentService
         }
 
         $targetEnvironment->loadMissing(
-            'target.pipelineSteps',
             'target.application.workspace',
             'target.variables',
             'variables',
@@ -114,7 +113,9 @@ class DeploymentService
             'branch' => $branch ?? $targetEnvironment->git_branch,
         ]);
 
-        foreach ($targetEnvironment->target->pipelineSteps as $index => $step) {
+        $steps = $targetEnvironment->target->pipelineStepsFor($targetEnvironment)->get();
+
+        foreach ($steps as $index => $step) {
             $deployment->steps()->create([
                 'pipeline_step_id' => $step->id,
                 'label_snapshot' => $step->label,
