@@ -9,8 +9,8 @@ use App\Models\Target;
  * Retrouve le token OAuth déjà obtenu pour ce workspace/provider via
  * GitRepositorySection.tsx + GitConnectionController (scope `repo`, donne
  * accès aux dépôts privés) — c'est le seul mécanisme de credential Git
- * réellement câblé côté UI aujourd'hui. Utilisé par GitCloner en repli
- * quand Target.git_credential_type n'est pas explicitement renseigné.
+ * réellement câblé côté UI aujourd'hui. Utilisé par GitCloner comme unique
+ * source de credential (repli sur un clone anonyme si absent).
  */
 class GitConnectionTokenResolver
 {

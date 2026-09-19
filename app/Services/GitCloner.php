@@ -44,51 +44,30 @@ class GitCloner
             throw new RuntimeException("Provider Git non supporté pour le clone centralisé : {$target->repository_provider}.");
         }
 
-        $keyFile = null;
-        $env = [];
+        // Le token OAuth déjà obtenu via GitRepositorySection.tsx/
+        // GitConnectionController pour choisir le dépôt (scope `repo`, donne
+        // accès aux dépôts privés) — seul mécanisme de credential Git
+        // réellement câblé côté UI aujourd'hui. Sans connexion, ne
+        // fonctionne que pour un dépôt public.
+        $oauthToken = $this->tokenResolver->resolve($target);
+        $url = $oauthToken
+            ? "https://{$oauthToken}@{$host}/{$target->repository}.git"
+            : "https://{$host}/{$target->repository}.git";
 
-        try {
-            if ($target->git_credential_type === 'ssh_key') {
-                $keyFile = $this->writeTemporaryKeyFile((string) $target->git_credential_secret);
-                $url = "git@{$host}:{$target->repository}.git";
-                $env['GIT_SSH_COMMAND'] = "ssh -i {$keyFile} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null";
-            } elseif ($target->git_credential_type === 'token') {
-                // Convention GitHub (token en tant que "username" HTTPS) —
-                // GitLab/Bitbucket acceptent des conventions légèrement
-                // différentes (oauth2:/x-token-auth:) non distinguées ici.
-                $url = "https://{$target->git_credential_secret}@{$host}/{$target->repository}.git";
-            } elseif ($oauthToken = $this->tokenResolver->resolve($target)) {
-                // Chemin réellement utilisable aujourd'hui : le token OAuth déjà
-                // obtenu via GitRepositorySection.tsx / GitConnectionController
-                // pour choisir le dépôt (scope `repo`, donne accès aux dépôts
-                // privés) — pas besoin de credential saisie manuellement en plus,
-                // git_credential_type reste un repli explicite pour plus tard
-                // (GitLab/Bitbucket, PAT manuel, clé de déploiement dédiée).
-                $url = "https://{$oauthToken}@{$host}/{$target->repository}.git";
-            } else {
-                // Aucune credential : ne fonctionne que pour un dépôt public.
-                $url = "https://{$host}/{$target->repository}.git";
-            }
+        $this->run(['git', 'clone', '--branch', $branch, '--single-branch', $url, $destination]);
 
-            $this->run(['git', 'clone', '--branch', $branch, '--single-branch', $url, $destination], $env);
-
-            if ($commitSha) {
-                $this->run(['git', '-C', $destination, 'checkout', $commitSha], $env);
-            }
-
-            DirectorySymlinkGuard::assertNone($destination);
-
-            return trim($this->run(['git', '-C', $destination, 'rev-parse', 'HEAD'], $env));
-        } finally {
-            if ($keyFile) {
-                @unlink($keyFile);
-            }
+        if ($commitSha) {
+            $this->run(['git', '-C', $destination, 'checkout', $commitSha]);
         }
+
+        DirectorySymlinkGuard::assertNone($destination);
+
+        return trim($this->run(['git', '-C', $destination, 'rev-parse', 'HEAD']));
     }
 
-    private function run(array $command, array $env): string
+    private function run(array $command): string
     {
-        $process = new Process($command, null, $env ?: null, null, 300);
+        $process = new Process($command, null, null, null, 300);
         $process->run();
 
         if (! $process->isSuccessful()) {
@@ -98,14 +77,5 @@ class GitCloner
         }
 
         return $process->getOutput();
-    }
-
-    private function writeTemporaryKeyFile(string $privateKey): string
-    {
-        $path = tempnam(sys_get_temp_dir(), 'deploy_git_key_');
-        file_put_contents($path, rtrim($privateKey)."\n");
-        chmod($path, 0600);
-
-        return $path;
     }
 }

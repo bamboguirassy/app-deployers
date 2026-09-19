@@ -116,7 +116,6 @@ export interface Target {
     order: number;
     repository: string | null;
     repository_provider: 'github' | 'gitlab' | 'bitbucket' | null;
-    git_credential_type: 'token' | 'ssh_key' | null;
     variables: TargetVariable[];
     pipeline_steps: PipelineStep[];
     target_environments: TargetEnvironmentLink[];
