@@ -148,6 +148,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/targets', [TargetController::class, 'store'])->name('targets.store');
             Route::patch('/targets/{target}', [TargetController::class, 'update'])->name('targets.update');
             Route::delete('/targets/{target}', [TargetController::class, 'destroy'])->name('targets.destroy');
+            Route::post('/targets/{target}/pipeline-mode/disable-uniform', [TargetController::class, 'disableUniformPipeline'])->name('targets.pipeline-mode.disable-uniform');
+            Route::post('/targets/{target}/pipeline-mode/enable-uniform', [TargetController::class, 'enableUniformPipeline'])->name('targets.pipeline-mode.enable-uniform');
 
             Route::post('/environments', [EnvironmentController::class, 'store'])->name('environments.store');
             Route::patch('/environments/{environment}', [EnvironmentController::class, 'update'])->name('environments.update');
