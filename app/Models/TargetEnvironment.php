@@ -54,6 +54,15 @@ class TargetEnvironment extends Model
         return $this->hasMany(Deployment::class);
     }
 
+    /**
+     * Steps du pipeline propre à cet environnement — n'a de sens que quand
+     * `target.uniform_pipeline = false` (voir `Target::pipelineStepsFor()`).
+     */
+    public function pipelineSteps(): HasMany
+    {
+        return $this->hasMany(PipelineStep::class)->orderBy('order');
+    }
+
     public function resolveWorkspaceId(): ?int
     {
         return $this->target->application->workspace_id;
