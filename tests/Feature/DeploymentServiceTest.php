@@ -15,6 +15,7 @@ use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
+use App\Services\MissingRepositoryException;
 use App\Services\TargetEnvironmentMissingServerException;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -87,6 +88,70 @@ class DeploymentServiceTest extends TestCase
         $this->expectException(TargetEnvironmentMissingServerException::class);
 
         app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+    }
+
+    public function test_trigger_throws_when_pipeline_has_a_clone_step_but_no_repository_is_connected(): void
+    {
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Cloner le dépôt',
+            'type' => 'clone',
+            'config' => [],
+            'order' => 1,
+        ]);
+
+        $this->expectException(MissingRepositoryException::class);
+
+        app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+    }
+
+    public function test_trigger_releases_the_lock_when_rejecting_a_missing_repository(): void
+    {
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Cloner le dépôt',
+            'type' => 'clone',
+            'config' => [],
+            'order' => 1,
+        ]);
+
+        try {
+            app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+        } catch (MissingRepositoryException) {
+            // attendu
+        }
+
+        $this->assertFalse(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+    }
+
+    public function test_trigger_succeeds_with_a_clone_step_when_a_repository_is_connected(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+        Target::find($targetEnvironment->target_id)->update([
+            'repository' => 'octocat/Hello-World',
+            'repository_provider' => 'github',
+        ]);
+
+        PipelineStep::create([
+            'target_id' => $targetEnvironment->target_id,
+            'label' => 'Cloner le dépôt',
+            'type' => 'clone',
+            'config' => [],
+            'order' => 1,
+        ]);
+
+        $deployment = app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+
+        $this->assertSame('pending', $deployment->status);
     }
 
     public function test_trigger_snapshots_pipeline_steps_and_dispatches_the_job(): void

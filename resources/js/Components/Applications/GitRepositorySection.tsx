@@ -56,9 +56,13 @@ export default function GitRepositorySection({
     };
 
     const disconnect = () => {
+        const hasCloneStep = target.pipeline_steps.some((step) => step.type === 'clone');
+
         confirm.confirm({
             title: t('gitRepository.confirmDisconnect.title'),
-            content: t('gitRepository.confirmDisconnect.content'),
+            content: hasCloneStep
+                ? t('gitRepository.confirmDisconnect.contentWithCloneStep')
+                : t('gitRepository.confirmDisconnect.content'),
             okType: 'danger',
             okText: t('gitRepository.confirmDisconnect.okText'),
             cancelText: t('gitRepository.confirmDisconnect.cancelText'),

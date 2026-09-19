@@ -207,6 +207,8 @@
             "clone": "Clone la branche/le commit du déploiement dans un workspace local.",
             "sync": "Livre un dossier vers le serveur via rsync, SFTP ou FTP."
         },
+        "cloneRequiresRepositoryBadge": "Dépôt requis",
+        "cloneRequiresRepositoryTooltip": "Connectez d'abord un dépôt Git dans l'onglet Général — sinon cette étape échouera au déploiement.",
         "emptyCommand": "(commande vide)",
         "noRecipient": "(aucun destinataire)",
         "noSubject": "(sans objet)",
@@ -341,6 +343,7 @@
         "confirmDisconnect": {
             "title": "Déconnecter le dépôt ?",
             "content": "Le dépôt sera dissocié du target. Les webhooks existants ne seront pas supprimés.",
+            "contentWithCloneStep": "Le pipeline de ce target contient une étape \"Cloner le dépôt\" qui cessera de fonctionner après déconnexion. Les webhooks existants ne seront pas supprimés.",
             "okText": "Déconnecter",
             "cancelText": "Annuler"
         }

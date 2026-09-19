@@ -103,6 +103,7 @@ function StepEditorDrawer({
     submitting,
     activeMembers,
     targetVariables,
+    hasRepository,
 }: {
     open: boolean;
     onClose: () => void;
@@ -114,6 +115,7 @@ function StepEditorDrawer({
     submitting: boolean;
     activeMembers: { id: number; name: string; email: string }[];
     targetVariables: import('@/types/models').TargetVariable[];
+    hasRepository: boolean;
 }) {
     const { t } = useTranslation('applications');
     const [type, setType] = useState<StepType>('command');
@@ -256,6 +258,11 @@ function StepEditorDrawer({
                                 <div className="step-type-grid__title">
                                     {o.icon}
                                     <strong>{o.label}</strong>
+                                    {o.value === 'clone' && !hasRepository && (
+                                        <Tooltip title={t('pipelineSteps.cloneRequiresRepositoryTooltip')}>
+                                            <span className="step-type-grid__warning">{t('pipelineSteps.cloneRequiresRepositoryBadge')}</span>
+                                        </Tooltip>
+                                    )}
                                 </div>
                                 <div className="step-type-grid__hint">
                                     {t(`pipelineSteps.stepTypeDescriptions.${o.value}`)}
@@ -695,6 +702,7 @@ export default function PipelineStepsPanel({
                 submitting={submitting}
                 activeMembers={activeMembers}
                 targetVariables={target.variables}
+                hasRepository={!!target.repository}
             />
         </div>
     );

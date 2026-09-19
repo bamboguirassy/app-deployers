@@ -218,6 +218,17 @@
     color: theme('color-text-muted');
 }
 
+.step-type-grid__warning {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px space('2');
+    border-radius: 999px;
+    background: color-mix(in srgb, theme('color-warning') 12%, transparent);
+    color: theme('color-warning');
+    white-space: nowrap;
+}
+
 .step-editor__row {
     display: flex;
     flex-wrap: wrap;

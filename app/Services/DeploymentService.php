@@ -33,6 +33,28 @@ class DeploymentService
         }
     }
 
+    /**
+     * Un step `clone` (App\StepActions\CloneStepAction) sans dépôt connecté
+     * échouerait de toute façon dès la première étape — autant le refuser
+     * avant de créer un Deployment et de consommer un slot, plutôt que de
+     * laisser échouer après coup (même principe que assertVariablesComplete()).
+     * GitCloner::clone() garde son propre contrôle en filet de sécurité
+     * (ex. dépôt déconnecté entre ce contrôle et l'exécution réelle du job).
+     */
+    private function assertRepositoryConnectedIfCloneStepPresent(TargetEnvironment $targetEnvironment): void
+    {
+        $target = $targetEnvironment->target;
+        $hasCloneStep = $target->pipelineSteps->contains(fn ($step) => $step->type === 'clone');
+
+        if ($hasCloneStep && (! $target->repository || ! $target->repository_provider)) {
+            Cache::forget(self::lockKey($targetEnvironment->id));
+
+            throw new MissingRepositoryException(
+                'Ce pipeline contient une étape de clone, mais aucun dépôt Git n\'est connecté sur ce target.'
+            );
+        }
+    }
+
     public static function lockKey(int $targetEnvironmentId): string
     {
         return "deploy:lock:{$targetEnvironmentId}";
@@ -46,6 +68,7 @@ class DeploymentService
      *
      * @throws DeploymentAlreadyRunningException
      * @throws TargetEnvironmentMissingServerException
+     * @throws MissingRepositoryException
      */
     public function trigger(
         TargetEnvironment $targetEnvironment,
@@ -79,6 +102,7 @@ class DeploymentService
             'variables',
         );
 
+        $this->assertRepositoryConnectedIfCloneStepPresent($targetEnvironment);
         $this->assertVariablesComplete($targetEnvironment);
 
         $deployment = Deployment::create([

@@ -207,6 +207,8 @@
             "clone": "Clones the deployment's branch/commit into a local workspace.",
             "sync": "Delivers a folder to the server via rsync, SFTP, or FTP."
         },
+        "cloneRequiresRepositoryBadge": "Repository required",
+        "cloneRequiresRepositoryTooltip": "Connect a Git repository first in the General tab — otherwise this step will fail at deployment.",
         "emptyCommand": "(empty command)",
         "noRecipient": "(no recipient)",
         "noSubject": "(no subject)",
@@ -341,6 +343,7 @@
         "confirmDisconnect": {
             "title": "Disconnect the repository?",
             "content": "The repository will be unlinked from this target. Existing webhooks won't be deleted.",
+            "contentWithCloneStep": "This target's pipeline has a \"Clone repository\" step that will stop working after disconnecting. Existing webhooks won't be deleted.",
             "okText": "Disconnect",
             "cancelText": "Cancel"
         }

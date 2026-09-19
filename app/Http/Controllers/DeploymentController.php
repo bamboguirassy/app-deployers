@@ -13,6 +13,7 @@ use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
 use App\Services\MissingEnvironmentVariablesException;
+use App\Services\MissingRepositoryException;
 use App\Services\TargetEnvironmentMissingServerException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -189,7 +190,7 @@ class DeploymentController extends Controller
                 source: 'manual',
                 user: auth()->user(),
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException $e) {
             return back()->with('error', $e->getMessage());
         }
 
@@ -230,7 +231,7 @@ class DeploymentController extends Controller
                 $triggered++;
             } catch (DeploymentAlreadyRunningException) {
                 $skipped[] = $targetEnvironment->target->name;
-            } catch (TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException) {
+            } catch (TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException) {
                 $missingServer[] = $targetEnvironment->target->name;
             }
         }
@@ -243,7 +244,7 @@ class DeploymentController extends Controller
             $message .= ' Déjà en cours, ignoré(s) : '.implode(', ', $skipped).'.';
         }
         if (! empty($missingServer)) {
-            $message .= ' Sans serveur configuré, ignoré(s) : '.implode(', ', $missingServer).'.';
+            $message .= ' Non configuré(s) (serveur, variables ou dépôt manquant), ignoré(s) : '.implode(', ', $missingServer).'.';
         }
 
         return back()->with($triggered > 0 ? 'status' : 'error', $message);
@@ -299,7 +300,7 @@ class DeploymentController extends Controller
                 commitSha: $deployment->commit_sha,
                 branch: $deployment->branch,
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException $e) {
             return back()->with('error', $e->getMessage());
         }
 
@@ -351,7 +352,7 @@ class DeploymentController extends Controller
                 commitSha: $deployment->commit_sha,
                 branch: $deployment->branch,
             );
-        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException $e) {
+        } catch (DeploymentAlreadyRunningException|TargetEnvironmentMissingServerException|MissingEnvironmentVariablesException|MissingRepositoryException $e) {
             return back()->with('error', $e->getMessage());
         }
 
