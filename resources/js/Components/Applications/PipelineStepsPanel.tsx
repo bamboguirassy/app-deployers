@@ -1,8 +1,20 @@
+import ServerFormModal from '@/Components/Servers/ServerFormModal';
 import { defaultConfigFor, getStepTypeOptions, stepSummary, stepTypeIcon } from '@/constants/stepTypes';
 import { getTemplateVariables, interpolatePreview } from '@/constants/templateVariables';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
-import { Application, CloneStepConfig, CommandStepConfig, EmailStepConfig, PipelineStep, StepType, SyncStepConfig, Target } from '@/types/models';
+import {
+    Application,
+    CloneStepConfig,
+    CommandStepConfig,
+    EmailStepConfig,
+    PipelineStep,
+    Server,
+    StepType,
+    SyncStepConfig,
+    Target,
+    TargetEnvironmentLink,
+} from '@/types/models';
 import {
     DndContext,
     DragEndEvent,
@@ -35,7 +47,7 @@ import {
     Switch,
     Tooltip,
 } from 'antd';
-import { Eye, GripVertical, Pencil, Plus, Trash2, Variable } from 'lucide-react';
+import { Eye, GripVertical, Pencil, Plus, Server as ServerIcon, Trash2, Variable } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -551,28 +563,122 @@ function SortableStepRow({
     );
 }
 
+/**
+ * Bandeau affiché quand l'environnement actif (mode pipeline non-uniforme)
+ * n'a pas encore de serveur rattaché — sans ça, un step command/sync ajouté
+ * ici resterait invalide jusqu'au déclenchement du déploiement. Permet de
+ * rattacher un serveur existant ou d'en créer un sans quitter cet écran,
+ * même pattern que le "+" de EnvironmentWorkspace.tsx.
+ */
+function NoServerBanner({
+    application,
+    target,
+    targetEnvironment,
+    servers,
+}: {
+    application: Application;
+    target: Target;
+    targetEnvironment: TargetEnvironmentLink;
+    servers: Server[];
+}) {
+    const { t } = useTranslation('applications');
+    const { workspace } = usePage<PageProps>().props;
+    const [selectedServerId, setSelectedServerId] = useState<number | undefined>(undefined);
+    const [creatingServer, setCreatingServer] = useState(false);
+    const [attaching, setAttaching] = useState(false);
+
+    const attachServer = (serverId: number) => {
+        setAttaching(true);
+        router.patch(
+            route('target-environments.update', [workspace!.slug, application.slug, targetEnvironment.uuid]),
+            {
+                server_id: serverId,
+                deploy_path: targetEnvironment.deploy_path,
+                git_branch: targetEnvironment.git_branch,
+                url: targetEnvironment.url,
+            },
+            { ...persistOptions, onFinish: () => setAttaching(false) },
+        );
+    };
+
+    return (
+        <div className="pipeline-env-no-server">
+            <p className="pipeline-env-no-server__text">
+                <ServerIcon size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
+                {t('pipelineMode.environmentHasNoServer')}
+            </p>
+            <div className="pipeline-env-no-server__actions">
+                <Select
+                    placeholder={t('pipelineMode.chooseServerPlaceholder')}
+                    style={{ width: 220 }}
+                    value={selectedServerId}
+                    onChange={setSelectedServerId}
+                    options={servers.map((s) => ({ value: s.id, label: `${s.name} (${s.host})` }))}
+                />
+                <Button
+                    size="small"
+                    type="primary"
+                    disabled={!selectedServerId || attaching}
+                    loading={attaching}
+                    onClick={() => selectedServerId && attachServer(selectedServerId)}
+                >
+                    {t('pipelineMode.attachServer')}
+                </Button>
+                <Button size="small" onClick={() => setCreatingServer(true)}>
+                    {t('pipelineMode.createServer')}
+                </Button>
+            </div>
+
+            <ServerFormModal
+                workspaceSlug={workspace!.slug}
+                open={creatingServer}
+                onClose={() => setCreatingServer(false)}
+                onServerCreated={(server) => attachServer(server.id)}
+            />
+        </div>
+    );
+}
+
 export default function PipelineStepsPanel({
     application,
     target,
+    servers,
     canManage,
     activeMembers,
 }: {
     application: Application;
     target: Target;
+    servers: Server[];
     canManage: boolean;
     activeMembers: { id: number; name: string; email: string }[];
 }) {
     const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
-    const [steps, setSteps] = useState(target.pipeline_steps);
+    const [activeEnvUuid, setActiveEnvUuid] = useState<string | null>(target.target_environments[0]?.uuid ?? null);
+
+    const activeEnvironment = target.uniform_pipeline
+        ? null
+        : (target.target_environments.find((te) => te.uuid === activeEnvUuid) ?? target.target_environments[0] ?? null);
+
+    const stepsSource = target.uniform_pipeline ? target.pipeline_steps : (activeEnvironment?.pipeline_steps ?? []);
+
+    const [steps, setSteps] = useState(stepsSource);
     const [editingStep, setEditingStep] = useState<PipelineStep | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const confirm = useConfirm();
 
     useEffect(() => {
-        setSteps(target.pipeline_steps);
-    }, [target.pipeline_steps]);
+        if (!target.uniform_pipeline && !target.target_environments.some((te) => te.uuid === activeEnvUuid)) {
+            setActiveEnvUuid(target.target_environments[0]?.uuid ?? null);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [target.uniform_pipeline, target.target_environments]);
+
+    useEffect(() => {
+        setSteps(stepsSource);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [target.uniform_pipeline, activeEnvUuid, target.pipeline_steps, target.target_environments]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -627,7 +733,11 @@ export default function PipelineStepsPanel({
         if (editingStep) {
             router.patch(route('pipeline-steps.update', [workspace!.slug, application.slug, target.uuid, editingStep.uuid]), data, options);
         } else {
-            router.post(route('pipeline-steps.store', [workspace!.slug, application.slug, target.uuid]), data, options);
+            router.post(
+                route('pipeline-steps.store', [workspace!.slug, application.slug, target.uuid]),
+                { ...data, target_environment_id: target.uniform_pipeline ? undefined : activeEnvironment?.uuid },
+                options,
+            );
         }
     };
 
@@ -646,13 +756,33 @@ export default function PipelineStepsPanel({
 
         router.post(
             route('pipeline-steps.reorder', [workspace!.slug, application.slug, target.uuid]),
-            { ids: reordered.map((s) => s.id) },
+            { ids: reordered.map((s) => s.id), target_environment_id: target.uniform_pipeline ? undefined : activeEnvironment?.uuid },
             persistOptions,
         );
     };
 
     return (
-        <div className="step-list">
+        <div>
+            {!target.uniform_pipeline && target.target_environments.length > 0 && (
+                <div className="pipeline-env-tabs">
+                    {target.target_environments.map((te) => (
+                        <button
+                            key={te.uuid}
+                            type="button"
+                            className={`pipeline-env-tabs__tab ${te.uuid === activeEnvironment?.uuid ? 'pipeline-env-tabs__tab--active' : ''}`}
+                            onClick={() => setActiveEnvUuid(te.uuid)}
+                        >
+                            {te.environment.name}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {!target.uniform_pipeline && activeEnvironment && !activeEnvironment.server_id && canManage && (
+                <NoServerBanner application={application} target={target} targetEnvironment={activeEnvironment} servers={servers} />
+            )}
+
+            <div className="step-list">
             {steps.length === 0 && !canManage ? (
                 <Empty description={t('pipelineSteps.emptyDescription')} />
             ) : (
@@ -693,6 +823,7 @@ export default function PipelineStepsPanel({
                     </Button>
                 </div>
             )}
+            </div>
 
             <StepEditorDrawer
                 open={drawerOpen}

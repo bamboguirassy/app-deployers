@@ -322,6 +322,30 @@
         "webhookIntegrationTitle": "Intégration webhook",
         "repositoryLabel": "Dépôt git (optionnel)"
     },
+    "pipelineMode": {
+        "label": "Pipeline uniforme pour tous les environnements",
+        "hintUniform": "Un seul pipeline, rejoué sur chaque environnement (Prod, Staging, ...). Recommandé sauf besoin spécifique par environnement.",
+        "hintNonUniform": "Chaque environnement a son propre pipeline, entièrement indépendant.",
+        "confirmDisable": {
+            "title": "Passer à un pipeline par environnement ?",
+            "content": "Chaque environnement (Prod, Staging, ...) aura désormais son propre pipeline indépendant, initialisé à partir du pipeline actuel. Vous pourrez ensuite les faire évoluer séparément.",
+            "okText": "Confirmer",
+            "cancelText": "Annuler"
+        },
+        "enableModal": {
+            "title": "Revenir à un pipeline uniforme",
+            "description": "Choisissez l'environnement dont le pipeline deviendra le pipeline unique, partagé par tous les environnements. Les pipelines des autres environnements seront définitivement supprimés.",
+            "referenceLabel": "Environnement de référence",
+            "referencePlaceholder": "Choisir un environnement...",
+            "warning": "Cette action est irréversible : les pipelines des autres environnements seront perdus.",
+            "confirm": "Restaurer le pipeline uniforme",
+            "cancel": "Annuler"
+        },
+        "environmentHasNoServer": "Aucun serveur rattaché à cet environnement.",
+        "chooseServerPlaceholder": "Choisir un serveur...",
+        "attachServer": "Rattacher un serveur",
+        "createServer": "Créer un serveur"
+    },
     "gitRepository": {
         "sectionTitle": "Dépôt git",
         "drawerTitle": "Connecter un dépôt git",

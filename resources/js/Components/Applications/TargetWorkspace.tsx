@@ -1,6 +1,7 @@
 import CreateTargetModal from '@/Components/Applications/CreateTargetModal';
 import FrameworkSelect from '@/Components/Applications/FrameworkSelect';
 import GitRepositorySection from '@/Components/Applications/GitRepositorySection';
+import PipelineModeToggle from '@/Components/Applications/PipelineModeToggle';
 import PipelineStepsPanel from '@/Components/Applications/PipelineStepsPanel';
 import TargetVariablesPanel from '@/Components/Applications/TargetVariablesPanel';
 import WebhooksPanel from '@/Components/Applications/WebhooksPanel';
@@ -8,7 +9,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
-import { Application, Framework, Target } from '@/types/models';
+import { Application, Framework, Server, Target } from '@/types/models';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { Avatar, Empty, Input, Modal } from 'antd';
 import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -74,12 +75,14 @@ function TargetEditModal({
 export default function TargetWorkspace({
     application,
     frameworks,
+    servers,
     canManage,
     initialTargetId,
     activeMembers,
 }: {
     application: Application;
     frameworks: Framework[];
+    servers: Server[];
     canManage: boolean;
     initialTargetId?: string;
     activeMembers: { id: number; name: string; email: string }[];
@@ -203,9 +206,11 @@ export default function TargetWorkspace({
                         />
 
                         <h4 className="target-workspace__section-title">{t('targetWorkspace.pipelineStepsTitle')}</h4>
+                        <PipelineModeToggle application={application} target={selected} canManage={canManage} />
                         <PipelineStepsPanel
                             application={application}
                             target={selected}
+                            servers={servers}
                             canManage={canManage}
                             activeMembers={activeMembers}
                         />

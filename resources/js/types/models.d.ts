@@ -32,6 +32,7 @@ interface PipelineStepBase {
     id: number;
     uuid: string;
     target_id: number;
+    target_environment_id: number | null;
     label: string;
     order: number;
     timeout_seconds: number | null;
@@ -75,6 +76,7 @@ export interface TargetEnvironmentLink {
     environment: Environment;
     variables: EnvironmentVariable[];
     server?: Server | null;
+    pipeline_steps?: PipelineStep[];
 }
 
 export interface WebhookConfig {
@@ -116,6 +118,7 @@ export interface Target {
     order: number;
     repository: string | null;
     repository_provider: 'github' | 'gitlab' | 'bitbucket' | null;
+    uniform_pipeline: boolean;
     variables: TargetVariable[];
     pipeline_steps: PipelineStep[];
     target_environments: TargetEnvironmentLink[];

@@ -195,7 +195,7 @@ class ApplicationController extends Controller
         $this->authorize('view', $application);
 
         $application->load([
-            'targets' => fn ($q) => $q->with(['framework', 'variables', 'pipelineSteps', 'webhookConfigs', 'targetEnvironments.environment', 'targetEnvironments.variables.targetVariable', 'targetEnvironments.server']),
+            'targets' => fn ($q) => $q->with(['framework', 'variables', 'pipelineSteps', 'webhookConfigs', 'targetEnvironments.environment', 'targetEnvironments.variables.targetVariable', 'targetEnvironments.server', 'targetEnvironments.pipelineSteps']),
             'environments',
         ]);
 

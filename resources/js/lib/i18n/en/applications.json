@@ -322,6 +322,30 @@
         "webhookIntegrationTitle": "Webhook integration",
         "repositoryLabel": "Git repository (optional)"
     },
+    "pipelineMode": {
+        "label": "Uniform pipeline for all environments",
+        "hintUniform": "A single pipeline, replayed on every environment (Prod, Staging, ...). Recommended unless you need per-environment differences.",
+        "hintNonUniform": "Each environment has its own, fully independent pipeline.",
+        "confirmDisable": {
+            "title": "Switch to a per-environment pipeline?",
+            "content": "Each environment (Prod, Staging, ...) will now have its own independent pipeline, initialized from the current one. You can then evolve them separately.",
+            "okText": "Confirm",
+            "cancelText": "Cancel"
+        },
+        "enableModal": {
+            "title": "Restore a uniform pipeline",
+            "description": "Choose which environment's pipeline becomes the single pipeline shared by every environment. The other environments' pipelines will be permanently deleted.",
+            "referenceLabel": "Reference environment",
+            "referencePlaceholder": "Choose an environment...",
+            "warning": "This action is irreversible: the other environments' pipelines will be lost.",
+            "confirm": "Restore uniform pipeline",
+            "cancel": "Cancel"
+        },
+        "environmentHasNoServer": "No server attached to this environment.",
+        "chooseServerPlaceholder": "Choose a server...",
+        "attachServer": "Attach a server",
+        "createServer": "Create a server"
+    },
     "gitRepository": {
         "sectionTitle": "Git repository",
         "drawerTitle": "Connect a git repository",
