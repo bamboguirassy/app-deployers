@@ -13,8 +13,8 @@ class TargetEnvironment extends Model
     use BelongsToWorkspace;
 
     protected $fillable = [
-        'target_id', 'environment_id', 'server_id', 'deploy_path', 'git_branch', 'url',
-        'last_deployed_sha',
+        'target_id', 'environment_id', 'server_id', 'ftp_credential_id', 'sftp_credential_id',
+        'deploy_path', 'git_branch', 'url', 'last_deployed_sha',
     ];
 
     protected static function booted(): void
@@ -42,6 +42,16 @@ class TargetEnvironment extends Model
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
+    }
+
+    public function ftpCredential(): BelongsTo
+    {
+        return $this->belongsTo(ServerCredential::class, 'ftp_credential_id');
+    }
+
+    public function sftpCredential(): BelongsTo
+    {
+        return $this->belongsTo(ServerCredential::class, 'sftp_credential_id');
     }
 
     public function variables(): HasMany
