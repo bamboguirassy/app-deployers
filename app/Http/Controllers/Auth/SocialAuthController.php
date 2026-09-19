@@ -31,21 +31,24 @@ class SocialAuthController extends Controller
             [
                 'name' => $googleUser->getName(),
                 'password' => bcrypt(Str::random(32)),
-                'email_verified_at' => now(),
                 'google_id' => $googleUser->getId(),
             ]
         );
 
-        // Si le compte existait déjà, on complète les champs manquants.
-        $updates = [];
+        // email_verified_at n'est volontairement pas mass-assignable (voir
+        // #[Fillable] sur User — on ne veut pas qu'un formulaire quelconque
+        // permette de s'auto-vérifier) : update()/firstOrCreate() l'ignorent
+        // silencieusement. Google a déjà vérifié cette adresse pour nous,
+        // donc on passe par markEmailAsVerified() qui contourne
+        // volontairement cette protection pour ce cas précis.
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        // Si le compte existait déjà (créé par email/mot de passe avant de
+        // se connecter via Google), on complète le lien manquant.
         if (! $user->google_id) {
-            $updates['google_id'] = $googleUser->getId();
-        }
-        if (! $user->email_verified_at) {
-            $updates['email_verified_at'] = now();
-        }
-        if ($updates) {
-            $user->update($updates);
+            $user->update(['google_id' => $googleUser->getId()]);
         }
 
         if ($user->isSuspended()) {
