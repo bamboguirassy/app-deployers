@@ -31,7 +31,11 @@ class DeploymentManifest
         );
 
         foreach ($iterator as $file) {
-            if ($file->isDir()) {
+            // Défense en profondeur : GitCloner::assertNoSymlinks() rejette déjà
+            // tout dépôt contenant un symlink avant que ce workspace ne soit
+            // utilisé par un step sync — ceci ne fait qu'éviter de suivre un
+            // lien qui aurait pu être introduit par un autre moyen.
+            if ($file->isLink() || $file->isDir()) {
                 continue;
             }
 

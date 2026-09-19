@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Target;
+use App\Support\DirectorySymlinkGuard;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
@@ -15,6 +16,8 @@ use Symfony\Component\Process\Process;
  */
 class GitCloner
 {
+    public function __construct(private GitConnectionTokenResolver $tokenResolver) {}
+
     private const HOSTS = [
         'github' => 'github.com',
         'gitlab' => 'gitlab.com',
@@ -54,9 +57,16 @@ class GitCloner
                 // GitLab/Bitbucket acceptent des conventions légèrement
                 // différentes (oauth2:/x-token-auth:) non distinguées ici.
                 $url = "https://{$target->git_credential_secret}@{$host}/{$target->repository}.git";
+            } elseif ($oauthToken = $this->tokenResolver->resolve($target)) {
+                // Chemin réellement utilisable aujourd'hui : le token OAuth déjà
+                // obtenu via GitRepositorySection.tsx / GitConnectionController
+                // pour choisir le dépôt (scope `repo`, donne accès aux dépôts
+                // privés) — pas besoin de credential saisie manuellement en plus,
+                // git_credential_type reste un repli explicite pour plus tard
+                // (GitLab/Bitbucket, PAT manuel, clé de déploiement dédiée).
+                $url = "https://{$oauthToken}@{$host}/{$target->repository}.git";
             } else {
-                // Aucune credential configurée : ne fonctionne que pour un
-                // dépôt public.
+                // Aucune credential : ne fonctionne que pour un dépôt public.
                 $url = "https://{$host}/{$target->repository}.git";
             }
 
@@ -65,6 +75,8 @@ class GitCloner
             if ($commitSha) {
                 $this->run(['git', '-C', $destination, 'checkout', $commitSha], $env);
             }
+
+            DirectorySymlinkGuard::assertNone($destination);
 
             return trim($this->run(['git', '-C', $destination, 'rev-parse', 'HEAD'], $env));
         } finally {
