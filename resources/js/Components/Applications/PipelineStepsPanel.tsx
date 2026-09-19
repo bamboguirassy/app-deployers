@@ -30,7 +30,7 @@ import {
     Empty,
     Input,
     InputNumber,
-    Segmented,
+    Radio,
     Select,
     Switch,
     Tooltip,
@@ -246,19 +246,23 @@ function StepEditorDrawer({
 
                 <div>
                     <label className="step-editor__field-label">{t('pipelineSteps.drawer.typeLabel')}</label>
-                    <Segmented
-                        block
+                    <Radio.Group
                         value={type}
-                        onChange={(v) => changeType(v as StepType)}
-                        options={getStepTypeOptions(t).map((o) => ({
-                            value: o.value,
-                            label: (
-                                <span className="step-editor__segment">
-                                    {o.icon} {o.label}
-                                </span>
-                            ),
-                        }))}
-                    />
+                        onChange={(e) => changeType(e.target.value as StepType)}
+                        className="step-type-grid"
+                    >
+                        {getStepTypeOptions(t).map((o) => (
+                            <Radio.Button key={o.value} value={o.value} className="step-type-grid__option">
+                                <div className="step-type-grid__title">
+                                    {o.icon}
+                                    <strong>{o.label}</strong>
+                                </div>
+                                <div className="step-type-grid__hint">
+                                    {t(`pipelineSteps.stepTypeDescriptions.${o.value}`)}
+                                </div>
+                            </Radio.Button>
+                        ))}
+                    </Radio.Group>
                 </div>
 
                 {type === 'command' && (
@@ -346,6 +350,15 @@ function StepEditorDrawer({
                                 placeholder={t('pipelineSteps.drawer.localPathPlaceholder')}
                             />
                             <p className="step-editor__field-hint">{t('pipelineSteps.drawer.localPathHint')}</p>
+                        </div>
+                        <div>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.remotePathLabel')}</label>
+                            <Input
+                                value={(config as SyncStepConfig).remote_path ?? ''}
+                                onChange={(e) => setConfig((c) => ({ ...c, remote_path: e.target.value }))}
+                                placeholder={t('pipelineSteps.drawer.remotePathPlaceholder')}
+                            />
+                            <p className="step-editor__field-hint">{t('pipelineSteps.drawer.remotePathHint')}</p>
                         </div>
                     </>
                 )}

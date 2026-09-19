@@ -180,6 +180,44 @@
     gap: space('2');
 }
 
+// Remplace un Segmented horizontal (illisible dès 3-4 types de step, le
+// texte se tronque dans la largeur fixe du tiroir) par une grille de cartes
+// qui s'adapte au nombre de types sans jamais tronquer un libellé.
+.step-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: space('2');
+    width: 100%;
+}
+
+.step-type-grid__option.ant-radio-button-wrapper {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: space('1');
+    padding: space('3');
+    text-align: left;
+    white-space: normal;
+    line-height: 1.35;
+
+    &::before {
+        display: none;
+    }
+}
+
+.step-type-grid__title {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    font-size: 13px;
+}
+
+.step-type-grid__hint {
+    font-size: 11px;
+    color: theme('color-text-muted');
+}
+
 .step-editor__row {
     display: flex;
     flex-wrap: wrap;

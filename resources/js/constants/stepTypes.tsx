@@ -49,7 +49,7 @@ export function defaultConfigFor(type: StepType): CommandStepConfig | EmailStepC
         case 'clone':
             return {};
         case 'sync':
-            return { transport: 'sftp', local_path: '' };
+            return { transport: 'sftp', local_path: '', remote_path: '' };
     }
 }
 
@@ -77,6 +77,14 @@ export function stepSummary(step: Pick<PipelineStep, 'type' | 'config'>, t: TFun
     }
 
     const config = step.config as SyncStepConfig;
+
+    if (config.remote_path) {
+        return t('applications:pipelineSteps.syncSummaryWithRemotePath', {
+            transport: config.transport,
+            path: config.local_path || '.',
+            remotePath: config.remote_path,
+        });
+    }
 
     return t('applications:pipelineSteps.syncSummary', {
         transport: config.transport,

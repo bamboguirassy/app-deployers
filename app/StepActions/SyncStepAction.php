@@ -29,6 +29,11 @@ class SyncStepAction implements StepActionContract
         return [
             'transport' => ['required', 'in:ssh_rsync,sftp,ftp'],
             'local_path' => ['nullable', 'string', 'max:255'],
+            'remote_path' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if ($value !== null && self::containsPathTraversal($value)) {
+                    $fail('Le chemin distant ne peut pas contenir de traversée de répertoire ("..").');
+                }
+            }],
         ];
     }
 
@@ -45,16 +50,44 @@ class SyncStepAction implements StepActionContract
         $config = $step->config_snapshot ?? [];
         $transport = (string) ($config['transport'] ?? '');
         $relative = trim((string) ($config['local_path'] ?? ''), '/');
+        $remotePath = trim((string) ($config['remote_path'] ?? ''), '/');
         $workspacePath = (string) ($context['workspace_path'] ?? '');
 
         if ($workspacePath === '' || $transport === '') {
             return new StepExecutionResult('Configuration de synchronisation invalide (workspace ou transport manquant).', 1);
         }
 
+        // Défense en profondeur : la validation à la création du step
+        // (rules() ci-dessus) devrait déjà avoir rejeté ceci, mais on ne fait
+        // jamais confiance uniquement à une validation en amont pour un
+        // chemin qui contrôle où on écrit sur le serveur du client.
+        if (self::containsPathTraversal($remotePath)) {
+            return new StepExecutionResult('remote_path invalide (traversée de répertoire détectée).', 1);
+        }
+
         $localPath = rtrim($workspacePath, '/').($relative !== '' ? '/'.$relative : '');
 
-        $result = $this->transports->get($transport)->sync($localPath, $targetEnvironment, $cancelKey, $onOutput);
+        // deploy_path n'est jamais persisté ici — seulement lu par les
+        // transports (App\Transports\*) comme destination distante. Cloner
+        // l'objet pour n'en changer que cet attribut en mémoire permet de
+        // rediriger la synchronisation vers un sous-dossier sans toucher au
+        // contrat TransportContract ni aux 3 implémentations.
+        $destinationEnvironment = $targetEnvironment;
+
+        if ($remotePath !== '') {
+            $destinationEnvironment = clone $targetEnvironment;
+            $destinationEnvironment->deploy_path = rtrim($targetEnvironment->deploy_path, '/').'/'.$remotePath;
+        }
+
+        $result = $this->transports->get($transport)->sync($localPath, $destinationEnvironment, $cancelKey, $onOutput);
 
         return new StepExecutionResult($result->output, $result->success ? 0 : 1, $result->cancelled);
+    }
+
+    private static function containsPathTraversal(string $path): bool
+    {
+        $segments = explode('/', str_replace('\\', '/', $path));
+
+        return in_array('..', $segments, true);
     }
 }

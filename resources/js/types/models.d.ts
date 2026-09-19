@@ -17,6 +17,7 @@ export interface CloneStepConfig {}
 export interface SyncStepConfig {
     transport: 'ssh_rsync' | 'sftp' | 'ftp';
     local_path: string;
+    remote_path: string;
 }
 
 export type StepConfigFor<T extends StepType> = T extends 'command'

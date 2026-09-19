@@ -201,12 +201,19 @@
             "clone": "Cloner le dépôt",
             "sync": "Synchroniser"
         },
+        "stepTypeDescriptions": {
+            "command": "Exécute une commande sur le serveur cible (ou en local si aucun serveur).",
+            "email": "Envoie un email à des membres de l'application.",
+            "clone": "Clone la branche/le commit du déploiement dans un workspace local.",
+            "sync": "Livre un dossier vers le serveur via rsync, SFTP ou FTP."
+        },
         "emptyCommand": "(commande vide)",
         "noRecipient": "(aucun destinataire)",
         "noSubject": "(sans objet)",
         "emailSummary": "À : {{to}} — {{subject}}",
         "cloneSummary": "Clone la branche/le commit du déploiement dans un workspace local",
         "syncSummary": "{{transport}} → {{path}}",
+        "syncSummaryWithRemotePath": "{{transport}} → {{path}} → {{remotePath}} (distant)",
         "templateVariables": {
             "application.name": "Nom de l'application",
             "environment.name": "Nom de l'environnement",
@@ -266,6 +273,9 @@
             "localPathLabel": "Sous-dossier à synchroniser",
             "localPathPlaceholder": "ex: dist, public/build (laisser vide pour tout le workspace)",
             "localPathHint": "Chemin relatif au workspace cloné — jamais le workspace entier par défaut.",
+            "remotePathLabel": "Destination distante (optionnel)",
+            "remotePathPlaceholder": "ex: public/storage (laisser vide pour la racine du deploy_path)",
+            "remotePathHint": "Sous-dossier de destination relatif à deploy_path — pratique pour placer un dossier ailleurs qu'à la racine (ex: storage/app/public → public/storage, sans symlink).",
             "labelLabel": "Nom de l'étape",
             "labelPlaceholder": "ex: Build & déploiement",
             "recipientsLabel": "Destinataires",
