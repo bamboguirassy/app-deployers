@@ -86,16 +86,43 @@ class RunDeploymentJob implements ShouldQueue
         $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
     }
 
+    /**
+     * Délai avant une nouvelle tentative de réservation de slot : croissance
+     * exponentielle plafonnée, plutôt qu'un intervalle fixe qui faisait
+     * rejouer ce job jusqu'à 720 fois sur une attente de 2 h, en pure perte
+     * et au détriment des workers de la file `deploy`, partagés entre tous
+     * les clients.
+     *
+     * La gigue n'est pas cosmétique : plusieurs déploiements d'un même
+     * workspace mis en file se réveillent sinon en lockstep et se disputent
+     * le même verrou de réservation (QuotaGuard::claimDeploymentSlot). Le
+     * perdant reçoit un LockTimeoutException, traduit en « pas de slot » —
+     * donc une remise en file qui n'était pas due au quota.
+     */
+    protected function concurrencyRetryDelay(): int
+    {
+        $base = max(1, (int) config('deploy.concurrency_retry_seconds'));
+        $ceiling = max($base, (int) config('deploy.concurrency_retry_max_seconds'));
+        $factor = max(1, (int) config('deploy.concurrency_retry_factor'));
+
+        // Exposant borné : sans ça, une attente longue calculerait 2^700
+        // avant d'être plafonnée.
+        $exponent = min(max(0, $this->attempts() - 1), 16);
+        $delay = (int) min($base * ($factor ** $exponent), $ceiling);
+
+        $jitter = (int) round($delay * 0.2);
+
+        return max(1, random_int($delay - $jitter, $delay + $jitter));
+    }
+
     public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions): void
     {
-        $deployment = Deployment::with([
-            'steps',
-            'targetEnvironment.target.application.workspace',
-            'targetEnvironment.target.variables',
-            'targetEnvironment.environment',
-            'targetEnvironment.variables.targetVariable',
-            'targetEnvironment.server',
-        ])->find($this->deploymentId);
+        // Chargement minimal : un réveil sur un workspace saturé ne doit pas
+        // payer le chargement de toutes les étapes, variables et du serveur
+        // pour découvrir qu'aucun slot n'est libre. Le reste n'est chargé
+        // qu'une fois la réservation obtenue.
+        $deployment = Deployment::with('targetEnvironment.target.application.workspace')
+            ->find($this->deploymentId);
 
         if (! $deployment) {
             return;
@@ -124,10 +151,21 @@ class RunDeploymentJob implements ShouldQueue
             // workspace : on se remet en file plutôt que d'échouer — le
             // déploiement reste visible en "pending" (file d'attente).
             $this->markQueuedForConcurrency($deployment, $applicationId, $workspaceId);
-            $this->release(config('deploy.concurrency_retry_seconds'));
+            $this->release($this->concurrencyRetryDelay());
 
             return;
         }
+
+        // Slot obtenu : on charge maintenant ce dont l'exécution a besoin.
+        // loadMissing (et non load) pour compléter les instances déjà en
+        // mémoire au lieu de les remplacer — $targetEnvironment reste valide.
+        $deployment->loadMissing('steps');
+        $targetEnvironment->loadMissing([
+            'target.variables',
+            'environment',
+            'variables.targetVariable',
+            'server',
+        ]);
 
         $ssh = null;
         // Chemin déterministe (basé sur l'id du déploiement, jamais partagé

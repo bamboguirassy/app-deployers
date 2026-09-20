@@ -73,9 +73,9 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
 
 A deployment waiting for a slot is **flagged, not inferred**: `RunDeploymentJob` writes
 `deployments.queued_reason = 'concurrency'` at the moment the slot is refused (once, on
-transition — the job wakes every `deploy.concurrency_retry_seconds`, so writing and
-broadcasting on each pass would mean an UPDATE and a WebSocket message every 10s for
-unchanged information), and `QuotaGuard` clears it when the deployment starts. Deriving it
+transition — the job wakes repeatedly while queued, so writing and broadcasting on each pass
+would mean an UPDATE and a WebSocket message per wake-up for unchanged information), and
+`QuotaGuard` clears it when the deployment starts. Deriving it
 instead (`pending` + quota saturated) would label every normal sub-second start as "queued".
 `Deployment::queuePosition()` is deliberately scoped to the workspace — a platform-wide rank
 would leak other tenants' activity. Surfaced in `ActiveDeploymentBanner`,
@@ -92,6 +92,19 @@ deployment, so the "deployment in progress" banner appears on click rather than 
 worker picks the job up. That broadcast is wrapped in a try/catch for the same reason as the
 job's `broadcastSafely()`: the event is `ShouldBroadcastNow`, so a Reverb outage would
 otherwise fail the HTTP trigger *after* the deployment row and job already exist.
+
+**Waiting for a slot is cheap on purpose.** `RunDeploymentJob::handle()` loads only
+`targetEnvironment.target.application.workspace` up front and `loadMissing()`s steps,
+variables and server *after* the slot is claimed — a wake-up on a saturated workspace used to
+load six relation sets just to discover there was no slot. The retry delay
+(`concurrencyRetryDelay()`) grows exponentially from `deploy.concurrency_retry_seconds` (10s)
+to `deploy.concurrency_retry_max_seconds` (30s), with ±20% jitter. The jitter matters: queued
+deployments of the same workspace otherwise wake in lockstep and contend on the reservation
+lock, and the loser's `LockTimeoutException` is translated into "no slot" — a re-queue that
+the quota did not actually cause. **This delay is also the latency between a slot freeing and
+the next deployment starting**: a delayed job cannot be pulled forward in Redis, so an
+event-driven wake-up would mean dispatching a second job for the same deployment (and risking
+a double run). Raising the ceiling trades queue responsiveness for fewer wake-ups.
 
 The per-workspace **concurrency slot** (plan limit `max_concurrent_deployments`) is *derived*,
 not counted: `QuotaGuard::claimDeploymentSlot()` takes a short cache lock

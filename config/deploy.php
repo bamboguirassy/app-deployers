@@ -6,9 +6,21 @@ return [
     'error_excerpt_length' => 2000,
 
     // Concurrence de déploiement (plan du workspace) : un déploiement sans
-    // slot disponible n'échoue pas, il se remet en file toutes les N
-    // secondes jusqu'à expiration de queue_wait_timeout_minutes.
+    // slot disponible n'échoue pas, il se remet en file jusqu'à expiration de
+    // queue_wait_timeout_minutes.
+    //
+    // Délai de base avant une nouvelle tentative de réservation de slot, puis
+    // plafond et facteur de croissance : le délai double à chaque tentative
+    // jusqu'au plafond. Un déploiement en file rejouait sinon son job toutes
+    // les 10 s pendant toute l'attente (jusqu'à 720 fois sur 2 h), en pure
+    // perte et au détriment des workers partagés entre tous les clients.
+    // Attention : ce délai EST la latence entre la libération d'un slot et le
+    // démarrage du déploiement suivant — un job différé ne peut pas être
+    // avancé dans Redis. Augmenter le plafond économise des réveils et rend
+    // la file d'autant moins réactive.
     'concurrency_retry_seconds' => (int) env('DEPLOY_CONCURRENCY_RETRY_SECONDS', 10),
+    'concurrency_retry_max_seconds' => (int) env('DEPLOY_CONCURRENCY_RETRY_MAX_SECONDS', 30),
+    'concurrency_retry_factor' => (int) env('DEPLOY_CONCURRENCY_RETRY_FACTOR', 2),
     'queue_wait_timeout_minutes' => (int) env('DEPLOY_QUEUE_WAIT_TIMEOUT_MINUTES', 120),
 
     // Filet de sécurité pour deploy:reconcile-stuck (voir cette commande) :
