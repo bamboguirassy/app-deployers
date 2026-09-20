@@ -64,6 +64,23 @@ class Server extends Model
         return $this->auth_method === 'ssh_key';
     }
 
+    /**
+     * Un serveur peut désormais exister sans aucun accès SSH (cas d'un
+     * hébergement mutualisé accessible uniquement en FTP/SFTP dédié) — voir
+     * ServerCredential. `command` et `sync(transport: ssh_rsync)` en ont
+     * besoin ; `sync(transport: sftp)` peut s'en passer si un
+     * ServerCredential sftp est choisi sur la TargetEnvironment.
+     */
+    public function hasSsh(): bool
+    {
+        return $this->auth_method !== null;
+    }
+
+    public function credentials(): HasMany
+    {
+        return $this->hasMany(ServerCredential::class);
+    }
+
     public function workspace(): BelongsTo
     {
         return $this->belongsTo(Workspace::class);

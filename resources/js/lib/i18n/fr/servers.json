@@ -16,8 +16,10 @@
         },
         "authOptions": {
             "sshKey": "Clé SSH",
-            "password": "Mot de passe"
+            "password": "Mot de passe",
+            "none": "Pas de SSH"
         },
+        "credentialsCount": "{{count}} compte(s) FTP/SFTP",
         "toolbar": {
             "searchPlaceholder": "Rechercher par nom, hôte ou utilisateur...",
             "authPlaceholder": "Authentification",
@@ -52,6 +54,9 @@
         "hostLabel": "Adresse (IP ou nom d'hôte)",
         "hostPlaceholder": "ex: 203.0.113.10",
         "portLabel": "Port",
+        "sshEnabledLabel": "Ce serveur est accessible en SSH",
+        "sshEnabledHint": "Nécessaire pour exécuter des commandes ou synchroniser via SSH/rsync/SFTP.",
+        "sshDisabledHint": "Ce serveur n'aura pas de SSH — utilisable uniquement via des comptes FTP/SFTP dédiés (section « Comptes FTP/SFTP » une fois le serveur créé).",
         "usernameLabel": "Nom d'utilisateur",
         "usernamePlaceholder": "ex: deploy",
         "defaultPathLabel": "Répertoire racine par défaut",
@@ -97,5 +102,21 @@
         "connecting": "Connexion en cours...",
         "responseTime": "Temps de réponse : {{ms}} ms",
         "unexpectedError": "Erreur inattendue lors du test."
+    },
+    "credentials": {
+        "sectionTitle": "Comptes FTP/SFTP",
+        "sectionHint": "Comptes dédiés, indépendants du SSH ci-dessus — utilisés par les steps de synchronisation (\"sync\") des pipelines. Plusieurs comptes possibles (ex. un par application hébergée sur ce serveur).",
+        "empty": "Aucun compte FTP/SFTP configuré sur ce serveur.",
+        "add": "Ajouter un compte",
+        "edit": "Modifier",
+        "labelLabel": "Nom du compte",
+        "labelPlaceholder": "ex : Compte client A",
+        "privateKeyOptionalLabel": "Clé privée (optionnel — sinon mot de passe)",
+        "save": "Enregistrer",
+        "confirmDelete": {
+            "title": "Supprimer le compte \"{{label}}\" ?",
+            "okText": "Supprimer",
+            "cancelText": "Annuler"
+        }
     }
 }

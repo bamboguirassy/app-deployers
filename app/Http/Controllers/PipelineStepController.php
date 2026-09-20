@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\PipelineStep;
 use App\Models\Target;
+use App\Models\TargetEnvironment;
 use App\Models\Workspace;
 use App\StepActions\StepActionRegistry;
 use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PipelineStepController extends Controller
 {
@@ -21,16 +23,50 @@ class PipelineStepController extends Controller
         $this->authorize('manageTargetsAndPipeline', $application);
         abort_unless($target->belongsToWorkspace($workspace), 404);
 
+        $targetEnvironment = $this->resolveTargetEnvironment($request, $target);
         $data = $request->validate($this->rules($request));
+        $scope = $target->pipelineStepsFor($targetEnvironment);
 
-        $step = $target->pipelineSteps()->create([
+        $step = $scope->create([
             ...$data,
-            'order' => $target->pipelineSteps()->max('order') + 1,
+            'target_id' => $target->id,
+            'target_environment_id' => $targetEnvironment?->id,
+            'order' => $scope->max('order') + 1,
         ]);
 
         AuditLogger::log($application, 'pipeline_step.created', $step, $data);
 
         return back()->with('status', 'Étape ajoutée.');
+    }
+
+    /**
+     * Résout, en mode `uniform_pipeline = false`, l'environnement ciblé par
+     * la requête (obligatoire dans ce mode) — `null` en mode uniforme, où le
+     * pipeline reste partagé par tout le Target comme aujourd'hui.
+     */
+    private function resolveTargetEnvironment(Request $request, Target $target): ?TargetEnvironment
+    {
+        if ($target->uniform_pipeline) {
+            return null;
+        }
+
+        $uuid = $request->input('target_environment_id');
+
+        if (! $uuid) {
+            throw ValidationException::withMessages([
+                'target_environment_id' => 'Un environnement est requis pour ce target (pipeline non-uniforme).',
+            ]);
+        }
+
+        $targetEnvironment = $target->targetEnvironments()->where('uuid', $uuid)->first();
+
+        if (! $targetEnvironment) {
+            throw ValidationException::withMessages([
+                'target_environment_id' => 'Environnement introuvable pour ce target.',
+            ]);
+        }
+
+        return $targetEnvironment;
     }
 
     public function update(Request $request, Workspace $workspace, Application $application, Target $target, PipelineStep $pipelineStep): RedirectResponse
@@ -96,8 +132,10 @@ class PipelineStepController extends Controller
             'ids.*' => ['integer'],
         ]);
 
+        $targetEnvironment = $this->resolveTargetEnvironment($request, $target);
+
         foreach ($data['ids'] as $index => $id) {
-            $target->pipelineSteps()->where('id', $id)->update(['order' => $index]);
+            $target->pipelineStepsFor($targetEnvironment)->where('id', $id)->update(['order' => $index]);
         }
 
         return back()->with('status', 'Ordre mis à jour.');

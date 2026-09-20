@@ -217,6 +217,7 @@ export default function Show({
                 <TargetWorkspace
                     application={application}
                     frameworks={frameworks}
+                    servers={servers}
                     canManage={can.manageTargetsAndPipeline}
                     initialTargetId={initialTargetId ?? undefined}
                     activeMembers={activeMembers}

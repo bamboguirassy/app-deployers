@@ -13,6 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Derrière le reverse proxy nginx de prod (TLS terminé en amont, Octane
+        // en HTTP interne) : sans ça, Laravel ne détecte pas que la requête
+        // d'origine était HTTPS (X-Forwarded-Proto), ce qui casse la détection
+        // de schéma pour les cookies de session et l'auth des canaux privés
+        // Reverb (POST /broadcasting/auth). '*' car l'IP du proxy interne peut
+        // changer selon l'environnement d'hébergement.
+        $middleware->trustProxies(at: '*');
+
         // SetLocale doit s'exécuter après EncryptCookies (sinon le cookie
         // `locale` entrant est encore chiffré et jamais reconnu) mais avant
         // HandleInertiaRequests (qui partage app()->getLocale() en prop) —

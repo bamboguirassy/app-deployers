@@ -3,10 +3,11 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DirectoryBrowserModal, { AnonCredentials } from '@/Components/Servers/DirectoryBrowserModal';
-import { Server } from '@/types/models';
+import ServerCredentialsPanel from '@/Components/Servers/ServerCredentialsPanel';
+import { Server, ServerCredential } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { Alert, Input, InputNumber, Modal, Radio } from 'antd';
+import { Alert, Input, InputNumber, Modal, Radio, Switch } from 'antd';
 import { FolderOpen, KeyRound, Lock, PlugZap } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,7 @@ export default function ServerFormModal({
     open,
     onClose,
     onServerCreated,
+    onCredentialsChanged,
 }: {
     workspaceSlug: string;
     server?: Server;
@@ -30,11 +32,13 @@ export default function ServerFormModal({
     onClose: () => void;
     /** Quand fourni, la création utilise axios (pas Inertia) et renvoie le serveur créé. */
     onServerCreated?: (server: Server) => void;
+    /** Reflète les changements de comptes FTP/SFTP (voir ServerCredentialsPanel) dans l'état du parent. */
+    onCredentialsChanged?: (credentials: ServerCredential[]) => void;
 }) {
     const { t } = useTranslation('servers');
     const isEditing = !!server;
 
-    const { data, setData, post, patch, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, patch, processing, errors, reset, clearErrors, transform } = useForm({
         name: server?.name ?? '',
         host: server?.host ?? '',
         port: server?.port ?? 22,
@@ -51,12 +55,18 @@ export default function ServerFormModal({
     const [browsingDefaultPath, setBrowsingDefaultPath] = useState(false);
     const [creatingViaAxios, setCreatingViaAxios] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
+    // SSH est optionnel (Server::hasSsh()) : un serveur peut n'exister que
+    // pour porter des comptes FTP/SFTP dédiés (ServerCredential). Coché par
+    // défaut pour ne pas surprendre l'usage existant (la grande majorité des
+    // serveurs ont du SSH), décochable pour le cas mutualisé FTP/SFTP-only.
+    const [sshEnabled, setSshEnabled] = useState<boolean>(!isEditing || !!server?.auth_method);
 
     useEffect(() => {
         if (open) {
             clearErrors();
             setTestResult(null);
             setCreateError(null);
+            setSshEnabled(!isEditing || !!server?.auth_method);
             setData({
                 name: server?.name ?? '',
                 host: server?.host ?? '',
@@ -102,6 +112,13 @@ export default function ServerFormModal({
             .finally(() => setTesting(false));
     };
 
+    /** Sans SSH, on n'envoie surtout pas de chaînes vides pour username/auth_method
+     * (le backend distingue "null" = pas de SSH de "" = valeur invalide). */
+    const buildPayload = () =>
+        sshEnabled
+            ? data
+            : { ...data, username: null, auth_method: null, password: null, private_key: null, passphrase: null };
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
@@ -110,7 +127,7 @@ export default function ServerFormModal({
             setCreatingViaAxios(true);
             setCreateError(null);
             axios
-                .post(route('servers.store', workspaceSlug), data)
+                .post(route('servers.store', workspaceSlug), buildPayload())
                 .then((res) => {
                     reset();
                     onClose();
@@ -123,6 +140,8 @@ export default function ServerFormModal({
                 .finally(() => setCreatingViaAxios(false));
             return;
         }
+
+        transform(() => buildPayload());
 
         const options = {
             onSuccess: () => {
@@ -139,6 +158,7 @@ export default function ServerFormModal({
     };
 
     const canTest =
+        sshEnabled &&
         data.host.trim() !== '' &&
         data.username.trim() !== '' &&
         (data.auth_method === 'password' ? data.password.trim() !== '' : data.private_key.trim() !== '');
@@ -204,114 +224,127 @@ export default function ServerFormModal({
                     </div>
                 </div>
 
-                <div>
-                    <InputLabel htmlFor="server-username" value={t('form.usernameLabel')} />
-                    <Input
-                        id="server-username"
-                        placeholder={t('form.usernamePlaceholder')}
-                        value={data.username}
-                        onChange={(e) => setData('username', e.target.value)}
-                    />
-                    <InputError message={errors.username} />
+                <div className="server-ssh-toggle">
+                    <Switch checked={sshEnabled} onChange={setSshEnabled} />
+                    <span>{t('form.sshEnabledLabel')}</span>
                 </div>
+                <p className="section-hint" style={{ marginTop: -8 }}>
+                    {sshEnabled ? t('form.sshEnabledHint') : t('form.sshDisabledHint')}
+                </p>
 
-                <div>
-                    <InputLabel value={t('form.authMethodLabel')} />
-                    <Radio.Group
-                        value={data.auth_method}
-                        onChange={(e) => setData('auth_method', e.target.value)}
-                        style={{ display: 'flex', gap: 8, marginTop: 4 }}
-                    >
-                        <Radio.Button value="ssh_key" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
-                                <KeyRound size={13} />
-                                {t('form.authMethod.sshKey')}
-                            </span>
-                        </Radio.Button>
-                        <Radio.Button value="password" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
-                                <Lock size={13} />
-                                {t('form.authMethod.password')}
-                            </span>
-                        </Radio.Button>
-                    </Radio.Group>
-                </div>
-
-                {data.auth_method === 'password' ? (
-                    <div>
-                        <InputLabel htmlFor="server-password" value={t('form.passwordLabel')} />
-                        <Input.Password
-                            id="server-password"
-                            placeholder={isEditing ? t('form.passwordPlaceholderEdit') : undefined}
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                        />
-                        <InputError message={errors.password} />
-                    </div>
-                ) : (
+                {sshEnabled && (
                     <>
                         <div>
-                            <InputLabel htmlFor="server-private-key" value={t('form.privateKeyLabel')} />
-                            <Input.TextArea
-                                id="server-private-key"
-                                rows={6}
-                                className="ssh-key-textarea"
-                                placeholder={
-                                    isEditing
-                                        ? t('form.privateKeyPlaceholderEdit')
-                                        : t('form.privateKeyPlaceholderCreate')
-                                }
-                                value={data.private_key}
-                                onChange={(e) => setData('private_key', e.target.value)}
+                            <InputLabel htmlFor="server-username" value={t('form.usernameLabel')} />
+                            <Input
+                                id="server-username"
+                                placeholder={t('form.usernamePlaceholder')}
+                                value={data.username}
+                                onChange={(e) => setData('username', e.target.value)}
                             />
-                            <InputError message={errors.private_key} />
+                            <InputError message={errors.username} />
                         </div>
+
                         <div>
-                            <InputLabel htmlFor="server-passphrase" value={t('form.passphraseLabel')} />
-                            <Input.Password
-                                id="server-passphrase"
-                                placeholder={isEditing ? t('form.passphrasePlaceholderEdit') : undefined}
-                                value={data.passphrase}
-                                onChange={(e) => setData('passphrase', e.target.value)}
-                            />
-                            <InputError message={errors.passphrase} />
+                            <InputLabel value={t('form.authMethodLabel')} />
+                            <Radio.Group
+                                value={data.auth_method}
+                                onChange={(e) => setData('auth_method', e.target.value)}
+                                style={{ display: 'flex', gap: 8, marginTop: 4 }}
+                            >
+                                <Radio.Button value="ssh_key" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
+                                        <KeyRound size={13} />
+                                        {t('form.authMethod.sshKey')}
+                                    </span>
+                                </Radio.Button>
+                                <Radio.Button value="password" style={{ flex: 1, textAlign: 'center', height: 'auto' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0' }}>
+                                        <Lock size={13} />
+                                        {t('form.authMethod.password')}
+                                    </span>
+                                </Radio.Button>
+                            </Radio.Group>
                         </div>
+
+                        {data.auth_method === 'password' ? (
+                            <div>
+                                <InputLabel htmlFor="server-password" value={t('form.passwordLabel')} />
+                                <Input.Password
+                                    id="server-password"
+                                    placeholder={isEditing ? t('form.passwordPlaceholderEdit') : undefined}
+                                    value={data.password}
+                                    onChange={(e) => setData('password', e.target.value)}
+                                />
+                                <InputError message={errors.password} />
+                            </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <InputLabel htmlFor="server-private-key" value={t('form.privateKeyLabel')} />
+                                    <Input.TextArea
+                                        id="server-private-key"
+                                        rows={6}
+                                        className="ssh-key-textarea"
+                                        placeholder={
+                                            isEditing
+                                                ? t('form.privateKeyPlaceholderEdit')
+                                                : t('form.privateKeyPlaceholderCreate')
+                                        }
+                                        value={data.private_key}
+                                        onChange={(e) => setData('private_key', e.target.value)}
+                                    />
+                                    <InputError message={errors.private_key} />
+                                </div>
+                                <div>
+                                    <InputLabel htmlFor="server-passphrase" value={t('form.passphraseLabel')} />
+                                    <Input.Password
+                                        id="server-passphrase"
+                                        placeholder={isEditing ? t('form.passphrasePlaceholderEdit') : undefined}
+                                        value={data.passphrase}
+                                        onChange={(e) => setData('passphrase', e.target.value)}
+                                    />
+                                    <InputError message={errors.passphrase} />
+                                </div>
+                            </>
+                        )}
+
+                        {isEditing && (
+                            <p className="section-hint" style={{ margin: 0 }}>
+                                {t('form.editTestHint')}
+                            </p>
+                        )}
+
+                        <div>
+                            <SecondaryButton
+                                htmlType="button"
+                                icon={<PlugZap size={14} />}
+                                onClick={testConnection}
+                                disabled={!canTest || testing}
+                                loading={testing}
+                            >
+                                {t('form.testConnection')}
+                            </SecondaryButton>
+                        </div>
+
+                        {testResult && (
+                            <Alert
+                                type={testResult.success ? 'success' : 'error'}
+                                showIcon
+                                message={testResult.message}
+                                description={
+                                    testResult.success && testResult.latency_ms !== null
+                                        ? t('form.responseTime', { ms: testResult.latency_ms })
+                                        : undefined
+                                }
+                            />
+                        )}
                     </>
                 )}
 
-                {isEditing && (
-                    <p className="section-hint" style={{ margin: 0 }}>
-                        {t('form.editTestHint')}
-                    </p>
-                )}
-
-                <div>
-                    <SecondaryButton
-                        htmlType="button"
-                        icon={<PlugZap size={14} />}
-                        onClick={testConnection}
-                        disabled={!canTest || testing}
-                        loading={testing}
-                    >
-                        {t('form.testConnection')}
-                    </SecondaryButton>
-                </div>
-
-                {testResult && (
-                    <Alert
-                        type={testResult.success ? 'success' : 'error'}
-                        showIcon
-                        message={testResult.message}
-                        description={
-                            testResult.success && testResult.latency_ms !== null
-                                ? t('form.responseTime', { ms: testResult.latency_ms })
-                                : undefined
-                        }
-                    />
-                )}
-
                 {/* Champ chemin + browse — toujours visible en édition, visible en
-                    création uniquement après un test de connexion réussi. */}
+                    création uniquement après un test de connexion réussi. L'exploration
+                    (SFTP via le SSH principal) n'a de sens que si le serveur a du SSH. */}
                 {(isEditing || anonCredentials) && (
                     <div>
                         <InputLabel htmlFor="server-default-path" value={t('form.defaultPathLabel')} />
@@ -322,15 +355,25 @@ export default function ServerFormModal({
                                 value={data.default_path}
                                 onChange={(e) => setData('default_path', e.target.value)}
                             />
-                            <SecondaryButton htmlType="button" icon={<FolderOpen size={14} />} onClick={() => setBrowsingDefaultPath(true)}>
-                                {t('form.browse')}
-                            </SecondaryButton>
+                            {sshEnabled && (
+                                <SecondaryButton htmlType="button" icon={<FolderOpen size={14} />} onClick={() => setBrowsingDefaultPath(true)}>
+                                    {t('form.browse')}
+                                </SecondaryButton>
+                            )}
                         </div>
                         <InputError message={errors.default_path} />
                         <p className="section-hint" style={{ marginTop: 4 }}>
                             {t('form.defaultPathHint')}
                         </p>
                     </div>
+                )}
+
+                {isEditing && server && (
+                    <ServerCredentialsPanel
+                        workspaceSlug={workspaceSlug}
+                        server={server}
+                        onChange={(credentials) => onCredentialsChanged?.(credentials)}
+                    />
                 )}
 
                 {createError && <Alert type="error" showIcon message={createError} />}

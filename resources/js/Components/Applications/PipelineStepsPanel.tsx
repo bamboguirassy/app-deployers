@@ -1,8 +1,20 @@
+import ServerFormModal from '@/Components/Servers/ServerFormModal';
 import { defaultConfigFor, getStepTypeOptions, stepSummary, stepTypeIcon } from '@/constants/stepTypes';
 import { getTemplateVariables, interpolatePreview } from '@/constants/templateVariables';
 import { useConfirm } from '@/theme/ConfirmContext';
 import { PageProps } from '@/types';
-import { Application, CommandStepConfig, EmailStepConfig, PipelineStep, StepType, Target } from '@/types/models';
+import {
+    Application,
+    CloneStepConfig,
+    CommandStepConfig,
+    EmailStepConfig,
+    PipelineStep,
+    Server,
+    StepType,
+    SyncStepConfig,
+    Target,
+    TargetEnvironmentLink,
+} from '@/types/models';
 import {
     DndContext,
     DragEndEvent,
@@ -30,18 +42,18 @@ import {
     Empty,
     Input,
     InputNumber,
-    Segmented,
+    Radio,
     Select,
     Switch,
     Tooltip,
 } from 'antd';
-import { Eye, GripVertical, Pencil, Plus, Trash2, Variable } from 'lucide-react';
+import { Eye, GripVertical, Pencil, Plus, Server as ServerIcon, Trash2, Variable } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const persistOptions = { preserveScroll: true, preserveState: true } as const;
 
-type DraftConfig = Partial<CommandStepConfig & EmailStepConfig>;
+type DraftConfig = Partial<CommandStepConfig & EmailStepConfig & CloneStepConfig & SyncStepConfig>;
 
 function insertAtCursor(el: HTMLTextAreaElement | HTMLInputElement | null | undefined, current: string, insert: string): string {
     if (!el) return current + insert;
@@ -95,6 +107,29 @@ function VariableInsertButton({ onInsert }: { onInsert: (path: string) => void }
     );
 }
 
+/**
+ * Vérifie si le(s) environnement(s) donnés ont les accès nécessaires pour un
+ * transport de sync donné — reflète exactement la logique serveur
+ * (DeploymentService::assertTransportRequirementsAreMet(), FtpTransport,
+ * SftpTransport) pour avertir l'utilisateur avant le déploiement plutôt
+ * qu'après. `environments` contient soit l'unique environnement actif (mode
+ * pipeline non-uniforme), soit tous les environnements du target (mode
+ * uniforme, où le step est partagé) — voir PipelineStepsPanel.
+ */
+function transportIsSupportedByAtLeastOne(transport: string, environments: TargetEnvironmentLink[]): boolean {
+    if (environments.length === 0) return true; // rien à valider tant qu'aucun environnement n'existe
+
+    return environments.some((env) => {
+        const hasSsh = !!env.server?.auth_method;
+
+        if (transport === 'ssh_rsync' || transport === 'command') return hasSsh;
+        if (transport === 'sftp') return hasSsh || !!env.sftp_credential_id;
+        if (transport === 'ftp') return !!env.ftp_credential_id;
+
+        return true;
+    });
+}
+
 function StepEditorDrawer({
     open,
     onClose,
@@ -103,6 +138,8 @@ function StepEditorDrawer({
     submitting,
     activeMembers,
     targetVariables,
+    hasRepository,
+    transportCheckEnvironments,
 }: {
     open: boolean;
     onClose: () => void;
@@ -114,6 +151,9 @@ function StepEditorDrawer({
     submitting: boolean;
     activeMembers: { id: number; name: string; email: string }[];
     targetVariables: import('@/types/models').TargetVariable[];
+    /** Environnement(s) à valider pour l'avertissement transport ftp/sftp/ssh_rsync — voir transportIsSupportedByAtLeastOne(). */
+    transportCheckEnvironments: TargetEnvironmentLink[];
+    hasRepository: boolean;
 }) {
     const { t } = useTranslation('applications');
     const [type, setType] = useState<StepType>('command');
@@ -179,6 +219,8 @@ function StepEditorDrawer({
     const canSubmit = useMemo(() => {
         if (!label.trim()) return false;
         if (type === 'command') return !!(config as CommandStepConfig).command?.trim();
+        if (type === 'clone') return true;
+        if (type === 'sync') return !!(config as SyncStepConfig).transport;
         const email = config as EmailStepConfig;
         return (email.to?.length ?? 0) > 0 && !!email.subject?.trim() && !!email.body?.trim();
     }, [label, type, config]);
@@ -244,23 +286,40 @@ function StepEditorDrawer({
 
                 <div>
                     <label className="step-editor__field-label">{t('pipelineSteps.drawer.typeLabel')}</label>
-                    <Segmented
-                        block
+                    <Radio.Group
                         value={type}
-                        onChange={(v) => changeType(v as StepType)}
-                        options={getStepTypeOptions(t).map((o) => ({
-                            value: o.value,
-                            label: (
-                                <span className="step-editor__segment">
-                                    {o.icon} {o.label}
-                                </span>
-                            ),
-                        }))}
-                    />
+                        onChange={(e) => changeType(e.target.value as StepType)}
+                        className="step-type-grid"
+                    >
+                        {getStepTypeOptions(t).map((o) => (
+                            <Radio.Button key={o.value} value={o.value} className="step-type-grid__option">
+                                <div className="step-type-grid__title">
+                                    {o.icon}
+                                    <strong>{o.label}</strong>
+                                    {o.value === 'clone' && !hasRepository && (
+                                        <Tooltip title={t('pipelineSteps.cloneRequiresRepositoryTooltip')}>
+                                            <span className="step-type-grid__warning">{t('pipelineSteps.cloneRequiresRepositoryBadge')}</span>
+                                        </Tooltip>
+                                    )}
+                                </div>
+                                <div className="step-type-grid__hint">
+                                    {t(`pipelineSteps.stepTypeDescriptions.${o.value}`)}
+                                </div>
+                            </Radio.Button>
+                        ))}
+                    </Radio.Group>
                 </div>
 
                 {type === 'command' && (
                     <div>
+                        {!transportIsSupportedByAtLeastOne('command', transportCheckEnvironments) && (
+                            <Alert
+                                style={{ marginBottom: 8 }}
+                                type="warning"
+                                showIcon
+                                message={t('pipelineSteps.drawer.transportMissingAccess.command')}
+                            />
+                        )}
                         <div className="step-editor__field-header">
                             <label className="step-editor__field-label">{t('pipelineSteps.drawer.commandLabel')}</label>
                             {targetVariables.length > 0 && (
@@ -315,6 +374,54 @@ function StepEditorDrawer({
                             {t('pipelineSteps.drawer.commandHint')}
                         </p>
                     </div>
+                )}
+
+                {type === 'clone' && (
+                    <Alert type="info" showIcon message={t('pipelineSteps.drawer.cloneHint')} />
+                )}
+
+                {type === 'sync' && (
+                    <>
+                        <div>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.transportLabel')}</label>
+                            <Select
+                                className="w-full"
+                                value={(config as SyncStepConfig).transport ?? 'sftp'}
+                                onChange={(transport) => setConfig((c) => ({ ...c, transport }))}
+                                options={[
+                                    { value: 'ssh_rsync', label: t('pipelineSteps.drawer.transport.ssh_rsync') },
+                                    { value: 'sftp', label: t('pipelineSteps.drawer.transport.sftp') },
+                                    { value: 'ftp', label: t('pipelineSteps.drawer.transport.ftp') },
+                                ]}
+                            />
+                            {!transportIsSupportedByAtLeastOne((config as SyncStepConfig).transport ?? 'sftp', transportCheckEnvironments) && (
+                                <Alert
+                                    style={{ marginTop: 8 }}
+                                    type="warning"
+                                    showIcon
+                                    message={t(`pipelineSteps.drawer.transportMissingAccess.${(config as SyncStepConfig).transport ?? 'sftp'}`)}
+                                />
+                            )}
+                        </div>
+                        <div>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.localPathLabel')}</label>
+                            <Input
+                                value={(config as SyncStepConfig).local_path ?? ''}
+                                onChange={(e) => setConfig((c) => ({ ...c, local_path: e.target.value }))}
+                                placeholder={t('pipelineSteps.drawer.localPathPlaceholder')}
+                            />
+                            <p className="step-editor__field-hint">{t('pipelineSteps.drawer.localPathHint')}</p>
+                        </div>
+                        <div>
+                            <label className="step-editor__field-label">{t('pipelineSteps.drawer.remotePathLabel')}</label>
+                            <Input
+                                value={(config as SyncStepConfig).remote_path ?? ''}
+                                onChange={(e) => setConfig((c) => ({ ...c, remote_path: e.target.value }))}
+                                placeholder={t('pipelineSteps.drawer.remotePathPlaceholder')}
+                            />
+                            <p className="step-editor__field-hint">{t('pipelineSteps.drawer.remotePathHint')}</p>
+                        </div>
+                    </>
                 )}
 
                 <div>
@@ -460,7 +567,7 @@ function SortableStepRow({
 
             <span className="step-row__order">{index + 1}</span>
 
-            <Tooltip title={step.type === 'command' ? t('pipelineSteps.row.commandTooltip') : t('pipelineSteps.row.emailTooltip')}>
+            <Tooltip title={t(`pipelineSteps.row.${step.type}Tooltip`)}>
                 <span className={`step-row__type step-row__type--${step.type}`}>{stepTypeIcon(step.type)}</span>
             </Tooltip>
 
@@ -498,28 +605,122 @@ function SortableStepRow({
     );
 }
 
+/**
+ * Bandeau affiché quand l'environnement actif (mode pipeline non-uniforme)
+ * n'a pas encore de serveur rattaché — sans ça, un step command/sync ajouté
+ * ici resterait invalide jusqu'au déclenchement du déploiement. Permet de
+ * rattacher un serveur existant ou d'en créer un sans quitter cet écran,
+ * même pattern que le "+" de EnvironmentWorkspace.tsx.
+ */
+function NoServerBanner({
+    application,
+    target,
+    targetEnvironment,
+    servers,
+}: {
+    application: Application;
+    target: Target;
+    targetEnvironment: TargetEnvironmentLink;
+    servers: Server[];
+}) {
+    const { t } = useTranslation('applications');
+    const { workspace } = usePage<PageProps>().props;
+    const [selectedServerId, setSelectedServerId] = useState<number | undefined>(undefined);
+    const [creatingServer, setCreatingServer] = useState(false);
+    const [attaching, setAttaching] = useState(false);
+
+    const attachServer = (serverId: number) => {
+        setAttaching(true);
+        router.patch(
+            route('target-environments.update', [workspace!.slug, application.slug, targetEnvironment.uuid]),
+            {
+                server_id: serverId,
+                deploy_path: targetEnvironment.deploy_path,
+                git_branch: targetEnvironment.git_branch,
+                url: targetEnvironment.url,
+            },
+            { ...persistOptions, onFinish: () => setAttaching(false) },
+        );
+    };
+
+    return (
+        <div className="pipeline-env-no-server">
+            <p className="pipeline-env-no-server__text">
+                <ServerIcon size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
+                {t('pipelineMode.environmentHasNoServer')}
+            </p>
+            <div className="pipeline-env-no-server__actions">
+                <Select
+                    placeholder={t('pipelineMode.chooseServerPlaceholder')}
+                    style={{ width: 220 }}
+                    value={selectedServerId}
+                    onChange={setSelectedServerId}
+                    options={servers.map((s) => ({ value: s.id, label: `${s.name} (${s.host})` }))}
+                />
+                <Button
+                    size="small"
+                    type="primary"
+                    disabled={!selectedServerId || attaching}
+                    loading={attaching}
+                    onClick={() => selectedServerId && attachServer(selectedServerId)}
+                >
+                    {t('pipelineMode.attachServer')}
+                </Button>
+                <Button size="small" onClick={() => setCreatingServer(true)}>
+                    {t('pipelineMode.createServer')}
+                </Button>
+            </div>
+
+            <ServerFormModal
+                workspaceSlug={workspace!.slug}
+                open={creatingServer}
+                onClose={() => setCreatingServer(false)}
+                onServerCreated={(server) => attachServer(server.id)}
+            />
+        </div>
+    );
+}
+
 export default function PipelineStepsPanel({
     application,
     target,
+    servers,
     canManage,
     activeMembers,
 }: {
     application: Application;
     target: Target;
+    servers: Server[];
     canManage: boolean;
     activeMembers: { id: number; name: string; email: string }[];
 }) {
     const { t } = useTranslation('applications');
     const { workspace } = usePage<PageProps>().props;
-    const [steps, setSteps] = useState(target.pipeline_steps);
+    const [activeEnvUuid, setActiveEnvUuid] = useState<string | null>(target.target_environments[0]?.uuid ?? null);
+
+    const activeEnvironment = target.uniform_pipeline
+        ? null
+        : (target.target_environments.find((te) => te.uuid === activeEnvUuid) ?? target.target_environments[0] ?? null);
+
+    const stepsSource = target.uniform_pipeline ? target.pipeline_steps : (activeEnvironment?.pipeline_steps ?? []);
+
+    const [steps, setSteps] = useState(stepsSource);
     const [editingStep, setEditingStep] = useState<PipelineStep | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const confirm = useConfirm();
 
     useEffect(() => {
-        setSteps(target.pipeline_steps);
-    }, [target.pipeline_steps]);
+        if (!target.uniform_pipeline && !target.target_environments.some((te) => te.uuid === activeEnvUuid)) {
+            setActiveEnvUuid(target.target_environments[0]?.uuid ?? null);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [target.uniform_pipeline, target.target_environments]);
+
+    useEffect(() => {
+        setSteps(stepsSource);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [target.uniform_pipeline, activeEnvUuid, target.pipeline_steps, target.target_environments]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -574,7 +775,11 @@ export default function PipelineStepsPanel({
         if (editingStep) {
             router.patch(route('pipeline-steps.update', [workspace!.slug, application.slug, target.uuid, editingStep.uuid]), data, options);
         } else {
-            router.post(route('pipeline-steps.store', [workspace!.slug, application.slug, target.uuid]), data, options);
+            router.post(
+                route('pipeline-steps.store', [workspace!.slug, application.slug, target.uuid]),
+                { ...data, target_environment_id: target.uniform_pipeline ? undefined : activeEnvironment?.uuid },
+                options,
+            );
         }
     };
 
@@ -593,13 +798,33 @@ export default function PipelineStepsPanel({
 
         router.post(
             route('pipeline-steps.reorder', [workspace!.slug, application.slug, target.uuid]),
-            { ids: reordered.map((s) => s.id) },
+            { ids: reordered.map((s) => s.id), target_environment_id: target.uniform_pipeline ? undefined : activeEnvironment?.uuid },
             persistOptions,
         );
     };
 
     return (
-        <div className="step-list">
+        <div>
+            {!target.uniform_pipeline && target.target_environments.length > 0 && (
+                <div className="pipeline-env-tabs">
+                    {target.target_environments.map((te) => (
+                        <button
+                            key={te.uuid}
+                            type="button"
+                            className={`pipeline-env-tabs__tab ${te.uuid === activeEnvironment?.uuid ? 'pipeline-env-tabs__tab--active' : ''}`}
+                            onClick={() => setActiveEnvUuid(te.uuid)}
+                        >
+                            {te.environment.name}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {!target.uniform_pipeline && activeEnvironment && !activeEnvironment.server_id && canManage && (
+                <NoServerBanner application={application} target={target} targetEnvironment={activeEnvironment} servers={servers} />
+            )}
+
+            <div className="step-list">
             {steps.length === 0 && !canManage ? (
                 <Empty description={t('pipelineSteps.emptyDescription')} />
             ) : (
@@ -640,6 +865,7 @@ export default function PipelineStepsPanel({
                     </Button>
                 </div>
             )}
+            </div>
 
             <StepEditorDrawer
                 open={drawerOpen}
@@ -649,6 +875,14 @@ export default function PipelineStepsPanel({
                 submitting={submitting}
                 activeMembers={activeMembers}
                 targetVariables={target.variables}
+                hasRepository={!!target.repository}
+                transportCheckEnvironments={
+                    target.uniform_pipeline
+                        ? target.target_environments
+                        : activeEnvironment
+                          ? [activeEnvironment]
+                          : []
+                }
             />
         </div>
     );

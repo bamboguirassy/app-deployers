@@ -1,4 +1,4 @@
-export type StepType = 'command' | 'email';
+export type StepType = 'command' | 'email' | 'clone' | 'sync';
 
 export interface CommandStepConfig {
     command: string;
@@ -10,12 +10,29 @@ export interface EmailStepConfig {
     body: string;
 }
 
-export type StepConfigFor<T extends StepType> = T extends 'command' ? CommandStepConfig : EmailStepConfig;
+// Aucune config utilisateur : la branche/le commit viennent du contexte du
+// déploiement (voir App\StepActions\CloneStepAction côté backend).
+export interface CloneStepConfig {}
+
+export interface SyncStepConfig {
+    transport: 'ssh_rsync' | 'sftp' | 'ftp';
+    local_path: string;
+    remote_path: string;
+}
+
+export type StepConfigFor<T extends StepType> = T extends 'command'
+    ? CommandStepConfig
+    : T extends 'email'
+      ? EmailStepConfig
+      : T extends 'clone'
+        ? CloneStepConfig
+        : SyncStepConfig;
 
 interface PipelineStepBase {
     id: number;
     uuid: string;
     target_id: number;
+    target_environment_id: number | null;
     label: string;
     order: number;
     timeout_seconds: number | null;
@@ -24,7 +41,9 @@ interface PipelineStepBase {
 
 export type PipelineStep =
     | (PipelineStepBase & { type: 'command'; config: CommandStepConfig })
-    | (PipelineStepBase & { type: 'email'; config: EmailStepConfig });
+    | (PipelineStepBase & { type: 'email'; config: EmailStepConfig })
+    | (PipelineStepBase & { type: 'clone'; config: CloneStepConfig })
+    | (PipelineStepBase & { type: 'sync'; config: SyncStepConfig });
 
 export interface TargetVariable {
     id: number;
@@ -53,9 +72,13 @@ export interface TargetEnvironmentLink {
     deploy_path: string;
     git_branch: string;
     url: string | null;
+    last_deployed_sha: string | null;
     environment: Environment;
     variables: EnvironmentVariable[];
     server?: Server | null;
+    pipeline_steps?: PipelineStep[];
+    ftp_credential_id: number | null;
+    sftp_credential_id: number | null;
 }
 
 export interface WebhookConfig {
@@ -66,6 +89,15 @@ export interface WebhookConfig {
     enabled: boolean;
 }
 
+export interface ServerCredential {
+    id: number;
+    uuid: string;
+    server_id: number;
+    type: 'ftp' | 'sftp';
+    label: string;
+    username: string;
+}
+
 export interface Server {
     id: number;
     uuid: string;
@@ -73,10 +105,11 @@ export interface Server {
     name: string;
     host: string;
     port: number;
-    username: string;
-    auth_method: 'password' | 'ssh_key';
+    username: string | null;
+    auth_method: 'password' | 'ssh_key' | null;
     default_path: string;
     created_at: string;
+    credentials?: ServerCredential[];
 }
 
 export interface Framework {
@@ -97,6 +130,7 @@ export interface Target {
     order: number;
     repository: string | null;
     repository_provider: 'github' | 'gitlab' | 'bitbucket' | null;
+    uniform_pipeline: boolean;
     variables: TargetVariable[];
     pipeline_steps: PipelineStep[];
     target_environments: TargetEnvironmentLink[];
@@ -138,7 +172,7 @@ export interface DeploymentStep {
     pipeline_step_id: number | null;
     label_snapshot: string;
     type: StepType;
-    config_snapshot: CommandStepConfig | EmailStepConfig;
+    config_snapshot: CommandStepConfig | EmailStepConfig | CloneStepConfig | SyncStepConfig;
     order: number;
     status: DeploymentStepStatus;
     exit_code: number | null;

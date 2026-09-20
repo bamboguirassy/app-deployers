@@ -139,6 +139,11 @@
         color: theme('color-text-muted');
         background: theme('color-surface-raised');
     }
+
+    &--none {
+        color: theme('color-warning');
+        background: color-mix(in srgb, theme('color-warning') 12%, transparent);
+    }
 }
 
 .srv-card__identity {
@@ -209,6 +214,19 @@
         color: theme('color-text-muted');
         background: theme('color-surface-raised');
     }
+
+    &--none {
+        color: theme('color-warning');
+        background: color-mix(in srgb, theme('color-warning') 10%, transparent);
+    }
+}
+
+.srv-card__credentials {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: theme('color-text-muted');
 }
 
 .srv-card__date {

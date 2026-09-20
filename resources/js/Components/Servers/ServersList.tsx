@@ -12,6 +12,20 @@ import { FolderOpen, KeyRound, Lock, Pencil, PlugZap, Server as ServerIcon, Tras
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+/** Petit badge indiquant le nombre de comptes FTP/SFTP dédiés d'un serveur — visible uniquement s'il y en a. */
+function credentialsBadge(server: Server, t: (key: string, opts?: Record<string, unknown>) => string) {
+    const count = server.credentials?.length ?? 0;
+
+    if (count === 0) return null;
+
+    return (
+        <div className="srv-card__credentials">
+            <KeyRound size={11} />
+            <span>{t('list.credentialsCount', { count })}</span>
+        </div>
+    );
+}
+
 export interface ServerKpis {
     total: number;
     password: number;
@@ -100,17 +114,19 @@ export default forwardRef<ServersListHandle, {
                 <>
                     <div className="srv-grid">
                         {search.items.map((server) => (
-                            <div key={server.id} className={`srv-card srv-card--${server.auth_method}`}>
+                            <div key={server.id} className={`srv-card srv-card--${server.auth_method ?? 'none'}`}>
 
                                 {/* Header */}
                                 <div className="srv-card__header">
-                                    <span className={`srv-card__icon srv-card__icon--${server.auth_method}`}>
+                                    <span className={`srv-card__icon srv-card__icon--${server.auth_method ?? 'none'}`}>
                                         <ServerIcon size={18} />
                                     </span>
                                     <div className="srv-card__identity">
                                         <strong className="srv-card__name">{server.name}</strong>
                                         <span className="srv-card__host">
-                                            {server.username}@{server.host}:{server.port}
+                                            {server.username ? `${server.username}@` : ''}
+                                            {server.host}
+                                            {server.auth_method ? `:${server.port}` : ''}
                                         </span>
                                     </div>
                                 </div>
@@ -123,11 +139,16 @@ export default forwardRef<ServersListHandle, {
                                     </div>
                                 )}
 
+                                {credentialsBadge(server, t)}
+
                                 {/* Footer */}
                                 <div className="srv-card__footer">
-                                    <span className={`srv-card__auth srv-card__auth--${server.auth_method}`}>
-                                        {server.auth_method === 'ssh_key' ? <KeyRound size={11} /> : <Lock size={11} />}
-                                        {server.auth_method === 'ssh_key' ? t('list.authOptions.sshKey') : t('list.authOptions.password')}
+                                    <span className={`srv-card__auth srv-card__auth--${server.auth_method ?? 'none'}`}>
+                                        {server.auth_method === 'ssh_key' && <KeyRound size={11} />}
+                                        {server.auth_method === 'password' && <Lock size={11} />}
+                                        {server.auth_method === 'ssh_key' && t('list.authOptions.sshKey')}
+                                        {server.auth_method === 'password' && t('list.authOptions.password')}
+                                        {!server.auth_method && t('list.authOptions.none')}
                                     </span>
                                     <span className="srv-card__date">
                                         {new Date(server.created_at).toLocaleDateString(dateLocale(i18n.language))}
@@ -178,7 +199,16 @@ export default forwardRef<ServersListHandle, {
                 </>
             )}
 
-            <ServerFormModal workspaceSlug={workspaceSlug} server={editing} open={!!editing} onClose={() => setEditing(undefined)} />
+            <ServerFormModal
+                workspaceSlug={workspaceSlug}
+                server={editing}
+                open={!!editing}
+                onClose={() => {
+                    setEditing(undefined);
+                    search.refresh();
+                }}
+                onCredentialsChanged={(credentials) => setEditing((prev) => (prev ? { ...prev, credentials } : prev))}
+            />
             <TestConnectionModal workspaceSlug={workspaceSlug} server={testing} onClose={() => setTesting(null)} />
         </div>
     );

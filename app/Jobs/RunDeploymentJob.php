@@ -18,6 +18,7 @@ use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use phpseclib3\Net\SSH2;
 use Throwable;
@@ -40,6 +41,33 @@ class RunDeploymentJob implements ShouldQueue
     public function retryUntil(): DateTimeInterface
     {
         return now()->addMinutes(config('deploy.queue_wait_timeout_minutes'));
+    }
+
+    /**
+     * Les events de ce job (DeploymentStatusUpdated, DeploymentStepUpdated,
+     * DeploymentStepOutputAppended) sont tous `ShouldBroadcastNow` : ils sont
+     * envoyés à Reverb de façon synchrone, dans le thread du job. Si Reverb
+     * est indisponible, `event()`/`broadcast()` lève une exception — et
+     * lorsque l'appel a lieu dans le bloc `finally` de handle() (ou dans
+     * cancelWhileQueued()/failed(), qui suivent le même schéma), tout le code
+     * de nettoyage placé après (libération du verrou et du slot de
+     * concurrence, déconnexion SSH, suppression du workspace éphémère)
+     * n'était alors jamais exécuté — le déploiement restait bloqué en
+     * "running" et le prochain sur cet environnement ne pouvait plus
+     * démarrer avant `deploy:reconcile-stuck`. Un souci de diffusion en
+     * temps réel ne doit jamais dégrader la fiabilité du déploiement
+     * lui-même : on avale l'exception et on continue.
+     */
+    private function broadcastSafely(callable $emit): void
+    {
+        try {
+            $emit();
+        } catch (Throwable $e) {
+            Log::warning('Deployment broadcast failed — continuing without live updates for this event', [
+                'deployment_id' => $this->deploymentId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions): void
@@ -83,16 +111,34 @@ class RunDeploymentJob implements ShouldQueue
         }
 
         $ssh = null;
+        // Chemin déterministe (basé sur l'id du déploiement, jamais partagé
+        // entre déploiements concurrents) — calculé systématiquement, que le
+        // pipeline contienne ou non un step clone/sync ; nettoyé dans le
+        // finally dans tous les cas (no-op si jamais créé).
+        $workspaceDir = storage_path("app/deployments/{$deployment->id}/workspace");
 
         try {
             $deployment->update(['status' => 'running', 'started_at' => now()]);
-            event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+            $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
 
             $env = $this->buildEnv($targetEnvironment);
 
-            // Une seule connexion SSH ouverte pour tout le déploiement (pas une par
-            // étape) : on évite de payer la poignée de main SSH à chaque commande.
-            if ($targetEnvironment->server) {
+            // Une seule connexion SSH ouverte pour tout le déploiement (pas une
+            // par étape) : on évite de payer la poignée de main SSH à chaque
+            // commande — comportement inchangé, un step `command` s'exécute
+            // toujours à distance sur le serveur du client (jamais sur
+            // l'infra d'App Deployer). Les éventuels steps clone/sync
+            // travaillent sur $workspaceDir en local, indépendamment de $ssh.
+            //
+            // Un serveur peut désormais exister sans aucun SSH (voir
+            // Server::hasSsh() — cas FTP/SFTP-only) : ne tenter la connexion
+            // que s'il y a effectivement de quoi s'authentifier. Si un step
+            // en avait besoin sans que ce soit le cas, DeploymentService::
+            // assertTransportRequirementsAreMet() a déjà refusé le
+            // déclenchement avant même de créer ce Deployment — inutile (et
+            // dangereux : ça faisait échouer tout le pipeline avec une
+            // erreur SSH confuse) de retenter la connexion ici.
+            if ($targetEnvironment->server?->hasSsh()) {
                 $ssh = $sshAuthenticator->connect($targetEnvironment->server);
             }
 
@@ -107,21 +153,21 @@ class RunDeploymentJob implements ShouldQueue
 
                 if ($aborted) {
                     $step->update(['status' => 'skipped']);
-                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                    $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
 
                     continue;
                 }
 
                 if (Cache::get($cancelKey)) {
                     $step->update(['status' => 'annule']);
-                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                    $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
                     $deployment->update(['status' => 'annule']);
                     $aborted = true;
 
                     continue;
                 }
 
-                $this->runStep($step, $deployment, $targetEnvironment, $env, $ssh, $cancelKey, $applicationId, $workspaceId, $stepActions);
+                $this->runStep($step, $deployment, $targetEnvironment, $env, $ssh, $cancelKey, $applicationId, $workspaceId, $stepActions, $workspaceDir);
 
                 if ($step->status === 'annule') {
                     $deployment->update(['status' => 'annule']);
@@ -139,6 +185,10 @@ class RunDeploymentJob implements ShouldQueue
                     ->exists();
 
                 $deployment->update(['status' => $hasFailure ? 'echec' : 'succes']);
+
+                if (! $hasFailure && $deployment->commit_sha) {
+                    $targetEnvironment->update(['last_deployed_sha' => $deployment->commit_sha]);
+                }
             }
         } catch (Throwable $e) {
             Log::error('Deployment failed with an unhandled exception', [
@@ -149,7 +199,7 @@ class RunDeploymentJob implements ShouldQueue
             foreach ($deployment->steps as $step) {
                 if (in_array($step->status, ['pending', 'running'], true)) {
                     $step->update(['status' => 'skipped']);
-                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                    $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
                 }
             }
 
@@ -163,11 +213,18 @@ class RunDeploymentJob implements ShouldQueue
                     ? (int) $deployment->started_at->diffInMilliseconds($finishedAt)
                     : null,
             ]);
-            event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+            $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
             Cache::forget($cancelKey);
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
             $quotaGuard->releaseDeploymentSlot($workspace);
             $ssh?->disconnect();
+
+            // Nettoyage systématique du workspace éphémère (succès, échec ou
+            // annulation), qu'il ait été créé ou non par un step clone/sync —
+            // jamais partagé entre déploiements (chemin dérivé de deployment->id).
+            if (File::isDirectory($workspaceDir)) {
+                File::deleteDirectory($workspaceDir);
+            }
         }
     }
 
@@ -204,13 +261,14 @@ class RunDeploymentJob implements ShouldQueue
         int $applicationId,
         int $workspaceId,
         StepActionRegistry $stepActions,
+        string $workspaceDir,
     ): void {
         $step->update(['status' => 'running', 'started_at' => now()]);
-        broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+        $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
 
         $pipelineStep = $step->pipelineStep;
         $timeout = $pipelineStep?->timeout_seconds ?? config('deploy.default_timeout_seconds');
-        $context = DeploymentContextBuilder::build($deployment, $step);
+        $context = DeploymentContextBuilder::build($deployment, $step, $workspaceDir);
 
         $result = $stepActions->get($step->type)->execute(
             $step,
@@ -239,7 +297,7 @@ class RunDeploymentJob implements ShouldQueue
             ? $this->truncate($result->output, config('deploy.error_excerpt_length'))
             : null;
 
-        broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step, $errorExcerpt));
+        $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step, $errorExcerpt)));
     }
 
     /**
@@ -268,7 +326,7 @@ class RunDeploymentJob implements ShouldQueue
             while ($buffer !== '') {
                 $piece = mb_substr($buffer, 0, $maxChunkSize);
                 $buffer = mb_substr($buffer, mb_strlen($piece));
-                broadcast(new DeploymentStepOutputAppended($applicationId, $step->deployment_id, $step->id, $piece));
+                $this->broadcastSafely(fn () => broadcast(new DeploymentStepOutputAppended($applicationId, $step->deployment_id, $step->id, $piece)));
             }
         };
 
@@ -308,7 +366,7 @@ class RunDeploymentJob implements ShouldQueue
     private function cancelWhileQueued(Deployment $deployment, TargetEnvironment $targetEnvironment, int $applicationId, int $workspaceId, string $cancelKey): void
     {
         $deployment->update(['status' => 'annule', 'finished_at' => now()]);
-        event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+        $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
         Cache::forget($cancelKey);
         Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }
@@ -333,11 +391,11 @@ class RunDeploymentJob implements ShouldQueue
 
         $targetEnvironment = $deployment->targetEnvironment;
         $deployment->update(['status' => 'echec', 'finished_at' => now()]);
-        event(new DeploymentStatusUpdated(
+        $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated(
             $targetEnvironment->target->application_id,
             $targetEnvironment->target->application->workspace_id,
             $deployment,
-        ));
+        )));
         Cache::forget(self::cancelKey($deployment->id));
         Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }

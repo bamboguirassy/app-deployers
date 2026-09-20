@@ -132,6 +132,10 @@
             "serverLabel": "Serveur",
             "serverPlaceholder": "Choisir un serveur du workspace",
             "noServerHint": "Aucun serveur. Ajoutez-en un dans l'espace Serveurs.",
+            "ftpCredentialLabel": "Compte FTP (pour les steps sync en FTP)",
+            "sftpCredentialLabel": "Compte SFTP (optionnel)",
+            "credentialPlaceholder": "Aucun (requis pour un step sync FTP)",
+            "sftpCredentialFallbackPlaceholder": "Aucun — utilisera le SSH du serveur",
             "deployPathLabel": "Chemin de déploiement",
             "deployPathPlaceholder": "/var/www/api",
             "browse": "Parcourir",
@@ -144,7 +148,8 @@
             "urlPlaceholder": "https://exemple.com",
             "openUrl": "Ouvrir",
             "deploy": "Déployer",
-            "variablesSectionTitle": "Variables d'environnement"
+            "variablesSectionTitle": "Variables d'environnement",
+            "lastDeployedShaLabel": "Dernier commit synchronisé"
         }
     },
     "frameworkSelect": {
@@ -196,12 +201,25 @@
         "addStep": "Ajouter une étape",
         "stepTypes": {
             "command": "Commande shell",
-            "email": "Email"
+            "email": "Email",
+            "clone": "Cloner le dépôt",
+            "sync": "Synchroniser"
         },
+        "stepTypeDescriptions": {
+            "command": "Exécute une commande sur le serveur cible (ou en local si aucun serveur).",
+            "email": "Envoie un email à des membres de l'application.",
+            "clone": "Clone la branche/le commit du déploiement dans un workspace local.",
+            "sync": "Livre un dossier vers le serveur via rsync, SFTP ou FTP."
+        },
+        "cloneRequiresRepositoryBadge": "Dépôt requis",
+        "cloneRequiresRepositoryTooltip": "Connectez d'abord un dépôt Git dans l'onglet Général — sinon cette étape échouera au déploiement.",
         "emptyCommand": "(commande vide)",
         "noRecipient": "(aucun destinataire)",
         "noSubject": "(sans objet)",
         "emailSummary": "À : {{to}} — {{subject}}",
+        "cloneSummary": "Clone la branche/le commit du déploiement dans un workspace local",
+        "syncSummary": "{{transport}} → {{path}}",
+        "syncSummaryWithRemotePath": "{{transport}} → {{path}} → {{remotePath}} (distant)",
         "templateVariables": {
             "application.name": "Nom de l'application",
             "environment.name": "Nom de l'environnement",
@@ -228,6 +246,8 @@
         "row": {
             "commandTooltip": "Commande shell",
             "emailTooltip": "Email",
+            "cloneTooltip": "Cloner le dépôt",
+            "syncTooltip": "Synchroniser",
             "timeoutTooltip": "Timeout",
             "continueTooltip": "Continue en cas d'échec",
             "yes": "Oui",
@@ -249,6 +269,25 @@
             "commandLabel": "Commande",
             "commandPlaceholder": "cd /var/www/app\nnpm ci\nnpm run build\nphp artisan migrate --force",
             "commandHint": "Chaque ligne est une commande shell. Les sauts de ligne et && sont équivalents.",
+            "cloneHint": "Clone la branche/le commit du déploiement dans un workspace local temporaire, pour qu'un step \"sync\" suivant puisse en livrer tout ou partie vers la cible.",
+            "transportLabel": "Transport",
+            "transportMissingAccess": {
+                "command": "Aucun environnement compatible n'a de SSH configuré sur son serveur — cette étape échouera tant que ce n'est pas complété.",
+                "ssh_rsync": "Aucun environnement compatible n'a de SSH configuré sur son serveur — le rsync échouera tant que ce n'est pas complété.",
+                "sftp": "Aucun environnement compatible n'a de SSH ni de compte SFTP dédié — configurez l'un des deux sur le serveur/l'environnement concerné.",
+                "ftp": "Aucun environnement compatible n'a de compte FTP dédié — créez-en un sur le serveur concerné (fiche Serveur ou depuis l'écran Environnements)."
+            },
+            "transport": {
+                "ssh_rsync": "rsync par-dessus SSH",
+                "sftp": "SFTP",
+                "ftp": "FTP"
+            },
+            "localPathLabel": "Sous-dossier à synchroniser",
+            "localPathPlaceholder": "ex: dist, public/build (laisser vide pour tout le workspace)",
+            "localPathHint": "Chemin relatif au workspace cloné — jamais le workspace entier par défaut.",
+            "remotePathLabel": "Destination distante (optionnel)",
+            "remotePathPlaceholder": "ex: public/storage (laisser vide pour la racine du deploy_path)",
+            "remotePathHint": "Sous-dossier de destination relatif à deploy_path — pratique pour placer un dossier ailleurs qu'à la racine (ex: storage/app/public → public/storage, sans symlink).",
             "labelLabel": "Nom de l'étape",
             "labelPlaceholder": "ex: Build & déploiement",
             "recipientsLabel": "Destinataires",
@@ -293,6 +332,30 @@
         "webhookIntegrationTitle": "Intégration webhook",
         "repositoryLabel": "Dépôt git (optionnel)"
     },
+    "pipelineMode": {
+        "label": "Pipeline uniforme pour tous les environnements",
+        "hintUniform": "Un seul pipeline, rejoué sur chaque environnement (Prod, Staging, ...). Recommandé sauf besoin spécifique par environnement.",
+        "hintNonUniform": "Chaque environnement a son propre pipeline, entièrement indépendant.",
+        "confirmDisable": {
+            "title": "Passer à un pipeline par environnement ?",
+            "content": "Chaque environnement (Prod, Staging, ...) aura désormais son propre pipeline indépendant, initialisé à partir du pipeline actuel. Vous pourrez ensuite les faire évoluer séparément.",
+            "okText": "Confirmer",
+            "cancelText": "Annuler"
+        },
+        "enableModal": {
+            "title": "Revenir à un pipeline uniforme",
+            "description": "Choisissez l'environnement dont le pipeline deviendra le pipeline unique, partagé par tous les environnements. Les pipelines des autres environnements seront définitivement supprimés.",
+            "referenceLabel": "Environnement de référence",
+            "referencePlaceholder": "Choisir un environnement...",
+            "warning": "Cette action est irréversible : les pipelines des autres environnements seront perdus.",
+            "confirm": "Restaurer le pipeline uniforme",
+            "cancel": "Annuler"
+        },
+        "environmentHasNoServer": "Aucun serveur rattaché à cet environnement.",
+        "chooseServerPlaceholder": "Choisir un serveur...",
+        "attachServer": "Rattacher un serveur",
+        "createServer": "Créer un serveur"
+    },
     "gitRepository": {
         "sectionTitle": "Dépôt git",
         "drawerTitle": "Connecter un dépôt git",
@@ -314,6 +377,7 @@
         "confirmDisconnect": {
             "title": "Déconnecter le dépôt ?",
             "content": "Le dépôt sera dissocié du target. Les webhooks existants ne seront pas supprimés.",
+            "contentWithCloneStep": "Le pipeline de ce target contient une étape \"Cloner le dépôt\" qui cessera de fonctionner après déconnexion. Les webhooks existants ne seront pas supprimés.",
             "okText": "Déconnecter",
             "cancelText": "Annuler"
         }

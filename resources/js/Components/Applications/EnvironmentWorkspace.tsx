@@ -11,7 +11,7 @@ import { PageProps } from '@/types';
 import { Application, Environment, Framework, Server, Target, TargetEnvironmentLink } from '@/types/models';
 import { GitConnection } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Select, Tag, Typography } from 'antd';
+import { Avatar, Drawer, Dropdown, Empty, Input, Modal, Select, Typography } from 'antd';
 import axios from 'axios';
 import { CheckCircle2, ExternalLink, FolderSearch, GitBranch, Layers, MoreHorizontal, Plus, RefreshCcw, Rocket, Trash2 } from 'lucide-react';
 import { FormEventHandler, Fragment, useEffect, useState } from 'react';
@@ -132,12 +132,16 @@ function ConfigDrawer({
 
     const { data, setData, post, patch, processing, errors } = useForm({
         server_id: existing?.server_id ?? (null as number | null),
+        ftp_credential_id: existing?.ftp_credential_id ?? (null as number | null),
+        sftp_credential_id: existing?.sftp_credential_id ?? (null as number | null),
         deploy_path: existing?.deploy_path ?? '',
         git_branch: existing?.git_branch ?? 'main',
         url: existing?.url ?? '',
     });
 
     const selectedServer = servers.find((s) => s.id === data.server_id) ?? null;
+    const ftpCredentials = selectedServer?.credentials?.filter((c) => c.type === 'ftp') ?? [];
+    const sftpCredentials = selectedServer?.credentials?.filter((c) => c.type === 'sftp') ?? [];
 
     const save = () => {
         if (existing) {
@@ -157,6 +161,10 @@ function ConfigDrawer({
         const server = servers.find((s) => s.id === value);
 
         setData('server_id', value);
+        // Un compte FTP/SFTP appartient à un serveur précis — en changer
+        // invalide forcément le choix précédent.
+        setData('ftp_credential_id', null);
+        setData('sftp_credential_id', null);
 
         if (!data.deploy_path && server?.default_path) {
             setData('deploy_path', server.default_path);
@@ -252,6 +260,40 @@ function ConfigDrawer({
                     </div>
                     <InputError message={errors.server_id} />
                 </div>
+
+                {selectedServer && (ftpCredentials.length > 0 || sftpCredentials.length > 0) && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {ftpCredentials.length > 0 && (
+                            <div style={{ flex: 1 }}>
+                                <InputLabel value={t('environmentWorkspace.drawer.ftpCredentialLabel')} />
+                                <Select
+                                    allowClear
+                                    className="w-full"
+                                    placeholder={t('environmentWorkspace.drawer.credentialPlaceholder')}
+                                    value={data.ftp_credential_id ?? undefined}
+                                    onChange={(value) => setData('ftp_credential_id', value ?? null)}
+                                    disabled={!canManage}
+                                    options={ftpCredentials.map((c) => ({ value: c.id, label: c.label }))}
+                                />
+                            </div>
+                        )}
+                        {sftpCredentials.length > 0 && (
+                            <div style={{ flex: 1 }}>
+                                <InputLabel value={t('environmentWorkspace.drawer.sftpCredentialLabel')} />
+                                <Select
+                                    allowClear
+                                    className="w-full"
+                                    placeholder={t('environmentWorkspace.drawer.sftpCredentialFallbackPlaceholder')}
+                                    value={data.sftp_credential_id ?? undefined}
+                                    onChange={(value) => setData('sftp_credential_id', value ?? null)}
+                                    disabled={!canManage}
+                                    options={sftpCredentials.map((c) => ({ value: c.id, label: c.label }))}
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <div>
                     <InputLabel value={t('environmentWorkspace.drawer.deployPathLabel')} />
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -335,6 +377,13 @@ function ConfigDrawer({
                     </div>
                     <InputError message={errors.url} />
                 </div>
+                {existing?.last_deployed_sha && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                            {t('environmentWorkspace.drawer.lastDeployedShaLabel')} : <code>{existing.last_deployed_sha.slice(0, 10)}</code>
+                        </Text>
+                    </div>
+                )}
             </form>
 
             <ServerFormModal

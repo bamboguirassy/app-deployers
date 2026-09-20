@@ -180,6 +180,134 @@
     gap: space('2');
 }
 
+// Remplace un Segmented horizontal (illisible dès 3-4 types de step, le
+// texte se tronque dans la largeur fixe du tiroir) par une grille de cartes
+// qui s'adapte au nombre de types sans jamais tronquer un libellé.
+.step-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: space('2');
+    width: 100%;
+}
+
+.step-type-grid__option.ant-radio-button-wrapper {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: space('1');
+    padding: space('3');
+    text-align: left;
+    white-space: normal;
+    line-height: 1.35;
+
+    &::before {
+        display: none;
+    }
+}
+
+.step-type-grid__title {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+    font-size: 13px;
+}
+
+.step-type-grid__hint {
+    font-size: 11px;
+    color: theme('color-text-muted');
+}
+
+.step-type-grid__warning {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px space('2');
+    border-radius: 999px;
+    background: color-mix(in srgb, theme('color-warning') 12%, transparent);
+    color: theme('color-warning');
+    white-space: nowrap;
+}
+
+.pipeline-mode-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: space('1');
+    margin-bottom: space('3');
+}
+
+.pipeline-mode-toggle__row {
+    display: flex;
+    align-items: center;
+    gap: space('2');
+}
+
+.pipeline-mode-toggle__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: theme('color-text');
+}
+
+.pipeline-mode-toggle__hint {
+    margin: 0;
+    font-size: 11px;
+    color: theme('color-text-muted');
+}
+
+.pipeline-env-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: space('2');
+    margin-bottom: space('3');
+}
+
+.pipeline-env-tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: space('1');
+    padding: space('1') space('3');
+    border-radius: 999px;
+    border: 1px solid theme('color-border');
+    background: theme('color-surface');
+    color: theme('color-text-muted');
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        border-color: theme('color-primary');
+        color: theme('color-primary');
+    }
+}
+
+.pipeline-env-tabs__tab--active {
+    background: theme('color-primary-soft');
+    border-color: theme('color-primary');
+    color: theme('color-primary');
+}
+
+.pipeline-env-no-server {
+    @include card-surface;
+    display: flex;
+    flex-direction: column;
+    gap: space('2');
+    padding: space('4');
+    align-items: flex-start;
+    margin-bottom: space('3');
+}
+
+.pipeline-env-no-server__text {
+    margin: 0;
+    font-size: 13px;
+    color: theme('color-text-muted');
+}
+
+.pipeline-env-no-server__actions {
+    display: flex;
+    gap: space('2');
+}
+
 .step-editor__row {
     display: flex;
     flex-wrap: wrap;

@@ -14,13 +14,20 @@ use App\Models\DeploymentStep;
  */
 class DeploymentContextBuilder
 {
-    public static function build(Deployment $deployment, DeploymentStep $step): array
+    /**
+     * $workspacePath : dossier local éphémère de ce déploiement
+     * (storage/app/deployments/{id}/workspace), consommé par CloneStepAction/
+     * SyncStepAction — toujours calculé par RunDeploymentJob, que le pipeline
+     * s'en serve ou non (nettoyé en fin de déploiement dans tous les cas).
+     */
+    public static function build(Deployment $deployment, DeploymentStep $step, string $workspacePath): array
     {
         $targetEnvironment = $deployment->targetEnvironment;
         $target = $targetEnvironment->target;
         $application = $target->application;
 
         return [
+            'workspace_path' => $workspacePath,
             'application' => [
                 'name' => $application->name,
                 'slug' => $application->slug,

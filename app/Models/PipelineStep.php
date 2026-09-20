@@ -11,7 +11,10 @@ class PipelineStep extends Model
 {
     use BelongsToWorkspace;
 
-    protected $fillable = ['target_id', 'label', 'type', 'config', 'order', 'timeout_seconds', 'continue_on_failure'];
+    protected $fillable = [
+        'target_id', 'target_environment_id', 'label', 'type', 'config', 'order',
+        'timeout_seconds', 'continue_on_failure',
+    ];
 
     protected static function booted(): void
     {
@@ -36,6 +39,11 @@ class PipelineStep extends Model
     public function target(): BelongsTo
     {
         return $this->belongsTo(Target::class);
+    }
+
+    public function targetEnvironment(): BelongsTo
+    {
+        return $this->belongsTo(TargetEnvironment::class);
     }
 
     public function resolveWorkspaceId(): ?int

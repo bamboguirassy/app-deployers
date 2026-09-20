@@ -51,14 +51,32 @@ class TargetEnvironmentController extends Controller
 
     private function validated(Request $request, Workspace $workspace): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'server_id' => [
                 'required',
                 Rule::exists('servers', 'id')->where('workspace_id', $workspace->id),
+            ],
+            // Comptes FTP/SFTP dédiés (ServerCredential) optionnels, doivent
+            // appartenir au serveur choisi ci-dessus — sans repli possible
+            // pour FTP, avec repli sur le SSH du serveur pour SFTP (voir
+            // TargetEnvironment::ftpCredential()/sftpCredential() et les
+            // transports correspondants).
+            'ftp_credential_id' => [
+                'nullable',
+                Rule::exists('server_credentials', 'id')->where('server_id', $request->input('server_id'))->where('type', 'ftp'),
+            ],
+            'sftp_credential_id' => [
+                'nullable',
+                Rule::exists('server_credentials', 'id')->where('server_id', $request->input('server_id'))->where('type', 'sftp'),
             ],
             'deploy_path' => ['required', 'string', 'max:255'],
             'git_branch' => ['required', 'string', 'max:255'],
             'url' => ['nullable', 'url', 'max:255'],
         ]);
+
+        $data['ftp_credential_id'] = $data['ftp_credential_id'] ?? null;
+        $data['sftp_credential_id'] = $data['sftp_credential_id'] ?? null;
+
+        return $data;
     }
 }

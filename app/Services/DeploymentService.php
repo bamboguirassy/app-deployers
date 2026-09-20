@@ -33,6 +33,61 @@ class DeploymentService
         }
     }
 
+    /**
+     * Un step `clone` (App\StepActions\CloneStepAction) sans dépôt connecté
+     * échouerait de toute façon dès la première étape — autant le refuser
+     * avant de créer un Deployment et de consommer un slot, plutôt que de
+     * laisser échouer après coup (même principe que assertVariablesComplete()).
+     * GitCloner::clone() garde son propre contrôle en filet de sécurité
+     * (ex. dépôt déconnecté entre ce contrôle et l'exécution réelle du job).
+     */
+    private function assertRepositoryConnectedIfCloneStepPresent(TargetEnvironment $targetEnvironment): void
+    {
+        $target = $targetEnvironment->target;
+        $hasCloneStep = $target->pipelineStepsFor($targetEnvironment)->get()->contains(fn ($step) => $step->type === 'clone');
+
+        if ($hasCloneStep && (! $target->repository || ! $target->repository_provider)) {
+            Cache::forget(self::lockKey($targetEnvironment->id));
+
+            throw new MissingRepositoryException(
+                'Ce pipeline contient une étape de clone, mais aucun dépôt Git n\'est connecté sur ce target.'
+            );
+        }
+    }
+
+    /**
+     * Refuse le déploiement avant même de créer le Deployment si un step
+     * `command`/`sync` présent dans le pipeline résolu pour cet environnement
+     * n'a pas les moyens de s'exécuter : SSH manquant sur le serveur (command,
+     * sync ssh_rsync, ou sync sftp sans compte SFTP dédié en repli), ou aucun
+     * compte FTP dédié pour un sync ftp (jamais de repli possible, voir
+     * FtpTransport). Même principe que assertRepositoryConnectedIfCloneStepPresent() :
+     * un échec évident vaut mieux avant qu'après avoir consommé un slot.
+     */
+    private function assertTransportRequirementsAreMet(TargetEnvironment $targetEnvironment): void
+    {
+        $server = $targetEnvironment->server;
+        $steps = $targetEnvironment->target->pipelineStepsFor($targetEnvironment)->get();
+
+        foreach ($steps as $step) {
+            $missing = match (true) {
+                $step->type === 'command' => ! $server->hasSsh(),
+                $step->type === 'sync' && ($step->config['transport'] ?? null) === 'ssh_rsync' => ! $server->hasSsh(),
+                $step->type === 'sync' && ($step->config['transport'] ?? null) === 'sftp' => ! $server->hasSsh() && ! $targetEnvironment->sftp_credential_id,
+                $step->type === 'sync' && ($step->config['transport'] ?? null) === 'ftp' => ! $targetEnvironment->ftp_credential_id,
+                default => false,
+            };
+
+            if ($missing) {
+                Cache::forget(self::lockKey($targetEnvironment->id));
+
+                throw new MissingTransportCredentialsException(
+                    "L'étape « {$step->label} » ne peut pas s'exécuter sur cet environnement : accès manquant (SSH ou compte FTP/SFTP dédié)."
+                );
+            }
+        }
+    }
+
     public static function lockKey(int $targetEnvironmentId): string
     {
         return "deploy:lock:{$targetEnvironmentId}";
@@ -46,6 +101,8 @@ class DeploymentService
      *
      * @throws DeploymentAlreadyRunningException
      * @throws TargetEnvironmentMissingServerException
+     * @throws MissingRepositoryException
+     * @throws MissingTransportCredentialsException
      */
     public function trigger(
         TargetEnvironment $targetEnvironment,
@@ -73,12 +130,14 @@ class DeploymentService
         }
 
         $targetEnvironment->loadMissing(
-            'target.pipelineSteps',
             'target.application.workspace',
             'target.variables',
             'variables',
+            'server',
         );
 
+        $this->assertRepositoryConnectedIfCloneStepPresent($targetEnvironment);
+        $this->assertTransportRequirementsAreMet($targetEnvironment);
         $this->assertVariablesComplete($targetEnvironment);
 
         $deployment = Deployment::create([
@@ -90,7 +149,9 @@ class DeploymentService
             'branch' => $branch ?? $targetEnvironment->git_branch,
         ]);
 
-        foreach ($targetEnvironment->target->pipelineSteps as $index => $step) {
+        $steps = $targetEnvironment->target->pipelineStepsFor($targetEnvironment)->get();
+
+        foreach ($steps as $index => $step) {
             $deployment->steps()->create([
                 'pipeline_step_id' => $step->id,
                 'label_snapshot' => $step->label,

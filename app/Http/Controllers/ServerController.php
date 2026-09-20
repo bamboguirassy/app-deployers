@@ -32,7 +32,9 @@ class ServerController extends Controller
     {
         $this->authorize('manageServers', $workspace);
 
-        $servers = $workspace->servers()->orderBy('name')->paginate(20);
+        $servers = $workspace->servers()->orderBy('name')
+            ->with(['credentials' => fn ($q) => $q->orderBy('label')])
+            ->paginate(20);
 
         return Inertia::render('Servers/Index', [
             'servers' => ['data' => $servers->items()],
@@ -64,7 +66,7 @@ class ServerController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $query = $workspace->servers();
+        $query = $workspace->servers()->with(['credentials' => fn ($q) => $q->orderBy('label')]);
         $this->applySearch($query, $data['search'] ?? null, ['servers.name', 'servers.host', 'servers.username']);
 
         if (! empty($data['auth_method'])) {
@@ -100,6 +102,14 @@ class ServerController extends Controller
             throw ValidationException::withMessages(['private_key' => 'La clé privée est requise.']);
         }
 
+        // Serveur volontairement sans SSH (cas FTP/SFTP-only) — voir Server::hasSsh().
+        if ($data['auth_method'] === null) {
+            $data['username'] = null;
+            $data['password'] = null;
+            $data['private_key'] = null;
+            $data['passphrase'] = null;
+        }
+
         $server = $workspace->servers()->create([
             ...$data,
             'created_by' => auth()->id(),
@@ -125,7 +135,13 @@ class ServerController extends Controller
         // de changer de méthode, une valeur manquante est une vraie erreur.
         $methodUnchanged = $server->auth_method === $data['auth_method'];
 
-        if ($data['auth_method'] === 'password') {
+        if ($data['auth_method'] === null) {
+            // Retrait volontaire du SSH (bascule vers un serveur FTP/SFTP-only).
+            $data['username'] = null;
+            $data['password'] = null;
+            $data['private_key'] = null;
+            $data['passphrase'] = null;
+        } elseif ($data['auth_method'] === 'password') {
             if (($data['password'] ?? '') === '') {
                 if ($methodUnchanged) {
                     unset($data['password']);
@@ -349,8 +365,10 @@ class ServerController extends Controller
             ],
             'host' => ['required', 'string', 'max:255'],
             'port' => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'username' => ['required', 'string', 'max:255'],
-            'auth_method' => ['required', 'in:password,ssh_key'],
+            // Le SSH est optionnel (voir Server::hasSsh()) : un serveur peut
+            // n'exposer que des comptes FTP/SFTP dédiés (ServerCredential).
+            'username' => ['nullable', 'required_with:auth_method', 'string', 'max:255'],
+            'auth_method' => ['nullable', 'required_with:username', 'in:password,ssh_key'],
             'default_path' => ['nullable', 'string', 'max:500'],
             'password' => ['nullable', 'string'],
             'private_key' => ['nullable', 'string'],
@@ -359,11 +377,12 @@ class ServerController extends Controller
 
         $data['port'] = $data['port'] ?? 22;
         $data['default_path'] = ($data['default_path'] ?? '') !== '' ? rtrim($data['default_path'], '/') ?: '/' : '/';
+        $data['auth_method'] = $data['auth_method'] ?? null;
 
         if ($data['auth_method'] === 'password') {
             $data['private_key'] = null;
             $data['passphrase'] = null;
-        } else {
+        } elseif ($data['auth_method'] === 'ssh_key') {
             $data['password'] = null;
         }
 
