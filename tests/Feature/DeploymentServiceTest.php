@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Jobs\RunDeploymentJob;
 use App\Models\Application;
+use App\Models\Deployment;
 use App\Models\Environment;
 use App\Models\PipelineStep;
 use App\Models\Plan;
 use App\Models\Server;
+use App\Models\ServerCredential;
 use App\Models\Target;
 use App\Models\TargetEnvironment;
 use App\Models\User;
@@ -15,7 +17,6 @@ use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentNotResumableException;
 use App\Services\DeploymentService;
-use App\Models\ServerCredential;
 use App\Services\MissingRepositoryException;
 use App\Services\MissingTransportCredentialsException;
 use App\Services\TargetEnvironmentMissingServerException;
@@ -215,7 +216,7 @@ class DeploymentServiceTest extends TestCase
         app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
     }
 
-    public function test_trigger_releases_the_lock_when_rejecting_a_missing_repository(): void
+    public function test_a_rejected_trigger_does_not_leave_the_environment_blocked(): void
     {
         $workspace = $this->makeWorkspace();
         $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
@@ -234,7 +235,10 @@ class DeploymentServiceTest extends TestCase
             // attendu
         }
 
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+        // L'occupation de l'environnement est dérivée des déploiements non
+        // terminés : un déclenchement refusé n'en crée aucun, donc rien ne
+        // reste à « libérer ».
+        $this->assertSame(0, Deployment::where('target_environment_id', $targetEnvironment->id)->count());
     }
 
     public function test_trigger_succeeds_with_a_clone_step_when_a_repository_is_connected(): void
@@ -350,7 +354,7 @@ class DeploymentServiceTest extends TestCase
         app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
     }
 
-    public function test_lock_is_released_once_a_deployment_finishes_allowing_a_new_one(): void
+    public function test_a_finished_deployment_frees_the_environment_for_a_new_one(): void
     {
         Queue::fake();
 
@@ -359,10 +363,9 @@ class DeploymentServiceTest extends TestCase
 
         $first = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
 
-        // Simule la libération du verrou par RunDeploymentJob (bloc finally)
-        // une fois le déploiement terminé.
+        // Sortir d'un statut non terminal libère l'environnement : il n'y a
+        // plus de verrou à relâcher séparément.
         $first->update(['status' => 'succes']);
-        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
 
         $second = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
 
@@ -392,7 +395,6 @@ class DeploymentServiceTest extends TestCase
         ]);
 
         $deployment = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
-        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
 
         $steps = $deployment->steps()->orderBy('order')->get();
         $steps[0]->update(['status' => 'succes', 'exit_code' => 0]);
@@ -422,15 +424,60 @@ class DeploymentServiceTest extends TestCase
         $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
 
         $first = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
-        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
         $first->update(['status' => 'echec']);
 
         $second = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
-        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
         $second->update(['status' => 'succes']);
 
         $this->expectException(DeploymentNotResumableException::class);
 
         app(DeploymentService::class)->resumeFromFailure($first->fresh());
+    }
+
+    /**
+     * Régression : l'occupation d'un environnement reposait sur une clé de
+     * cache avec un TTL de 20 minutes, jamais rafraîchie. Passé ce délai, un
+     * second déclenchement était accepté alors que le premier tournait
+     * toujours — deux pipelines concurrents dans le même `deploy_path` du
+     * serveur cible, sans rien pour rattraper l'état résultant. Un pipeline de
+     * deux étapes au timeout par défaut (900 s) suffit à dépasser 20 minutes.
+     */
+    public function test_a_deployment_running_longer_than_the_old_lock_ttl_still_blocks_a_second_trigger(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+
+        $first = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+        $first->update(['status' => 'running', 'started_at' => now()]);
+
+        $this->travel(45)->minutes();
+
+        $this->expectException(DeploymentAlreadyRunningException::class);
+
+        app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
+    }
+
+    /**
+     * Même chose pour un déploiement qui patiente longuement en file
+     * d'attente : l'ancien TTL de 20 minutes expirait bien avant
+     * queue_wait_timeout_minutes (2 h).
+     */
+    public function test_a_deployment_queued_for_a_long_time_still_blocks_a_second_trigger(): void
+    {
+        Queue::fake();
+
+        $workspace = $this->makeWorkspace();
+        $targetEnvironment = $this->makeTargetEnvironment($workspace, $this->makeServer($workspace));
+
+        $queued = app(DeploymentService::class)->trigger($targetEnvironment, 'manual');
+        $queued->update(['queued_reason' => Deployment::QUEUED_FOR_CONCURRENCY]);
+
+        $this->travel(90)->minutes();
+
+        $this->expectException(DeploymentAlreadyRunningException::class);
+
+        app(DeploymentService::class)->trigger($targetEnvironment->fresh(), 'manual');
     }
 }

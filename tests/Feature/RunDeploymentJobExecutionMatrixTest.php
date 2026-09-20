@@ -14,7 +14,6 @@ use App\Models\Target;
 use App\Models\TargetEnvironment;
 use App\Models\User;
 use App\Models\Workspace;
-use App\Services\DeploymentService;
 use App\Services\QuotaGuard;
 use App\Services\SshAuthenticator;
 use App\StepActions\StepActionRegistry;
@@ -80,7 +79,6 @@ class RunDeploymentJobExecutionMatrixTest extends TestCase
 
     private function triggerLocally(TargetEnvironment $targetEnvironment): Deployment
     {
-        Cache::add(DeploymentService::lockKey($targetEnvironment->id), true, now()->addMinutes(config('deploy.lock_ttl_minutes')));
 
         $targetEnvironment->refresh()->loadMissing('target', 'target.application.workspace');
 
@@ -201,7 +199,13 @@ class RunDeploymentJobExecutionMatrixTest extends TestCase
 
         $this->assertSame('annule', $deployment->fresh()->status);
         $this->assertSame(['pending', 'pending'], $deployment->steps()->orderBy('order')->pluck('status')->all());
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+        // L'environnement est libéré : son déploiement a quitté les statuts
+        // non terminaux (l'occupation en est dérivée).
+        $this->assertFalse(
+            Deployment::where('target_environment_id', $targetEnvironment->id)
+                ->whereIn('status', ['pending', 'running'])
+                ->exists()
+        );
     }
 
     public function test_multiple_failures_with_continue_on_failure_are_all_recorded(): void
@@ -289,6 +293,12 @@ class RunDeploymentJobExecutionMatrixTest extends TestCase
 
         $this->assertSame('echec', $deployment->fresh()->status);
         $this->assertSame('echec', $deployment->steps()->first()->status);
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+        // L'environnement est libéré : son déploiement a quitté les statuts
+        // non terminaux (l'occupation en est dérivée).
+        $this->assertFalse(
+            Deployment::where('target_environment_id', $targetEnvironment->id)
+                ->whereIn('status', ['pending', 'running'])
+                ->exists()
+        );
     }
 }

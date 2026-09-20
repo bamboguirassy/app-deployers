@@ -9,7 +9,6 @@ use App\Models\Deployment;
 use App\Models\DeploymentStep;
 use App\Models\TargetEnvironment;
 use App\Services\DeploymentConcurrencyExceededException;
-use App\Services\DeploymentService;
 use App\Services\QuotaGuard;
 use App\Services\SshAuthenticator;
 use App\StepActions\StepActionRegistry;
@@ -235,10 +234,9 @@ class RunDeploymentJob implements ShouldQueue
             ]);
             $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
             Cache::forget($cancelKey);
-            Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
-            // Aucun slot de concurrence à relâcher ici : il est dérivé du
-            // statut du déploiement, que les blocs try/catch ci-dessus ont
-            // déjà fait sortir de "running".
+            // Ni verrou d'environnement ni slot de concurrence à relâcher
+            // ici : les deux sont dérivés du statut du déploiement, que les
+            // blocs try/catch ci-dessus ont déjà fait sortir de "running".
             $ssh?->disconnect();
 
             // Nettoyage systématique du workspace éphémère (succès, échec ou
@@ -390,7 +388,6 @@ class RunDeploymentJob implements ShouldQueue
         $deployment->update(['status' => 'annule', 'finished_at' => now()]);
         $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
         Cache::forget($cancelKey);
-        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }
 
     /**
@@ -419,6 +416,5 @@ class RunDeploymentJob implements ShouldQueue
             $deployment,
         )));
         Cache::forget(self::cancelKey($deployment->id));
-        Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }
 }

@@ -7,6 +7,7 @@ use App\Jobs\RunDeploymentJob;
 use App\Models\Deployment;
 use App\Models\TargetEnvironment;
 use App\Models\User;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -54,8 +55,6 @@ class DeploymentService
             ->pluck('key');
 
         if ($missing->isNotEmpty()) {
-            Cache::forget(self::lockKey($targetEnvironment->id));
-
             throw new MissingEnvironmentVariablesException(
                 'Variables manquantes pour cet environnement : '.$missing->join(', ').'.'
             );
@@ -76,8 +75,6 @@ class DeploymentService
         $hasCloneStep = $target->pipelineStepsFor($targetEnvironment)->get()->contains(fn ($step) => $step->type === 'clone');
 
         if ($hasCloneStep && (! $target->repository || ! $target->repository_provider)) {
-            Cache::forget(self::lockKey($targetEnvironment->id));
-
             throw new MissingRepositoryException(
                 'Ce pipeline contient une étape de clone, mais aucun dépôt Git n\'est connecté sur ce target.'
             );
@@ -108,8 +105,6 @@ class DeploymentService
             };
 
             if ($missing) {
-                Cache::forget(self::lockKey($targetEnvironment->id));
-
                 throw new MissingTransportCredentialsException(
                     "L'étape « {$step->label} » ne peut pas s'exécuter sur cet environnement : accès manquant (SSH ou compte FTP/SFTP dédié)."
                 );
@@ -117,9 +112,75 @@ class DeploymentService
         }
     }
 
-    public static function lockKey(int $targetEnvironmentId): string
+    /**
+     * Verrou court sérialisant le « vérifie puis crée » d'un même
+     * environnement entre requêtes concurrentes. Il ne représente PAS
+     * l'occupation de l'environnement (voir assertNoActiveDeployment) : sa
+     * seule raison d'être est d'empêcher deux déclenchements simultanés de
+     * constater tous les deux « aucun déploiement en cours ».
+     */
+    public static function triggerLockKey(int $targetEnvironmentId): string
     {
-        return "deploy:lock:{$targetEnvironmentId}";
+        return "deploy:trigger:{$targetEnvironmentId}";
+    }
+
+    /**
+     * Un seul déploiement à la fois par couple cible/environnement — deux
+     * pipelines concurrents travailleraient dans le même `deploy_path` sur le
+     * serveur cible (git pull, composer install, build...), et rien ne
+     * rattraperait l'état incohérent qui en résulterait.
+     *
+     * L'occupation est **dérivée** des déploiements réellement non terminés,
+     * et non d'une clé de cache à durée de vie. Contexte : la clé
+     * `deploy:lock:{id}` avait un TTL de 20 minutes, n'était jamais
+     * rafraîchie, et expirait donc aussi bien pendant l'attente d'un slot
+     * (jusqu'à `queue_wait_timeout_minutes`, 2 h) que **pendant l'exécution**
+     * d'un déploiement plus long que 20 minutes — un simple pipeline de deux
+     * étapes au timeout par défaut suffit. Passé ce délai, la protection
+     * cessait silencieusement de fonctionner.
+     *
+     * Auto-réparant : un worker tué laisse un déploiement `running` ou
+     * `pending` que `deploy:reconcile-stuck` finit par abandonner, ce qui
+     * libère l'environnement sans intervention manuelle.
+     *
+     * @throws DeploymentAlreadyRunningException
+     */
+    private function assertNoActiveDeployment(int $targetEnvironmentId): void
+    {
+        $active = Deployment::query()
+            ->where('target_environment_id', $targetEnvironmentId)
+            ->whereIn('status', ['pending', 'running'])
+            ->exists();
+
+        if ($active) {
+            throw new DeploymentAlreadyRunningException(
+                'Un déploiement est déjà en cours pour cet environnement.'
+            );
+        }
+    }
+
+    /**
+     * Exécute $work en garantissant qu'aucun autre déclenchement ne puisse
+     * s'intercaler sur le même environnement.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $work
+     * @return T
+     *
+     * @throws DeploymentAlreadyRunningException
+     */
+    private function withTriggerLock(int $targetEnvironmentId, callable $work)
+    {
+        try {
+            return Cache::lock(self::triggerLockKey($targetEnvironmentId), 15)->block(5, $work);
+        } catch (LockTimeoutException) {
+            // Un autre déclenchement est en cours sur ce même environnement :
+            // du point de vue de l'appelant, c'est exactement « déjà en cours ».
+            throw new DeploymentAlreadyRunningException(
+                'Un déploiement est déjà en cours pour cet environnement.'
+            );
+        }
     }
 
     /**
@@ -146,18 +207,6 @@ class DeploymentService
             );
         }
 
-        $acquired = Cache::add(
-            self::lockKey($targetEnvironment->id),
-            true,
-            now()->addMinutes(config('deploy.lock_ttl_minutes')),
-        );
-
-        if (! $acquired) {
-            throw new DeploymentAlreadyRunningException(
-                'Un déploiement est déjà en cours pour cet environnement.'
-            );
-        }
-
         $targetEnvironment->loadMissing(
             'target.application.workspace',
             'target.variables',
@@ -169,27 +218,36 @@ class DeploymentService
         $this->assertTransportRequirementsAreMet($targetEnvironment);
         $this->assertVariablesComplete($targetEnvironment);
 
-        $deployment = Deployment::create([
-            'target_environment_id' => $targetEnvironment->id,
-            'status' => 'pending',
-            'trigger_source' => $source,
-            'triggered_by_user_id' => $user?->id,
-            'commit_sha' => $commitSha,
-            'branch' => $branch ?? $targetEnvironment->git_branch,
-        ]);
+        // Vérification d'occupation et création dans la même section critique :
+        // sans ça, deux déclenchements simultanés constateraient tous les deux
+        // « aucun déploiement en cours ».
+        $deployment = $this->withTriggerLock($targetEnvironment->id, function () use ($targetEnvironment, $source, $user, $commitSha, $branch) {
+            $this->assertNoActiveDeployment($targetEnvironment->id);
 
-        $steps = $targetEnvironment->target->pipelineStepsFor($targetEnvironment)->get();
-
-        foreach ($steps as $index => $step) {
-            $deployment->steps()->create([
-                'pipeline_step_id' => $step->id,
-                'label_snapshot' => $step->label,
-                'type' => $step->type,
-                'config_snapshot' => $step->config,
-                'order' => $index,
+            $deployment = Deployment::create([
+                'target_environment_id' => $targetEnvironment->id,
                 'status' => 'pending',
+                'trigger_source' => $source,
+                'triggered_by_user_id' => $user?->id,
+                'commit_sha' => $commitSha,
+                'branch' => $branch ?? $targetEnvironment->git_branch,
             ]);
-        }
+
+            $steps = $targetEnvironment->target->pipelineStepsFor($targetEnvironment)->get();
+
+            foreach ($steps as $index => $step) {
+                $deployment->steps()->create([
+                    'pipeline_step_id' => $step->id,
+                    'label_snapshot' => $step->label,
+                    'type' => $step->type,
+                    'config_snapshot' => $step->config,
+                    'order' => $index,
+                    'status' => 'pending',
+                ]);
+            }
+
+            return $deployment;
+        });
 
         RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));
         $this->broadcastCreation($deployment, $targetEnvironment);
@@ -223,44 +281,37 @@ class DeploymentService
 
         $targetEnvironmentId = $deployment->target_environment_id;
 
-        $acquired = Cache::add(
-            self::lockKey($targetEnvironmentId),
-            true,
-            now()->addMinutes(config('deploy.lock_ttl_minutes')),
-        );
+        $this->withTriggerLock($targetEnvironmentId, function () use ($deployment, $targetEnvironmentId) {
+            // Ce déploiement est en "echec" : il ne se compte pas lui-même.
+            $this->assertNoActiveDeployment($targetEnvironmentId);
 
-        if (! $acquired) {
-            throw new DeploymentAlreadyRunningException(
-                'Un déploiement est déjà en cours pour cet environnement.'
-            );
-        }
+            DB::transaction(function () use ($deployment) {
+                $steps = $deployment->steps()->orderBy('order')->get();
+                $firstFailureOrder = $steps->firstWhere('status', 'echec')?->order;
 
-        DB::transaction(function () use ($deployment) {
-            $steps = $deployment->steps()->orderBy('order')->get();
-            $firstFailureOrder = $steps->firstWhere('status', 'echec')?->order;
+                foreach ($steps as $step) {
+                    if ($step->order < $firstFailureOrder || $step->status === 'succes') {
+                        continue;
+                    }
 
-            foreach ($steps as $step) {
-                if ($step->order < $firstFailureOrder || $step->status === 'succes') {
-                    continue;
+                    $step->update([
+                        'status' => 'pending',
+                        'exit_code' => null,
+                        'output' => null,
+                        'pid' => null,
+                        'started_at' => null,
+                        'finished_at' => null,
+                        'duration_ms' => null,
+                    ]);
                 }
 
-                $step->update([
+                $deployment->update([
                     'status' => 'pending',
-                    'exit_code' => null,
-                    'output' => null,
-                    'pid' => null,
-                    'started_at' => null,
+                    'queued_reason' => null,
                     'finished_at' => null,
                     'duration_ms' => null,
                 ]);
-            }
-
-            $deployment->update([
-                'status' => 'pending',
-                'queued_reason' => null,
-                'finished_at' => null,
-                'duration_ms' => null,
-            ]);
+            });
         });
 
         RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));

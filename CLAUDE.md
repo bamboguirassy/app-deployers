@@ -48,9 +48,9 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
 ## Deployment execution flow
 
 1. `App\Services\DeploymentService::trigger()` (called from `DeploymentController@store` or
-   `WebhookReceiverController`) takes a per-`TargetEnvironment` cache lock
-   (`deploy:lock:{id}`, TTL = `config('deploy.lock_ttl_minutes')`) — throws
-   `DeploymentAlreadyRunningException` if already running.
+   `WebhookReceiverController`) refuses the trigger with `DeploymentAlreadyRunningException`
+   if the `TargetEnvironment` already carries a `pending`/`running` deployment — see
+   "Environment occupancy" below.
 2. Creates a `Deployment` (`pending`) + snapshots current `PipelineStep`s into ordered
    `DeploymentStep`s, dispatches `App\Jobs\RunDeploymentJob` on `config('deploy.queue')`.
 3. The job runs steps sequentially via Symfony `Process`, in `deploy_path`, with per-step
@@ -105,16 +105,33 @@ deployment of that workspace looped in `pending` (releasing itself every
 `deploy.concurrency_retry_seconds`) until `retryUntil()` expired. If you ever reintroduce a
 counter here, give it a reconciliation path; don't trust a `finally` to be reached.
 
+**Environment occupancy** ("one deployment at a time per target/environment") is derived the
+same way as the concurrency slot: `DeploymentService::assertNoActiveDeployment()` checks for a
+`pending`/`running` deployment on that `TargetEnvironment`, inside a short cache lock
+(`deploy:trigger:{id}`) that also covers the creation — otherwise two simultaneous triggers
+would both see "nothing running". This replaced a `deploy:lock:{id}` key with a 20-minute TTL
+that was **never refreshed**, so it expired both while a deployment waited for a slot (up to
+`queue_wait_timeout_minutes`, 2 h) *and while a deployment was still running* — two steps at
+the default 900 s timeout are enough to pass 20 minutes. Past that point the protection
+silently stopped working, and two pipelines could run concurrently in the same `deploy_path`
+on the target server, with nothing to undo the resulting state. Don't reintroduce a TTL'd
+occupancy key.
+
 Cancellation is **cooperative only** — if a worker process dies outright mid-run, the
-`finally` block in `RunDeploymentJob` never executes, so the lock and the deployment's
-`running` status (and with it the concurrency slot it implies) would stay stuck forever.
-`App\Console\Commands\ReconcileStuckDeployments`
+`finally` block in `RunDeploymentJob` never executes, so the deployment's `running` status
+(and with it the environment occupancy and concurrency slot it implies) would stay stuck
+forever. `App\Console\Commands\ReconcileStuckDeployments`
 (`deploy:reconcile-stuck`, scheduled every 5 minutes in `routes/console.php`) is the safety
-net: any deployment still `running` after `config('deploy.stuck_running_after_minutes')`
-(default 60) is force-marked `echec`, its remaining steps `annule`, and its lock
-released — which also frees the slot. `pending` deployments are deliberately left alone —
-that state is already bounded by `RunDeploymentJob::retryUntil()`/`failed()` (queue-wait
-timeout). Don't "fix" stuck deployments by clearing cache keys by hand — extend this command
+net, and it covers **two** states: any deployment still `running` after
+`config('deploy.stuck_running_after_minutes')` (default 60), and any deployment still
+`pending` after `config('deploy.stuck_pending_after_minutes')` (default
+`queue_wait_timeout_minutes` + 30). Both are force-marked `echec` with their remaining steps
+`annule`, which frees occupancy and slot by construction. The `pending` case exists because
+occupancy is now derived: a deployment whose job vanished from the queue without ever running
+(flushed Redis, purged Horizon) can never be resolved by `retryUntil()`/`failed()` — there is
+no job left — and would block its environment indefinitely. Its threshold must stay above
+`queue_wait_timeout_minutes`, or deployments still legitimately waiting for a slot would be
+abandoned. Don't "fix" stuck deployments by clearing cache keys by hand — extend this command
 instead.
 
 **Self-deploying pipelines**: this app can deploy itself, and a pipeline step that restarts

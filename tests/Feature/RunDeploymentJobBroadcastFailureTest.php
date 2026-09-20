@@ -18,7 +18,6 @@ use App\Services\SshAuthenticator;
 use App\StepActions\StepActionRegistry;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
@@ -97,11 +96,6 @@ class RunDeploymentJobBroadcastFailureTest extends TestCase
      */
     private function triggerLocally(TargetEnvironment $targetEnvironment): Deployment
     {
-        Cache::add(
-            DeploymentService::lockKey($targetEnvironment->id),
-            true,
-            now()->addMinutes(config('deploy.lock_ttl_minutes')),
-        );
 
         $targetEnvironment->loadMissing('target.pipelineSteps', 'target.application.workspace');
 
@@ -136,7 +130,11 @@ class RunDeploymentJobBroadcastFailureTest extends TestCase
         $targetEnvironment = $this->makeTargetEnvironment();
         $deployment = $this->triggerLocally($targetEnvironment);
 
-        $this->assertTrue(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+        $this->assertTrue(
+            Deployment::where('target_environment_id', $targetEnvironment->id)
+                ->whereIn('status', ['pending', 'running'])
+                ->exists()
+        );
 
         app(RunDeploymentJob::class, ['deploymentId' => $deployment->id])->handle(
             app(SshAuthenticator::class),
@@ -145,7 +143,11 @@ class RunDeploymentJobBroadcastFailureTest extends TestCase
         );
 
         $this->assertSame('succes', $deployment->fresh()->status);
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+        $this->assertFalse(
+            Deployment::where('target_environment_id', $targetEnvironment->id)
+                ->whereIn('status', ['pending', 'running'])
+                ->exists()
+        );
         $this->assertFalse(File::isDirectory(storage_path("app/deployments/{$deployment->id}/workspace")));
 
         Log::shouldHaveReceived('warning')
@@ -172,6 +174,10 @@ class RunDeploymentJobBroadcastFailureTest extends TestCase
         );
 
         $this->assertSame('echec', $deployment->fresh()->status);
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($targetEnvironment->id)));
+        $this->assertFalse(
+            Deployment::where('target_environment_id', $targetEnvironment->id)
+                ->whereIn('status', ['pending', 'running'])
+                ->exists()
+        );
     }
 }

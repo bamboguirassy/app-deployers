@@ -5,44 +5,66 @@ namespace App\Console\Commands;
 use App\Events\DeploymentStatusUpdated;
 use App\Jobs\RunDeploymentJob;
 use App\Models\Deployment;
-use App\Services\DeploymentService;
+use DateTimeInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Filet de sécurité pour les déploiements "running"/"pending" dont le worker
- * a été tué brutalement (OOM, kill -9, crash serveur) sans jamais atteindre
- * le bloc finally de RunDeploymentJob — ils restent alors bloqués
- * indéfiniment (verrou target-environment posé, slot de concurrence
- * consommé, statut jamais résolu). L'annulation coopérative existante
- * (cache:cancel) ne couvre pas ce cas : elle suppose que le job tourne
- * encore pour lire le flag.
+ * Filet de sécurité pour les déploiements dont le job ne peut plus aboutir :
+ * worker tué brutalement (OOM, kill -9, crash serveur) sans jamais atteindre
+ * le bloc finally de RunDeploymentJob, ou job disparu de la file sans avoir
+ * été exécuté. L'annulation coopérative existante (cache:cancel) ne couvre
+ * pas ces cas : elle suppose que le job tourne encore pour lire le flag.
  *
- * "pending" est exclu ici : un déploiement en attente d'un slot de
- * concurrence est un état normal et transitoire, borné par
- * retryUntil()/failed() dans RunDeploymentJob (queue_wait_timeout_minutes).
- * Seul "running" — où on sait qu'un worker a démarré l'exécution — a besoin
- * de ce filet indépendant.
+ * Deux états sont réconciliés, avec des seuils distincts :
+ *
+ * - `running` au-delà de `deploy.stuck_running_after_minutes` : un worker a
+ *   démarré l'exécution puis a disparu.
+ * - `pending` au-delà de `deploy.stuck_pending_after_minutes` : le job n'a
+ *   jamais tourné et n'existe plus (file Redis vidée, Horizon purgé), donc
+ *   ni retryUntil() ni failed() ne s'appliqueront jamais. Le seuil est
+ *   volontairement supérieur à `queue_wait_timeout_minutes` pour ne pas
+ *   abandonner un déploiement qui attend encore légitimement un slot.
+ *
+ * Les deux comptent, parce que l'occupation d'un environnement
+ * (DeploymentService::assertNoActiveDeployment) comme le slot de concurrence
+ * du workspace (QuotaGuard) sont désormais dérivés des déploiements non
+ * terminés : un déploiement fantôme bloque durablement tant qu'il n'est pas
+ * résolu.
  */
 #[Signature('deploy:reconcile-stuck')]
-#[Description('Marque en échec les déploiements "running" bloqués depuis trop longtemps (worker mort) et libère verrous/slots associés')]
+#[Description('Marque en échec les déploiements bloqués depuis trop longtemps (worker mort, job disparu) et débloque les environnements concernés')]
 class ReconcileStuckDeployments extends Command
 {
     public function handle(): void
     {
-        $threshold = now()->subMinutes((int) config('deploy.stuck_running_after_minutes'));
+        $reconciled = $this->reconcile(
+            'running',
+            now()->subMinutes((int) config('deploy.stuck_running_after_minutes')),
+            'bloqué en "running"',
+        ) + $this->reconcile(
+            'pending',
+            now()->subMinutes((int) config('deploy.stuck_pending_after_minutes')),
+            'resté "pending" sans job',
+        );
 
+        if ($reconciled === 0) {
+            $this->info('Aucun déploiement bloqué détecté.');
+        }
+    }
+
+    private function reconcile(string $status, DateTimeInterface $threshold, string $reason): int
+    {
         $stuck = Deployment::query()
-            ->where('status', 'running')
+            ->where('status', $status)
             ->where('updated_at', '<', $threshold)
             ->with(['targetEnvironment.target.application.workspace', 'steps'])
             ->get();
 
         foreach ($stuck as $deployment) {
-            $targetEnvironment = $deployment->targetEnvironment;
-            $target = $targetEnvironment->target;
+            $target = $deployment->targetEnvironment->target;
             $workspace = $target->application->workspace;
 
             foreach ($deployment->steps as $step) {
@@ -56,16 +78,13 @@ class ReconcileStuckDeployments extends Command
             event(new DeploymentStatusUpdated($target->application_id, $workspace->id, $deployment));
 
             Cache::forget(RunDeploymentJob::cancelKey($deployment->id));
-            Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
-            // Le slot de concurrence du workspace est dérivé du nombre de
-            // déploiements "running" (QuotaGuard::runningDeploymentCount) :
-            // le passage en "echec" ci-dessus le libère de lui-même.
+            // Rien d'autre à libérer : l'occupation de l'environnement et le
+            // slot de concurrence sont dérivés du statut, que le passage en
+            // "echec" vient de résoudre.
 
-            $this->warn("Déploiement #{$deployment->id} marqué en échec (bloqué en \"running\" depuis {$deployment->updated_at}).");
+            $this->warn("Déploiement #{$deployment->id} marqué en échec ({$reason} depuis {$deployment->updated_at}).");
         }
 
-        if ($stuck->isEmpty()) {
-            $this->info('Aucun déploiement bloqué détecté.');
-        }
+        return $stuck->count();
     }
 }

@@ -15,6 +15,8 @@ use App\Models\Workspace;
 use App\Services\DeploymentAlreadyRunningException;
 use App\Services\DeploymentService;
 use App\Services\QuotaGuard;
+use App\Services\SshAuthenticator;
+use App\StepActions\StepActionRegistry;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -81,15 +83,21 @@ class DeploymentConcurrencyTest extends TestCase
      * — ce test veut exercer le verrouillage/la file du job, pas le chemin
      * SSH ; makeTargetEnvironment() ne configure volontairement pas de server.
      */
+    /**
+     * Un environnement est occupé tant qu'il porte un déploiement non
+     * terminé — c'est ce qui remplace l'ancienne clé de cache à TTL.
+     */
+    private function environmentIsBusy(TargetEnvironment $targetEnvironment): bool
+    {
+        return Deployment::query()
+            ->where('target_environment_id', $targetEnvironment->id)
+            ->whereIn('status', ['pending', 'running'])
+            ->exists();
+    }
+
     private function triggerLocally(TargetEnvironment $targetEnvironment): Deployment
     {
-        $acquired = Cache::add(
-            DeploymentService::lockKey($targetEnvironment->id),
-            true,
-            now()->addMinutes(config('deploy.lock_ttl_minutes')),
-        );
-
-        if (! $acquired) {
+        if ($this->environmentIsBusy($targetEnvironment)) {
             throw new DeploymentAlreadyRunningException('Un déploiement est déjà en cours pour cet environnement.');
         }
 
@@ -130,25 +138,25 @@ class DeploymentConcurrencyTest extends TestCase
         $deploymentA = $this->triggerLocally($teA);
         $deploymentB = $this->triggerLocally($teB);
 
-        // Les deux verrous doivent être posés simultanément (pas d'exception).
-        $this->assertTrue(Cache::has(DeploymentService::lockKey($teA->id)));
-        $this->assertTrue(Cache::has(DeploymentService::lockKey($teB->id)));
+        // Les deux environnements sont occupés simultanément (pas d'exception).
+        $this->assertTrue($this->environmentIsBusy($teA));
+        $this->assertTrue($this->environmentIsBusy($teB));
 
         app(RunDeploymentJob::class, ['deploymentId' => $deploymentA->id])->handle(
-            app(\App\Services\SshAuthenticator::class),
+            app(SshAuthenticator::class),
             app(QuotaGuard::class),
-            app(\App\StepActions\StepActionRegistry::class),
+            app(StepActionRegistry::class),
         );
         app(RunDeploymentJob::class, ['deploymentId' => $deploymentB->id])->handle(
-            app(\App\Services\SshAuthenticator::class),
+            app(SshAuthenticator::class),
             app(QuotaGuard::class),
-            app(\App\StepActions\StepActionRegistry::class),
+            app(StepActionRegistry::class),
         );
 
         $this->assertSame('succes', $deploymentA->refresh()->status);
         $this->assertSame('succes', $deploymentB->refresh()->status);
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($teA->id)));
-        $this->assertFalse(Cache::has(DeploymentService::lockKey($teB->id)));
+        $this->assertFalse($this->environmentIsBusy($teA));
+        $this->assertFalse($this->environmentIsBusy($teB));
     }
 
     /**
@@ -187,16 +195,16 @@ class DeploymentConcurrencyTest extends TestCase
         $deploymentA->update(['status' => 'running', 'started_at' => now()]);
 
         app(RunDeploymentJob::class, ['deploymentId' => $deploymentB->id])->handle(
-            app(\App\Services\SshAuthenticator::class),
+            app(SshAuthenticator::class),
             app(QuotaGuard::class),
-            app(\App\StepActions\StepActionRegistry::class),
+            app(StepActionRegistry::class),
         );
 
         // B n'a pas pu acquérir de slot : reste "pending", pas "running"/"echec".
         $this->assertSame('pending', $deploymentB->refresh()->status);
-        // Le verrou de B (target/env) reste posé : il n'a pas été libéré puisque
-        // B n'a jamais commencé à s'exécuter.
-        $this->assertTrue(Cache::has(DeploymentService::lockKey($teB->id)));
+        // L'environnement de B reste occupé : son déploiement n'est pas terminé,
+        // il attend seulement un slot.
+        $this->assertTrue($this->environmentIsBusy($teB));
     }
 
     /**
@@ -254,5 +262,4 @@ class DeploymentConcurrencyTest extends TestCase
 
         $this->assertSame('running', $deploymentB->refresh()->status);
     }
-
 }
