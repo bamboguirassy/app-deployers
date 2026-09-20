@@ -1,7 +1,7 @@
 import { ActiveDeploymentEntry, PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { Badge, Dropdown, Empty, Tooltip, Typography } from 'antd';
+import { Badge, Dropdown, Empty, Tag, Tooltip, Typography } from 'antd';
 import { ArrowRight, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ const { Text } = Typography;
 export default function ActiveDeploymentsBell() {
     const { workspace, activeDeployments } = usePage<PageProps>().props;
     const { t } = useTranslation('common');
+    const { t: td } = useTranslation('deployments');
     const [items, setItems] = useState<ActiveDeploymentEntry[]>(activeDeployments?.items ?? []);
 
     useEcho(
@@ -36,6 +37,8 @@ export default function ActiveDeploymentsBell() {
                 const entry: ActiveDeploymentEntry = {
                     id: payload.deployment_id,
                     status: payload.statut as 'pending' | 'running',
+                    queued_reason: payload.queued_reason,
+                    queue_position: payload.queue_position,
                     started_at: payload.started_at,
                     application_name: payload.application_name,
                     target_name: payload.target_name,
@@ -76,6 +79,15 @@ export default function ActiveDeploymentsBell() {
                                       {item.target_name}
                                       <ArrowRight size={11} />
                                       {item.environment_name}
+                                      {item.queued_reason === 'concurrency' && (
+                                          <Tag color="warning" bordered={false}>
+                                              {item.queue_position === null
+                                                  ? td('queued.tag')
+                                                  : item.queue_position <= 1
+                                                    ? td('queued.tagNext')
+                                                    : td('queued.tagWithPosition', { position: item.queue_position })}
+                                          </Tag>
+                                      )}
                                   </span>
                               </span>
                           </Link>

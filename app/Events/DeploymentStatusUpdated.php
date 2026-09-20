@@ -43,6 +43,11 @@ class DeploymentStatusUpdated implements ShouldBroadcastNow
         return [
             'deployment_id' => $this->deployment->id,
             'statut' => $this->deployment->status,
+            // Distingue une attente de slot de concurrence (file d'attente du
+            // plan) d'un "pending" ordinaire, qui ne dure qu'une fraction de
+            // seconde le temps que le worker prenne le job.
+            'queued_reason' => $this->deployment->queued_reason,
+            'queue_position' => $this->deployment->queuePosition(),
             'started_at' => $this->deployment->started_at?->toIso8601String(),
             'finished_at' => $this->deployment->finished_at?->toIso8601String(),
             'duration_ms' => $this->deployment->duration_ms,

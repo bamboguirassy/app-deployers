@@ -141,5 +141,15 @@
         "targetPlaceholder": "Choose a target",
         "targetPlaceholderNoApp": "Choose an application first",
         "noTargetConfigured": "No target/environment configured for this application."
+    },
+    "queued": {
+        "tag": "Queued",
+        "tagWithPosition": "Queued (#{{position}})",
+        "tagNext": "Queued (next)",
+        "alertTitle": "Queued — not started yet",
+        "alertBody": "All {{limit}} concurrent deployment(s) of your {{plan}} plan are currently busy. This deployment will start automatically as soon as a slot frees up; no step has run yet.",
+        "alertPosition": "Position in queue: {{position}}.",
+        "alertBilling": "Increase concurrent deployments",
+        "alertNoBilling": "Ask the workspace owner to raise this limit."
     }
 }

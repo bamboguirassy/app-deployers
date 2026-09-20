@@ -1,10 +1,11 @@
 import { ActiveDeploymentEntry, PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { Progress } from 'antd';
+import { Progress, Tag } from 'antd';
 import confetti from 'canvas-confetti';
-import { ArrowRight, Rocket } from 'lucide-react';
+import { ArrowRight, Hourglass, Rocket } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Bande globale "déploiement en cours", affichée sous l'entête sur toutes les
@@ -16,6 +17,7 @@ import { useState } from 'react';
  */
 export default function ActiveDeploymentBanner() {
     const { workspace, activeDeployments } = usePage<PageProps>().props;
+    const { t } = useTranslation('deployments');
     const [items, setItems] = useState<ActiveDeploymentEntry[]>(activeDeployments?.items ?? []);
 
     useEcho(
@@ -43,6 +45,8 @@ export default function ActiveDeploymentBanner() {
                 const entry: ActiveDeploymentEntry = {
                     id: payload.deployment_id,
                     status: payload.statut as 'pending' | 'running',
+                    queued_reason: payload.queued_reason,
+                    queue_position: payload.queue_position,
                     started_at: payload.started_at,
                     application_name: payload.application_name,
                     target_name: payload.target_name,
@@ -86,10 +90,16 @@ export default function ActiveDeploymentBanner() {
         <div className="active-deployment-banner">
             {items.map((item) => {
                 const percent = item.steps_total > 0 ? Math.round((item.steps_done / item.steps_total) * 100) : undefined;
+                // Une barre de progression à 0 % pour un déploiement qui
+                // attend un slot laisserait croire qu'il a démarré : on
+                // affiche l'attente et son rang à la place.
+                const queued = item.queued_reason === 'concurrency';
 
                 return (
                     <Link key={item.id} href={item.show_url} className="active-deployment-banner__row">
-                        <Rocket size={14} className="active-deployment-banner__icon" />
+                        {queued
+                            ? <Hourglass size={14} className="active-deployment-banner__icon" />
+                            : <Rocket size={14} className="active-deployment-banner__icon" />}
                         <span className="active-deployment-banner__label">
                             {item.application_name}
                             <ArrowRight size={11} />
@@ -97,14 +107,24 @@ export default function ActiveDeploymentBanner() {
                             <ArrowRight size={11} />
                             {item.environment_name}
                         </span>
-                        <Progress
-                            className="active-deployment-banner__progress"
-                            percent={percent}
-                            status="active"
-                            showInfo={percent !== undefined}
-                            size="small"
-                            format={() => `${item.steps_done}/${item.steps_total}`}
-                        />
+                        {queued ? (
+                            <Tag color="warning" className="active-deployment-banner__queued">
+                                {item.queue_position === null
+                                    ? t('queued.tag')
+                                    : item.queue_position <= 1
+                                      ? t('queued.tagNext')
+                                      : t('queued.tagWithPosition', { position: item.queue_position })}
+                            </Tag>
+                        ) : (
+                            <Progress
+                                className="active-deployment-banner__progress"
+                                percent={percent}
+                                status="active"
+                                showInfo={percent !== undefined}
+                                size="small"
+                                format={() => `${item.steps_done}/${item.steps_total}`}
+                            />
+                        )}
                     </Link>
                 );
             })}

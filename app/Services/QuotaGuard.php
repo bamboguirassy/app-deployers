@@ -160,6 +160,12 @@ class QuotaGuard
 
     private function markRunning(Deployment $deployment): void
     {
-        $deployment->update(['status' => 'running', 'started_at' => now()]);
+        // queued_reason est remis à null ici : quitter la file d'attente et
+        // démarrer sont le même instant.
+        $deployment->update([
+            'status' => 'running',
+            'queued_reason' => null,
+            'started_at' => now(),
+        ]);
     }
 }

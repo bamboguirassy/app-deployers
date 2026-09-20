@@ -13,7 +13,7 @@ class Deployment extends Model
     use BelongsToWorkspace;
 
     protected $fillable = [
-        'target_environment_id', 'status', 'trigger_source', 'triggered_by_user_id',
+        'target_environment_id', 'status', 'queued_reason', 'trigger_source', 'triggered_by_user_id',
         'cancelled_by_user_id', 'commit_sha', 'branch', 'started_at', 'finished_at', 'duration_ms',
     ];
 
@@ -60,6 +60,44 @@ class Deployment extends Model
     public function resolveWorkspaceId(): ?int
     {
         return $this->targetEnvironment->resolveWorkspaceId();
+    }
+
+    /**
+     * Valeur de `queued_reason` : en attente d'un slot de déploiement
+     * simultané du plan du workspace (voir QuotaGuard::claimDeploymentSlot).
+     */
+    public const QUEUED_FOR_CONCURRENCY = 'concurrency';
+
+    public function isQueuedForConcurrency(): bool
+    {
+        return $this->status === 'pending' && $this->queued_reason === self::QUEUED_FOR_CONCURRENCY;
+    }
+
+    /**
+     * Rang de ce déploiement dans la file d'attente de son workspace (1 = le
+     * prochain à démarrer), ou null s'il n'attend pas de slot.
+     *
+     * Volontairement limité au workspace courant : un rang calculé sur
+     * l'ensemble de la plateforme divulguerait l'activité des autres clients.
+     */
+    public function queuePosition(): ?int
+    {
+        if (! $this->isQueuedForConcurrency()) {
+            return null;
+        }
+
+        $workspaceId = $this->resolveWorkspaceId();
+
+        if (! $workspaceId) {
+            return null;
+        }
+
+        return static::query()
+            ->where('status', 'pending')
+            ->where('queued_reason', self::QUEUED_FOR_CONCURRENCY)
+            ->where('id', '<', $this->id)
+            ->whereHas('targetEnvironment.target.application', fn ($q) => $q->where('workspace_id', $workspaceId))
+            ->count() + 1;
     }
 
     /**

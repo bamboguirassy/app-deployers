@@ -71,6 +71,28 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
    (listens on `DeploymentStatusUpdated`, registered in `AppServiceProvider::boot()`) — emails
    workspace owners + the triggering user via `DeploymentFailedNotification`.
 
+A deployment waiting for a slot is **flagged, not inferred**: `RunDeploymentJob` writes
+`deployments.queued_reason = 'concurrency'` at the moment the slot is refused (once, on
+transition — the job wakes every `deploy.concurrency_retry_seconds`, so writing and
+broadcasting on each pass would mean an UPDATE and a WebSocket message every 10s for
+unchanged information), and `QuotaGuard` clears it when the deployment starts. Deriving it
+instead (`pending` + quota saturated) would label every normal sub-second start as "queued".
+`Deployment::queuePosition()` is deliberately scoped to the workspace — a platform-wide rank
+would leak other tenants' activity. Surfaced in `ActiveDeploymentBanner`,
+`ActiveDeploymentsBell`, and as a persistent `Alert` on the deployment detail page (the
+confirmation toast is gone by the time the user wonders why nothing is happening). A
+deployment abandoned after `queue_wait_timeout_minutes` without ever starting gets
+`DeploymentNeverStartedNotification` instead of `DeploymentFailedNotification` — the latter
+points at "the failed step's logs", which do not exist when no step ever ran
+(`NotifyOnDeploymentFailure` picks between them). Covered by
+`tests/Feature/DeploymentQueueVisibilityTest.php`.
+
+`DeploymentService::trigger()` broadcasts `DeploymentStatusUpdated` right after creating the
+deployment, so the "deployment in progress" banner appears on click rather than when the
+worker picks the job up. That broadcast is wrapped in a try/catch for the same reason as the
+job's `broadcastSafely()`: the event is `ShouldBroadcastNow`, so a Reverb outage would
+otherwise fail the HTTP trigger *after* the deployment row and job already exist.
+
 The per-workspace **concurrency slot** (plan limit `max_concurrent_deployments`) is *derived*,
 not counted: `QuotaGuard::claimDeploymentSlot()` takes a short cache lock
 (`deploy:concurrency-claim:{workspaceId}`), counts the workspace's deployments actually in

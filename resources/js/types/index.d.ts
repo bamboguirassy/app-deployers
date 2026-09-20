@@ -146,6 +146,10 @@ export interface ActivityLogEntry {
 export interface ActiveDeploymentEntry {
     id: number;
     status: 'pending' | 'running';
+    /** Renseigné quand le déploiement attend un slot de concurrence du plan. */
+    queued_reason: 'concurrency' | null;
+    /** Rang dans la file d'attente du workspace (1 = prochain), null sinon. */
+    queue_position: number | null;
     started_at: string | null;
     application_name: string;
     target_name: string;

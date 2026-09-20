@@ -15,6 +15,7 @@ use App\Services\DeploymentService;
 use App\Services\MissingEnvironmentVariablesException;
 use App\Services\MissingRepositoryException;
 use App\Services\MissingTransportCredentialsException;
+use App\Services\QuotaGuard;
 use App\Services\TargetEnvironmentMissingServerException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +29,29 @@ class DeploymentController extends Controller
 {
     use FiltersLists;
 
-    public function __construct(private DeploymentService $deployments) {}
+    public function __construct(
+        private DeploymentService $deployments,
+        private QuotaGuard $quotas,
+    ) {}
+
+    /**
+     * Complément de message quand le quota de déploiements simultanés du plan
+     * est déjà saturé : le déploiement n'est pas refusé, il patiente en file
+     * d'attente (RunDeploymentJob se remet en file toutes les
+     * `deploy.concurrency_retry_seconds`). Sans ce message, l'utilisateur lit
+     * « Déploiement lancé. » puis regarde un déploiement qui ne démarre pas,
+     * sans savoir pourquoi ni pour combien de temps.
+     */
+    private function queuedNotice(Workspace $workspace): ?string
+    {
+        $limit = $workspace->effectivePlan()->max_concurrent_deployments;
+
+        if ($limit === null || $this->quotas->runningDeploymentCount($workspace) < $limit) {
+            return null;
+        }
+
+        return "Mis en file d'attente : les {$limit} déploiement(s) simultané(s) de votre plan sont déjà occupés.";
+    }
 
     private function deploymentKpis($query): array
     {
@@ -200,7 +223,7 @@ class DeploymentController extends Controller
         // en direct donnent déjà la visibilité nécessaire sans quitter le
         // contexte (pipeline, matrice d'environnements...) depuis lequel le
         // déploiement a été lancé.
-        return back()->with('status', 'Déploiement lancé.');
+        return back()->with('status', $this->queuedNotice($workspace) ?? 'Déploiement lancé.');
     }
 
     /**
@@ -237,10 +260,16 @@ class DeploymentController extends Controller
             }
         }
 
-        // Pas de limite de concurrence à signaler ici : un déploiement sans
-        // slot disponible n'est jamais rejeté, il patiente en file d'attente
-        // ("pending") jusqu'à ce qu'un slot se libère (RunDeploymentJob).
+        // Un déploiement sans slot disponible n'est jamais rejeté : il patiente
+        // en file d'attente ("pending") jusqu'à ce qu'un slot se libère
+        // (RunDeploymentJob). On le dit explicitement plutôt que de laisser
+        // croire que tout a démarré.
         $message = "{$triggered} déploiement(s) lancé(s) sur {$environment->name}.";
+
+        if ($triggered > 0 && $queued = $this->queuedNotice($workspace)) {
+            $message .= ' '.$queued;
+        }
+
         if (! empty($skipped)) {
             $message .= ' Déjà en cours, ignoré(s) : '.implode(', ', $skipped).'.';
         }
@@ -262,6 +291,20 @@ class DeploymentController extends Controller
         return Inertia::render('Deployments/Show', [
             'application' => $application,
             'deployment' => $deployment,
+            // Contexte affiché uniquement lorsque ce déploiement attend un
+            // slot : c'est l'endroit durable (contrairement au toast de
+            // confirmation) où expliquer pourquoi il ne démarre pas.
+            'queue' => $deployment->isQueuedForConcurrency() ? [
+                'position' => $deployment->queuePosition(),
+                'limit' => $workspace->effectivePlan()->max_concurrent_deployments,
+                'plan_name' => $workspace->effectivePlan()->name,
+                // On n'envoie un utilisateur vers la facturation que s'il y a
+                // effectivement accès — sinon on l'oriente vers le
+                // propriétaire du workspace.
+                'billing_url' => auth()->user()->can('manageBilling', $workspace)
+                    ? route('billing.show', $workspace->slug)
+                    : null,
+            ] : null,
         ]);
     }
 

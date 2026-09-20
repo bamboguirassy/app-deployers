@@ -2,15 +2,44 @@
 
 namespace App\Services;
 
+use App\Events\DeploymentStatusUpdated;
 use App\Jobs\RunDeploymentJob;
 use App\Models\Deployment;
 use App\Models\TargetEnvironment;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class DeploymentService
 {
+    /**
+     * Diffuse la création du déploiement, pour que la bande « déploiement en
+     * cours » apparaisse dès le clic plutôt qu'au démarrage effectif du job.
+     *
+     * `DeploymentStatusUpdated` est `ShouldBroadcastNow` : l'envoi à Reverb
+     * est synchrone, ici dans le cycle de la requête HTTP. Si Reverb est
+     * indisponible, `event()` lève — et le déclenchement échouerait alors que
+     * le déploiement est déjà créé et le job déjà dispatché, laissant un
+     * déploiement fantôme et un message d'erreur trompeur. Même règle que
+     * dans RunDeploymentJob : un souci de diffusion temps réel ne dégrade
+     * jamais la fiabilité du déploiement.
+     */
+    private function broadcastCreation(Deployment $deployment, TargetEnvironment $targetEnvironment): void
+    {
+        try {
+            $application = $targetEnvironment->target->application;
+
+            event(new DeploymentStatusUpdated($application->id, $application->workspace_id, $deployment));
+        } catch (Throwable $e) {
+            Log::warning('Deployment creation broadcast failed — the UI will catch up on next render', [
+                'deployment_id' => $deployment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * Vérifie que toutes les TargetVariable sans default_value ont une valeur
      * renseignée pour cet environnement. Lance une exception si ce n'est pas
@@ -163,6 +192,7 @@ class DeploymentService
         }
 
         RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));
+        $this->broadcastCreation($deployment, $targetEnvironment);
 
         return $deployment;
     }
@@ -227,12 +257,14 @@ class DeploymentService
 
             $deployment->update([
                 'status' => 'pending',
+                'queued_reason' => null,
                 'finished_at' => null,
                 'duration_ms' => null,
             ]);
         });
 
         RunDeploymentJob::dispatch($deployment->id)->onQueue(config('deploy.queue'));
+        $this->broadcastCreation($deployment, $deployment->targetEnvironment);
 
         return $deployment;
     }

@@ -7,7 +7,7 @@ import { PageProps } from '@/types';
 import { Application, Deployment, DeploymentStep } from '@/types/models';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
-import { Avatar, Button, Tooltip } from 'antd';
+import { Alert, Avatar, Button, Tooltip } from 'antd';
 import { Boxes, ExternalLink, GitBranch, History, Pencil, PlayCircle, RotateCcw, Square, User, Webhook } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,12 +20,22 @@ function formatDateShort(iso: string | null): string {
     }).format(new Date(iso));
 }
 
+type QueueContext = {
+    position: number | null;
+    limit: number | null;
+    plan_name: string;
+    /** null quand l'utilisateur n'a pas le droit de gérer la facturation. */
+    billing_url: string | null;
+};
+
 export default function Show({
     application,
     deployment: initialDeployment,
+    queue,
 }: {
     application: Application;
     deployment: Deployment;
+    queue: QueueContext | null;
 }) {
     const { workspace } = usePage<PageProps>().props;
     const { t } = useTranslation('deployments');
@@ -79,9 +89,9 @@ export default function Show({
         });
 
     useEcho(`application.${application.id}`, '.deploiement.statut',
-        (p: { deployment_id: number; statut: Deployment['status']; duration_ms: number | null }) => {
+        (p: { deployment_id: number; statut: Deployment['status']; queued_reason: Deployment['queued_reason']; duration_ms: number | null }) => {
             if (p.deployment_id !== deployment.id) return;
-            setDeployment((prev) => ({ ...prev, status: p.statut, duration_ms: p.duration_ms }));
+            setDeployment((prev) => ({ ...prev, status: p.statut, queued_reason: p.queued_reason, duration_ms: p.duration_ms }));
         }, [deployment.uuid]);
 
     useEcho(`application.${application.id}`, '.deploiement.etape',
@@ -192,6 +202,31 @@ export default function Show({
                         )}
                     </div>
                 </div>
+
+                {/* Attente d'un slot de concurrence : c'est l'endroit durable
+                    où expliquer pourquoi rien ne démarre (le toast de
+                    confirmation, lui, a déjà disparu). */}
+                {queue && deployment.queued_reason === 'concurrency' && (
+                    <Alert
+                        type="warning"
+                        showIcon
+                        className="dp-queued-alert"
+                        message={t('queued.alertTitle')}
+                        description={
+                            <>
+                                <p>{t('queued.alertBody', { limit: queue.limit ?? '—', plan: queue.plan_name })}</p>
+                                {queue.position !== null && queue.position > 1 && (
+                                    <p>{t('queued.alertPosition', { position: queue.position })}</p>
+                                )}
+                                {queue.billing_url ? (
+                                    <Link href={queue.billing_url}>{t('queued.alertBilling')}</Link>
+                                ) : (
+                                    <p>{t('queued.alertNoBilling')}</p>
+                                )}
+                            </>
+                        }
+                    />
+                )}
 
                 {/* ── Body: pipeline | divider | detail ── */}
                 <div className="dp-body">

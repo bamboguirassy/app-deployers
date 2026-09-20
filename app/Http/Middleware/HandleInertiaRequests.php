@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Deployment;
 use App\Models\Workspace;
+use App\Services\QuotaGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Middleware;
@@ -54,7 +55,7 @@ class HandleInertiaRequests extends Middleware
             'workspaces' => $user
                 ? $user->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
                 : [],
-            'canCreateWorkspace' => $user ? app(\App\Services\QuotaGuard::class)->canCreateWorkspace($user) : false,
+            'canCreateWorkspace' => $user ? app(QuotaGuard::class)->canCreateWorkspace($user) : false,
             // Connexions Git du workspace (GitHub, ...) — partagées globalement plutôt
             // que threadées prop par prop jusqu'à WebhooksPanel, pour lui permettre de
             // proposer un sélecteur de dépôt/branche fiable dès qu'un compte est
@@ -120,6 +121,8 @@ class HandleInertiaRequests extends Middleware
                 return [
                     'id' => $deployment->id,
                     'status' => $deployment->status,
+                    'queued_reason' => $deployment->queued_reason,
+                    'queue_position' => $deployment->queuePosition(),
                     'started_at' => $deployment->started_at?->toIso8601String(),
                     'application_name' => $application->name,
                     'target_name' => $target->name,

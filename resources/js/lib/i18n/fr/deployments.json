@@ -141,5 +141,15 @@
         "targetPlaceholder": "Choisir une cible",
         "targetPlaceholderNoApp": "Choisissez d'abord une application",
         "noTargetConfigured": "Aucun target/environnement configuré pour cette application."
+    },
+    "queued": {
+        "tag": "En file d'attente",
+        "tagWithPosition": "En file d'attente ({{position}}ᵉ)",
+        "tagNext": "En file d'attente (prochain)",
+        "alertTitle": "En file d'attente — pas encore démarré",
+        "alertBody": "Les {{limit}} déploiement(s) simultané(s) de votre plan {{plan}} sont actuellement occupés. Ce déploiement démarrera automatiquement dès qu'un slot se libère ; aucune étape n'a encore été exécutée.",
+        "alertPosition": "Position dans la file : {{position}}.",
+        "alertBilling": "Augmenter le nombre de déploiements simultanés",
+        "alertNoBilling": "Contactez le propriétaire du workspace pour augmenter cette limite."
     }
 }

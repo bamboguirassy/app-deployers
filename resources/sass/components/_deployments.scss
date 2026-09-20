@@ -525,3 +525,17 @@
         color: theme('color-primary');
     }
 }
+
+/* Encart « en file d'attente » sur la page de détail — même gouttière que la
+   zone de statut qui le précède, pour qu'il ne flotte pas entre les blocs. */
+.dp-queued-alert {
+    margin: 0 0 20px;
+
+    p {
+        margin: 0 0 6px;
+    }
+
+    p:last-of-type {
+        margin-bottom: 0;
+    }
+}

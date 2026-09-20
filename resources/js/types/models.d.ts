@@ -187,6 +187,8 @@ export interface Deployment {
     uuid: string;
     target_environment_id: number;
     status: DeploymentStatus;
+    /** Renseigné quand le déploiement attend un slot de concurrence du plan. */
+    queued_reason: 'concurrency' | null;
     trigger_source: 'manual' | 'webhook' | 'scheduled';
     commit_sha: string | null;
     branch: string | null;

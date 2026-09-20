@@ -70,6 +70,23 @@ class RunDeploymentJob implements ShouldQueue
         }
     }
 
+    /**
+     * Marque le déploiement comme en attente d'un slot, et le diffuse — mais
+     * seulement à la transition. Ce job se réveille toutes les
+     * `deploy.concurrency_retry_seconds` tant qu'aucun slot ne se libère :
+     * écrire et diffuser à chaque passage produirait un UPDATE et un message
+     * WebSocket toutes les 10 secondes pour une information inchangée.
+     */
+    private function markQueuedForConcurrency(Deployment $deployment, int $applicationId, int $workspaceId): void
+    {
+        if ($deployment->queued_reason === Deployment::QUEUED_FOR_CONCURRENCY) {
+            return;
+        }
+
+        $deployment->update(['queued_reason' => Deployment::QUEUED_FOR_CONCURRENCY]);
+        $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
+    }
+
     public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions): void
     {
         $deployment = Deployment::with([
@@ -107,6 +124,7 @@ class RunDeploymentJob implements ShouldQueue
             // Aucun slot de déploiement simultané disponible pour ce
             // workspace : on se remet en file plutôt que d'échouer — le
             // déploiement reste visible en "pending" (file d'attente).
+            $this->markQueuedForConcurrency($deployment, $applicationId, $workspaceId);
             $this->release(config('deploy.concurrency_retry_seconds'));
 
             return;
