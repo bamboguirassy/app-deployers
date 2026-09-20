@@ -43,6 +43,33 @@ class RunDeploymentJob implements ShouldQueue
         return now()->addMinutes(config('deploy.queue_wait_timeout_minutes'));
     }
 
+    /**
+     * Les events de ce job (DeploymentStatusUpdated, DeploymentStepUpdated,
+     * DeploymentStepOutputAppended) sont tous `ShouldBroadcastNow` : ils sont
+     * envoyés à Reverb de façon synchrone, dans le thread du job. Si Reverb
+     * est indisponible, `event()`/`broadcast()` lève une exception — et
+     * lorsque l'appel a lieu dans le bloc `finally` de handle() (ou dans
+     * cancelWhileQueued()/failed(), qui suivent le même schéma), tout le code
+     * de nettoyage placé après (libération du verrou et du slot de
+     * concurrence, déconnexion SSH, suppression du workspace éphémère)
+     * n'était alors jamais exécuté — le déploiement restait bloqué en
+     * "running" et le prochain sur cet environnement ne pouvait plus
+     * démarrer avant `deploy:reconcile-stuck`. Un souci de diffusion en
+     * temps réel ne doit jamais dégrader la fiabilité du déploiement
+     * lui-même : on avale l'exception et on continue.
+     */
+    private function broadcastSafely(callable $emit): void
+    {
+        try {
+            $emit();
+        } catch (Throwable $e) {
+            Log::warning('Deployment broadcast failed — continuing without live updates for this event', [
+                'deployment_id' => $this->deploymentId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function handle(SshAuthenticator $sshAuthenticator, QuotaGuard $quotaGuard, StepActionRegistry $stepActions): void
     {
         $deployment = Deployment::with([
@@ -92,7 +119,7 @@ class RunDeploymentJob implements ShouldQueue
 
         try {
             $deployment->update(['status' => 'running', 'started_at' => now()]);
-            event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+            $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
 
             $env = $this->buildEnv($targetEnvironment);
 
@@ -117,14 +144,14 @@ class RunDeploymentJob implements ShouldQueue
 
                 if ($aborted) {
                     $step->update(['status' => 'skipped']);
-                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                    $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
 
                     continue;
                 }
 
                 if (Cache::get($cancelKey)) {
                     $step->update(['status' => 'annule']);
-                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                    $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
                     $deployment->update(['status' => 'annule']);
                     $aborted = true;
 
@@ -163,7 +190,7 @@ class RunDeploymentJob implements ShouldQueue
             foreach ($deployment->steps as $step) {
                 if (in_array($step->status, ['pending', 'running'], true)) {
                     $step->update(['status' => 'skipped']);
-                    broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+                    $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
                 }
             }
 
@@ -177,7 +204,7 @@ class RunDeploymentJob implements ShouldQueue
                     ? (int) $deployment->started_at->diffInMilliseconds($finishedAt)
                     : null,
             ]);
-            event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+            $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
             Cache::forget($cancelKey);
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
             $quotaGuard->releaseDeploymentSlot($workspace);
@@ -228,7 +255,7 @@ class RunDeploymentJob implements ShouldQueue
         string $workspaceDir,
     ): void {
         $step->update(['status' => 'running', 'started_at' => now()]);
-        broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step));
+        $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step)));
 
         $pipelineStep = $step->pipelineStep;
         $timeout = $pipelineStep?->timeout_seconds ?? config('deploy.default_timeout_seconds');
@@ -261,7 +288,7 @@ class RunDeploymentJob implements ShouldQueue
             ? $this->truncate($result->output, config('deploy.error_excerpt_length'))
             : null;
 
-        broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step, $errorExcerpt));
+        $this->broadcastSafely(fn () => broadcast(new DeploymentStepUpdated($applicationId, $workspaceId, $step, $errorExcerpt)));
     }
 
     /**
@@ -290,7 +317,7 @@ class RunDeploymentJob implements ShouldQueue
             while ($buffer !== '') {
                 $piece = mb_substr($buffer, 0, $maxChunkSize);
                 $buffer = mb_substr($buffer, mb_strlen($piece));
-                broadcast(new DeploymentStepOutputAppended($applicationId, $step->deployment_id, $step->id, $piece));
+                $this->broadcastSafely(fn () => broadcast(new DeploymentStepOutputAppended($applicationId, $step->deployment_id, $step->id, $piece)));
             }
         };
 
@@ -330,7 +357,7 @@ class RunDeploymentJob implements ShouldQueue
     private function cancelWhileQueued(Deployment $deployment, TargetEnvironment $targetEnvironment, int $applicationId, int $workspaceId, string $cancelKey): void
     {
         $deployment->update(['status' => 'annule', 'finished_at' => now()]);
-        event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment));
+        $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
         Cache::forget($cancelKey);
         Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }
@@ -355,11 +382,11 @@ class RunDeploymentJob implements ShouldQueue
 
         $targetEnvironment = $deployment->targetEnvironment;
         $deployment->update(['status' => 'echec', 'finished_at' => now()]);
-        event(new DeploymentStatusUpdated(
+        $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated(
             $targetEnvironment->target->application_id,
             $targetEnvironment->target->application->workspace_id,
             $deployment,
-        ));
+        )));
         Cache::forget(self::cancelKey($deployment->id));
         Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
     }
