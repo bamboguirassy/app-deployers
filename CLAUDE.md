@@ -242,8 +242,13 @@ rivaliser sur tout à la fois.
   doit passer par ce layout, pas recopier le nav/footer. Il gère aussi le title/description/OG/
   Twitter/robots et, si un prop `breadcrumbs` est fourni, le fil d'Ariane visuel + le schema.org
   `BreadcrumbList`.
-- **`resources/js/constants/marketing.ts`** centralise `FEATURES`/`STEPS`/`FREE_FEATURES`/
-  `PRO_FEATURES`/`NAV_LINKS`, partagés entre les teasers de la home et les pages dédiées.
+- **`resources/js/constants/marketing.ts`** (et son pendant `marketing.en.ts`) centralise
+  `FEATURES`/`STEPS`/`NAV_LINKS`, partagés entre les teasers de la home et les pages dédiées.
+- **Aucun chiffre d'offre n'est codé en dur dans le front.** Les libellés des plans sont
+  construits par `freeFeatures()`/`proFeatures()` à partir des limites passées en props, et les
+  montants par `proPricing()` à partir des prix Paddle — voir la section « Offres, limites et
+  tarifs » ci-dessous. `/tarifs` et `/pricing` passent donc par `MarketingController` et non
+  par une closure comme les autres pages marketing.
 - **Éviter la cannibalisation** : la home ne garde que des teasers courts (titre + 1 phrase + lien
   "En savoir plus") vers ces pages — le contenu complet/détaillé vit **uniquement** sur la page
   dédiée. Ne recopiez jamais un paragraphe complet d'une page dédiée sur la home (ou vice-versa) :
@@ -258,6 +263,29 @@ rivaliser sur tout à la fois.
   avoir un si le contenu ne s'y prête pas naturellement.
 - `robots.txt`, `llms.txt` et la route `sitemap.xml` (dans `routes/web.php`) doivent être mis à jour
   à chaque nouvelle page marketing publique — voir les 4 entrées existantes comme modèle.
+
+### Offres, limites et tarifs
+
+Deux sources, une seule chacune :
+
+- **Les limites de plan vivent en base** (`plans.max_applications`,
+  `max_concurrent_deployments`, `max_workspaces`), sont modifiables par un administrateur via
+  `AdminPlanController`, et ne sont exposées au front que par `App\Support\PlanCatalog`
+  (utilisé par `MarketingController` et `BillingController`). `PlanSeeder` ne renseigne ces
+  limites **qu'à la création** du plan : il tourne à chaque déploiement (`db:seed --force`
+  dans le pipeline) et un `updateOrCreate` y annulait silencieusement toute limite ajustée
+  depuis l'admin.
+- **Les montants viennent de Paddle**, via `App\Services\PaddlePriceCatalog` (cache 6 h,
+  maintenu chaud par `paddle:sync-prices`, planifié toutes les heures). La lecture ne lève
+  jamais et ne bloque jamais : cache chaud → dernier prix connu (`Cache::forever`) → repli codé
+  dans `PaddlePriceCatalog::FALLBACK`, qui doit rester aligné avec
+  `resources/js/constants/pricing.ts`. C'est indispensable parce que `/tarifs` et `/pricing`
+  sont publiques, SSR, et alimentent un `schema.org Offer.price` indexé — un prix affiché
+  différent du prix débité n'est pas un défaut d'affichage.
+
+Historique (à ne pas réintroduire) : `/tarifs` a annoncé « Jusqu'à 5 déploiements simultanés »
+pendant que la base en appliquait 3, et « 1 application » pour Free alors que 2 étaient
+autorisées. Couvert par `tests/Feature/PublicPricingTest.php`.
 
 ### Per-page SEO meta overrides (`app.blade.php`)
 

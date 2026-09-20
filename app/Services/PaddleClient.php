@@ -20,6 +20,28 @@ class PaddleClient
     }
 
     /**
+     * Montant courant d'un prix Paddle. Paddle renvoie les montants en
+     * **unités mineures** (centimes pour EUR) sous forme de chaîne — d'où la
+     * conversion explicite en entier plutôt qu'un float, pour ne jamais
+     * introduire d'arrondi sur un prix affiché.
+     *
+     * @return array{amount: int, currency: string}
+     */
+    public function getPrice(string $priceId): array
+    {
+        $response = Http::withToken(config('paddle.api_key'))
+            ->baseUrl($this->baseUrl())
+            ->timeout((int) config('paddle.price_fetch_timeout_seconds'))
+            ->get("/prices/{$priceId}")
+            ->throw();
+
+        return [
+            'amount' => (int) $response->json('data.unit_price.amount'),
+            'currency' => (string) $response->json('data.unit_price.currency_code'),
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $customData
      * @return array{id: string}
      */

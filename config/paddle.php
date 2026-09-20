@@ -26,4 +26,12 @@ return [
 
     'pro_price_id_monthly' => env('PADDLE_PRO_PRICE_ID_MONTHLY'),
     'pro_price_id_yearly' => env('PADDLE_PRO_PRICE_ID_YEARLY'),
+
+    // Montants affichés sur les pages tarifs/facturation : lus chez Paddle
+    // (App\Services\PaddlePriceCatalog) plutôt que recopiés à la main dans
+    // le front. Ces pages sont publiques et SSR : le timeout est volontairement
+    // court et le catalogue ne lève jamais — il retombe sur le dernier prix
+    // connu, puis sur un repli codé en dur.
+    'price_fetch_timeout_seconds' => (int) env('PADDLE_PRICE_FETCH_TIMEOUT_SECONDS', 3),
+    'price_cache_ttl_minutes' => (int) env('PADDLE_PRICE_CACHE_TTL_MINUTES', 360),
 ];

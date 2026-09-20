@@ -11,12 +11,14 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationMemberController;
+use App\Http\Controllers\ApplicationNotificationSettingController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeploymentController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\EnvironmentVariableController;
 use App\Http\Controllers\GitConnectionController;
+use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\PaddleWebhookController;
 use App\Http\Controllers\PipelineStepController;
 use App\Http\Controllers\ProfileController;
@@ -24,12 +26,12 @@ use App\Http\Controllers\ServerController;
 use App\Http\Controllers\ServerCredentialController;
 use App\Http\Controllers\TargetController;
 use App\Http\Controllers\TargetEnvironmentController;
-use App\Http\Controllers\ApplicationNotificationSettingController;
 use App\Http\Controllers\TargetVariableController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebhookConfigController;
 use App\Http\Controllers\WebhookReceiverController;
 use App\Http\Controllers\WorkspaceController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -69,12 +71,12 @@ Route::get('/legal/refund-policy', fn () => Inertia::render('Legal/RefundsEn'))-
 // vivent à des chemins distincts, en anglais, ci-dessous.
 Route::get('/fonctionnalites', fn () => Inertia::render('Marketing/Fonctionnalites'))->name('marketing.features');
 Route::get('/comment-ca-marche', fn () => Inertia::render('Marketing/CommentCaMarche'))->name('marketing.how-it-works');
-Route::get('/tarifs', fn () => Inertia::render('Marketing/Tarifs'))->name('marketing.pricing');
+Route::get('/tarifs', [MarketingController::class, 'pricingFr'])->name('marketing.pricing');
 Route::get('/securite', fn () => Inertia::render('Marketing/Securite'))->name('marketing.security');
 
 Route::get('/features', fn () => Inertia::render('Marketing/Features'))->name('marketing.features.en');
 Route::get('/how-it-works', fn () => Inertia::render('Marketing/HowItWorks'))->name('marketing.how-it-works.en');
-Route::get('/pricing', fn () => Inertia::render('Marketing/Pricing'))->name('marketing.pricing.en');
+Route::get('/pricing', [MarketingController::class, 'pricingEn'])->name('marketing.pricing.en');
 Route::get('/security', fn () => Inertia::render('Marketing/Security'))->name('marketing.security.en');
 
 // Accueil français : contenu identique à l'ancien '/' (avant l'introduction
@@ -292,7 +294,7 @@ Route::get('/sitemap.xml', function () {
 // Inertia traite ça comme une visite normale, donc la prop partagée `locale`
 // se met à jour et LocaleSync (resources/js/lib/i18n/LocaleSync.tsx)
 // resynchronise i18next automatiquement.
-Route::post('/locale', function (\Illuminate\Http\Request $request) {
+Route::post('/locale', function (Request $request) {
     $locale = $request->validate(['locale' => 'required|in:en,fr'])['locale'];
 
     return redirect()->back()->withCookie(cookie('locale', $locale, 60 * 24 * 365));

@@ -6,6 +6,8 @@ use App\Models\Plan;
 use App\Models\SubscriptionHistory;
 use App\Models\Workspace;
 use App\Services\PaddleClient;
+use App\Services\PaddlePriceCatalog;
+use App\Support\PlanCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +15,10 @@ use Inertia\Response;
 
 class BillingController extends Controller
 {
-    public function __construct(private PaddleClient $paddle) {}
+    public function __construct(
+        private PaddleClient $paddle,
+        private PaddlePriceCatalog $prices,
+    ) {}
 
     public function show(Workspace $workspace): Response
     {
@@ -25,13 +30,7 @@ class BillingController extends Controller
         $proPlan = Plan::query()->where('slug', 'pro')->first();
 
         return Inertia::render('Billing/Show', [
-            'plan' => [
-                'slug' => $plan->slug,
-                'name' => $plan->name,
-                'max_applications' => $plan->max_applications,
-                'max_concurrent_deployments' => $plan->max_concurrent_deployments,
-                'max_workspaces' => $plan->max_workspaces,
-            ],
+            'plan' => PlanCatalog::present($plan),
             'usage' => [
                 'applications' => $workspace->applications()->count(),
                 'workspaces' => auth()->user()->workspaces()
@@ -63,22 +62,14 @@ class BillingController extends Controller
                         'created_at' => $h->created_at,
                     ])
                 : [],
-            'freePlan' => [
-                'slug' => $freePlan->slug,
-                'name' => $freePlan->name,
-                'max_applications' => $freePlan->max_applications,
-                'max_concurrent_deployments' => $freePlan->max_concurrent_deployments,
-                'max_workspaces' => $freePlan->max_workspaces,
-            ],
-            'proPlan' => $proPlan ? [
-                'slug' => $proPlan->slug,
-                'name' => $proPlan->name,
-                'max_applications' => $proPlan->max_applications,
-                'max_concurrent_deployments' => $proPlan->max_concurrent_deployments,
-                'max_workspaces' => $proPlan->max_workspaces,
+            'freePlan' => PlanCatalog::present($freePlan),
+            'proPlan' => $proPlan ? PlanCatalog::present($proPlan) + [
                 'monthlyConfigured' => (bool) $proPlan->paddle_price_id_monthly,
                 'yearlyConfigured' => (bool) $proPlan->paddle_price_id_yearly,
             ] : null,
+            // Montants réellement configurés chez Paddle — jamais recopiés
+            // dans le front (voir PaddlePriceCatalog).
+            'prices' => $this->prices->proPrices(),
             'can' => [
                 'manageBilling' => auth()->user()->can('manageBilling', $workspace),
             ],

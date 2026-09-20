@@ -15,23 +15,62 @@ export const NAV_LINKS = [
     { href: '/security', label: 'Security' },
 ];
 
-export const FREE_FEATURES = [
-    '1 workspace',
-    '1 application, to validate your first pipeline',
-    '1 deployment at a time',
-    'GitHub, GitLab, Bitbucket webhooks',
-    'Full deployment history',
-    'Live logs',
-];
+/** See the French counterpart in `marketing.ts` for the rationale. */
+export type PlanLimits = {
+    max_applications: number | null;
+    max_concurrent_deployments: number | null;
+    max_workspaces: number | null;
+} | null;
 
-export const PRO_FEATURES = [
-    'Unlimited workspaces',
-    'Unlimited applications',
-    'Up to 5 concurrent deployments',
-    'Everything included in Free',
-    'One-click rollback to any past version',
-    'Priority email support',
-];
+function workspacesLabel(limit: number | null | undefined): string {
+    if (limit === null || limit === undefined) {
+        return 'Unlimited workspaces';
+    }
+
+    return limit > 1 ? `${limit} workspaces` : '1 workspace';
+}
+
+function applicationsLabel(limit: number | null | undefined): string {
+    if (limit === null || limit === undefined) {
+        return 'Unlimited applications';
+    }
+
+    const noun = limit > 1 ? 'applications' : 'application';
+
+    return `${limit} ${noun}, to validate your pipeline`;
+}
+
+function concurrencyLabel(limit: number | null | undefined): string {
+    if (limit === null || limit === undefined) {
+        return 'Unlimited concurrent deployments';
+    }
+
+    return limit > 1 ? `Up to ${limit} concurrent deployments` : '1 deployment at a time';
+}
+
+export function freeFeatures(free: PlanLimits): string[] {
+    return [
+        workspacesLabel(free?.max_workspaces),
+        applicationsLabel(free?.max_applications),
+        concurrencyLabel(free?.max_concurrent_deployments),
+        'GitHub, GitLab, Bitbucket webhooks',
+        'Full deployment history',
+        'Live logs',
+    ];
+}
+
+export function proFeatures(pro: PlanLimits): string[] {
+    return [
+        workspacesLabel(pro?.max_workspaces),
+        pro?.max_applications === null || pro?.max_applications === undefined
+            ? 'Unlimited applications'
+            : `${pro.max_applications} applications`,
+        concurrencyLabel(pro?.max_concurrent_deployments),
+        'Everything included in Free',
+        'One-click rollback to any past version',
+        'Priority email support',
+    ];
+}
 
 export const FEATURES = [
     {

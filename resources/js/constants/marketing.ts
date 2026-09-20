@@ -15,23 +15,67 @@ export const NAV_LINKS = [
     { href: '/securite', label: 'Sécurité' },
 ];
 
-export const FREE_FEATURES = [
-    '1 workspace',
-    '1 application, pour valider votre premier pipeline',
-    '1 déploiement à la fois',
-    'Webhooks GitHub, GitLab, Bitbucket',
-    'Historique de déploiement complet',
-    'Logs en direct',
-];
+/**
+ * Limites d'un plan telles qu'exposées par App\Support\PlanCatalog. Les
+ * libellés d'offre ci-dessous sont construits à partir de ces valeurs plutôt
+ * que codés en dur : /tarifs a déjà annoncé « 5 déploiements simultanés »
+ * pendant que la base en appliquait 3.
+ */
+export type PlanLimits = {
+    max_applications: number | null;
+    max_concurrent_deployments: number | null;
+    max_workspaces: number | null;
+} | null;
 
-export const PRO_FEATURES = [
-    'Workspaces illimités',
-    'Applications illimitées',
-    "Jusqu'à 5 déploiements simultanés",
-    'Tout ce qui est inclus dans Free',
-    "Rollback en un clic vers n'importe quelle version",
-    'Support prioritaire par email',
-];
+function workspacesLabel(limit: number | null | undefined): string {
+    if (limit === null || limit === undefined) {
+        return 'Workspaces illimités';
+    }
+
+    return limit > 1 ? `${limit} workspaces` : '1 workspace';
+}
+
+function applicationsLabel(limit: number | null | undefined): string {
+    if (limit === null || limit === undefined) {
+        return 'Applications illimitées';
+    }
+
+    const noun = limit > 1 ? 'applications' : 'application';
+
+    return `${limit} ${noun}, pour valider votre pipeline`;
+}
+
+function concurrencyLabel(limit: number | null | undefined): string {
+    if (limit === null || limit === undefined) {
+        return 'Déploiements simultanés illimités';
+    }
+
+    return limit > 1 ? `Jusqu'à ${limit} déploiements simultanés` : '1 déploiement à la fois';
+}
+
+export function freeFeatures(free: PlanLimits): string[] {
+    return [
+        workspacesLabel(free?.max_workspaces),
+        applicationsLabel(free?.max_applications),
+        concurrencyLabel(free?.max_concurrent_deployments),
+        'Webhooks GitHub, GitLab, Bitbucket',
+        'Historique de déploiement complet',
+        'Logs en direct',
+    ];
+}
+
+export function proFeatures(pro: PlanLimits): string[] {
+    return [
+        workspacesLabel(pro?.max_workspaces),
+        pro?.max_applications === null || pro?.max_applications === undefined
+            ? 'Applications illimitées'
+            : `${pro.max_applications} applications`,
+        concurrencyLabel(pro?.max_concurrent_deployments),
+        'Tout ce qui est inclus dans Free',
+        "Rollback en un clic vers n'importe quelle version",
+        'Support prioritaire par email',
+    ];
+}
 
 export const FEATURES = [
     {

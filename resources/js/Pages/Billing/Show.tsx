@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_MONTHLY_EQUIVALENT_EUR, PRO_YEARLY_PRICE_EUR, PRO_YEARLY_SAVINGS_EUR } from '@/constants/pricing';
+import { proPricing, type ProPrices } from '@/constants/pricing';
 import { PageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Alert, Badge, Button, Segmented, Tag, Tooltip, Typography, message } from 'antd';
@@ -54,6 +54,7 @@ export default function Show({
     can,
     paddle,
     billingHistory,
+    prices,
 }: PageProps & {
     plan: BillingPlan;
     usage: { applications: number; workspaces: number };
@@ -62,6 +63,8 @@ export default function Show({
     proPlan: ProPlan | null;
     can: { manageBilling: boolean };
     paddle: { client_token: string | null; sandbox: boolean };
+    /** Montants réellement configurés chez Paddle (App\Services\PaddlePriceCatalog). */
+    prices: ProPrices;
     billingHistory: Array<{
         id: number;
         plan_name: string | null;
@@ -80,6 +83,7 @@ export default function Show({
     const [changingInterval, setChangingInterval] = useState(false);
     const [interval, setInterval] = useState<'monthly' | 'yearly'>(subscription?.interval ?? 'monthly');
     const paddleReady = useRef(false);
+    const pricing = proPricing(prices);
 
     const formatLimit = (value: number | null, singularUnitKey: string, pluralUnitKey: string) =>
         value === null
@@ -342,7 +346,8 @@ export default function Show({
                         <Text className="plan-card__name">{proPlan?.name ?? t('plans.pro.name')}</Text>
                         <div className="plan-card__price">
                             <span className="plan-card__price-amount">
-                                {interval === 'monthly' ? PRO_MONTHLY_PRICE_EUR : PRO_YEARLY_MONTHLY_EQUIVALENT_EUR}€
+                                {interval === 'monthly' ? pricing.monthly : pricing.yearlyMonthlyEquivalent}
+                                {pricing.symbol}
                             </span>
                             <span className="plan-card__price-period">
                                 {t('plans.pro.perMonth')}
@@ -351,7 +356,7 @@ export default function Show({
                         </div>
                         {interval === 'yearly' && (
                             <Text className="plan-card__price-note">
-                                {t('plans.pro.yearlyNote', { price: PRO_YEARLY_PRICE_EUR, savings: PRO_YEARLY_SAVINGS_EUR })}
+                                {t('plans.pro.yearlyNote', { price: pricing.yearly, savings: pricing.yearlySavings })}
                             </Text>
                         )}
                         <Paragraph type="secondary" className="plan-card__tagline">

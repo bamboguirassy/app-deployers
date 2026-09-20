@@ -1,24 +1,24 @@
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { FREE_FEATURES, PRO_FEATURES } from '@/constants/marketing.en';
-import {
-    PRO_MONTHLY_PRICE_EUR,
-    PRO_YEARLY_MONTHLY_EQUIVALENT_EUR,
-    PRO_YEARLY_PRICE_EUR,
-    PRO_YEARLY_SAVINGS_EUR,
-} from '@/constants/pricing';
+import { freeFeatures, proFeatures, type PlanLimits } from '@/constants/marketing.en';
+import { proPricing, type ProPrices } from '@/constants/pricing';
 import { Link } from '@inertiajs/react';
 import { Button, Segmented } from 'antd';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
-const FAQ = [
+type PricingProps = {
+    plans: { free: PlanLimits; pro: PlanLimits };
+    prices: ProPrices;
+};
+
+const buildFaq = (pricing: ReturnType<typeof proPricing>) => [
     {
         question: 'Can I change plans at any time?',
         answer: 'Yes. You can switch from Free to Pro (or back) from your workspace billing page, with no service interruption.',
     },
     {
         question: 'How does annual billing work?',
-        answer: `The annual plan bills ${PRO_YEARLY_PRICE_EUR}€ once a year instead of ${PRO_MONTHLY_PRICE_EUR}€/month, saving ${PRO_YEARLY_SAVINGS_EUR}€ a year compared to monthly billing.`,
+        answer: `The annual plan bills ${pricing.yearly}${pricing.symbol} once a year instead of ${pricing.monthly}${pricing.symbol}/month, saving ${pricing.yearlySavings}${pricing.symbol} a year compared to monthly billing.`,
     },
     {
         question: 'Can I cancel at any time?',
@@ -30,13 +30,18 @@ const FAQ = [
     },
 ];
 
-export default function Pricing() {
+export default function Pricing({ plans, prices }: PricingProps) {
     const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly');
+    const pricing = proPricing(prices);
+    const faq = buildFaq(pricing);
+    const free = freeFeatures(plans?.free ?? null);
+    const pro = proFeatures(plans?.pro ?? null);
+    const concurrency = plans?.pro?.max_concurrent_deployments;
 
     return (
         <MarketingLayout
             title="Pricing — Free and Pro"
-            description="App Deployer pricing: start for free with the Free plan, upgrade to Pro for unlimited applications and up to 5 concurrent deployments. No commitment."
+            description={`App Deployer pricing: start for free with the Free plan, upgrade to Pro for unlimited applications${concurrency ? ` and up to ${concurrency} concurrent deployments` : ''}. No commitment.`}
             breadcrumbs={[{ label: 'Pricing' }]}
             locale="en"
             altLocaleHref="/tarifs"
@@ -63,14 +68,14 @@ export default function Pricing() {
                                         {
                                             '@type': 'Offer',
                                             name: 'Pro',
-                                            price: String(PRO_MONTHLY_PRICE_EUR),
+                                            price: String(pricing.monthly),
                                             priceCurrency: 'EUR',
                                         },
                                     ],
                                 },
                                 {
                                     '@type': 'FAQPage',
-                                    mainEntity: FAQ.map(({ question, answer }) => ({
+                                    mainEntity: faq.map(({ question, answer }) => ({
                                         '@type': 'Question',
                                         name: question,
                                         acceptedAnswer: {
@@ -97,7 +102,7 @@ export default function Pricing() {
                         onChange={(value) => setInterval(value as 'monthly' | 'yearly')}
                         options={[
                             { label: 'Monthly', value: 'monthly' },
-                            { label: `Yearly — save ${PRO_YEARLY_SAVINGS_EUR}€`, value: 'yearly' },
+                            { label: `Yearly — save ${pricing.yearlySavings}${pricing.symbol}`, value: 'yearly' },
                         ]}
                         size="large"
                     />
@@ -108,7 +113,7 @@ export default function Pricing() {
                         <div className="plan-card__head">
                             <span className="plan-card__name">Free</span>
                             <div className="plan-card__price">
-                                <span className="plan-card__price-amount">0€</span>
+                                <span className="plan-card__price-amount">0{pricing.symbol}</span>
                                 <span className="plan-card__price-period">/ month</span>
                             </div>
                             <p className="plan-card__tagline">
@@ -117,7 +122,7 @@ export default function Pricing() {
                         </div>
 
                         <ul className="plan-card__features">
-                            {FREE_FEATURES.map((feature) => (
+                            {free.map((feature) => (
                                 <li key={feature}>
                                     <Check size={16} />
                                     <span>{feature}</span>
@@ -143,7 +148,8 @@ export default function Pricing() {
                             <span className="plan-card__name">Pro</span>
                             <div className="plan-card__price">
                                 <span className="plan-card__price-amount">
-                                    {interval === 'monthly' ? PRO_MONTHLY_PRICE_EUR : PRO_YEARLY_MONTHLY_EQUIVALENT_EUR}€
+                                    {interval === 'monthly' ? pricing.monthly : pricing.yearlyMonthlyEquivalent}
+                                    {pricing.symbol}
                                 </span>
                                 <span className="plan-card__price-period">
                                     / month{interval === 'yearly' ? ', billed annually' : ''}
@@ -151,7 +157,7 @@ export default function Pricing() {
                             </div>
                             {interval === 'yearly' && (
                                 <span className="plan-card__price-note">
-                                    {PRO_YEARLY_PRICE_EUR}€ billed once a year instead of {PRO_MONTHLY_PRICE_EUR * 12}€
+                                    {pricing.yearly}{pricing.symbol} billed once a year instead of {pricing.twelveMonths}{pricing.symbol}
                                 </span>
                             )}
                             <p className="plan-card__tagline">
@@ -160,7 +166,7 @@ export default function Pricing() {
                         </div>
 
                         <ul className="plan-card__features">
-                            {PRO_FEATURES.map((feature) => (
+                            {pro.map((feature) => (
                                 <li key={feature}>
                                     <Check size={16} />
                                     <span>{feature}</span>
@@ -186,7 +192,7 @@ export default function Pricing() {
 
             <section className="legal-content" style={{ maxWidth: 720, padding: '0 20px 64px' }}>
                 <h2>Frequently asked questions</h2>
-                {FAQ.map(({ question, answer }) => (
+                {faq.map(({ question, answer }) => (
                     <div key={question}>
                         <h3>{question}</h3>
                         <p>{answer}</p>
