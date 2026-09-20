@@ -129,7 +129,16 @@ class RunDeploymentJob implements ShouldQueue
             // toujours à distance sur le serveur du client (jamais sur
             // l'infra d'App Deployer). Les éventuels steps clone/sync
             // travaillent sur $workspaceDir en local, indépendamment de $ssh.
-            if ($targetEnvironment->server) {
+            //
+            // Un serveur peut désormais exister sans aucun SSH (voir
+            // Server::hasSsh() — cas FTP/SFTP-only) : ne tenter la connexion
+            // que s'il y a effectivement de quoi s'authentifier. Si un step
+            // en avait besoin sans que ce soit le cas, DeploymentService::
+            // assertTransportRequirementsAreMet() a déjà refusé le
+            // déclenchement avant même de créer ce Deployment — inutile (et
+            // dangereux : ça faisait échouer tout le pipeline avec une
+            // erreur SSH confuse) de retenter la connexion ici.
+            if ($targetEnvironment->server?->hasSsh()) {
                 $ssh = $sshAuthenticator->connect($targetEnvironment->server);
             }
 
