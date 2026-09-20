@@ -33,6 +33,14 @@ return new class extends Migration
             return;
         }
 
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE servers ALTER COLUMN username DROP NOT NULL');
+            DB::statement('ALTER TABLE servers ALTER COLUMN auth_method DROP NOT NULL');
+
+            return;
+        }
+
+        // MySQL/MariaDB.
         DB::statement('ALTER TABLE servers MODIFY username VARCHAR(255) NULL');
         DB::statement('ALTER TABLE servers MODIFY auth_method VARCHAR(255) NULL');
     }
@@ -44,6 +52,13 @@ return new class extends Migration
         if ($driver === 'sqlite') {
             // Pas de retour arrière fiable en sqlite sans doctrine/dbal — un
             // rollback local recrée simplement la base via migrate:fresh.
+            return;
+        }
+
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE servers ALTER COLUMN username SET NOT NULL');
+            DB::statement('ALTER TABLE servers ALTER COLUMN auth_method SET NOT NULL');
+
             return;
         }
 
