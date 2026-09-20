@@ -14,6 +14,7 @@ import {
     Rocket,
     ScrollText,
     ShieldCheck,
+    Terminal,
     Users,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
@@ -91,6 +92,11 @@ export default function AdminLayout({
             icon: <HeartPulse size={16} />,
             label: <Link href={route('admin.system-health')}>{t('layout.nav.systemHealth')}</Link>,
         },
+        {
+            key: 'logs',
+            icon: <Terminal size={16} />,
+            label: <Link href={route('admin.logs')}>{t('layout.nav.logs')}</Link>,
+        },
     ];
 
     const selectedKey = route().current('admin.workspaces.*')
@@ -107,7 +113,9 @@ export default function AdminLayout({
                   ? 'audit-log'
                   : route().current('admin.system-health')
                     ? 'system-health'
-                    : 'dashboard';
+                    : route().current('admin.logs')
+                      ? 'logs'
+                      : 'dashboard';
 
     const userMenuItems: MenuProps['items'] = [
         {

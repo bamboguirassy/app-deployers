@@ -8,7 +8,8 @@
       "deployments": "Déploiements",
       "horizon": "File de jobs",
       "auditLog": "Journal d'audit",
-      "systemHealth": "Santé système"
+      "systemHealth": "Santé système",
+      "logs": "Logs"
     },
     "brand": "Administration",
     "superAdminBadge": "Super Admin",
@@ -113,6 +114,20 @@
         "exception": "Erreur"
       }
     }
+  },
+  "logs": {
+    "title": "Administration — Logs",
+    "eyebrow": "Monitoring",
+    "heading": "Logs applicatifs",
+    "subtitle": "Consultez les journaux Laravel jour par jour, avec filtre par niveau et recherche texte.",
+    "breadcrumb": "Logs",
+    "filePlaceholder": "Choisir un jour",
+    "levelPlaceholder": "Tous les niveaux",
+    "searchPlaceholder": "Rechercher dans les messages...",
+    "empty": "Aucune entrée pour ce jour et ces filtres.",
+    "noFiles": "Aucun fichier de log disponible.",
+    "loadingMore": "Chargement...",
+    "endOfList": "Fin du fichier."
   },
   "plans": {
     "title": "Administration — Plans",

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDeploymentController;
+use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AdminPlanController;
 use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminSystemHealthController;
@@ -230,6 +231,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('admin')->name('a
 
     Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit-log');
     Route::get('/system-health', [AdminSystemHealthController::class, 'index'])->name('system-health');
+    Route::get('/logs', [AdminLogController::class, 'index'])->name('logs');
 
     // Monitoring cross-workspace des déploiements — lecture seule uniquement,
     // voir AdminDeploymentController pour le raisonnement sur l'isolation vis-à-vis

@@ -8,7 +8,8 @@
       "deployments": "Deployments",
       "horizon": "Queue monitor",
       "auditLog": "Audit log",
-      "systemHealth": "System health"
+      "systemHealth": "System health",
+      "logs": "Logs"
     },
     "brand": "Administration",
     "superAdminBadge": "Super Admin",
@@ -113,6 +114,20 @@
         "exception": "Error"
       }
     }
+  },
+  "logs": {
+    "title": "Administration — Logs",
+    "eyebrow": "Monitoring",
+    "heading": "Application logs",
+    "subtitle": "Browse Laravel logs day by day, with level filtering and text search.",
+    "breadcrumb": "Logs",
+    "filePlaceholder": "Choose a day",
+    "levelPlaceholder": "All levels",
+    "searchPlaceholder": "Search messages...",
+    "empty": "No entries for this day and these filters.",
+    "noFiles": "No log file available.",
+    "loadingMore": "Loading...",
+    "endOfList": "End of file."
   },
   "plans": {
     "title": "Administration — Plans",
