@@ -6,7 +6,6 @@ use App\Events\DeploymentStatusUpdated;
 use App\Jobs\RunDeploymentJob;
 use App\Models\Deployment;
 use App\Services\DeploymentService;
-use App\Services\QuotaGuard;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -31,7 +30,7 @@ use Illuminate\Support\Facades\Cache;
 #[Description('Marque en échec les déploiements "running" bloqués depuis trop longtemps (worker mort) et libère verrous/slots associés')]
 class ReconcileStuckDeployments extends Command
 {
-    public function handle(QuotaGuard $quotaGuard): void
+    public function handle(): void
     {
         $threshold = now()->subMinutes((int) config('deploy.stuck_running_after_minutes'));
 
@@ -58,7 +57,9 @@ class ReconcileStuckDeployments extends Command
 
             Cache::forget(RunDeploymentJob::cancelKey($deployment->id));
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
-            $quotaGuard->releaseDeploymentSlot($workspace);
+            // Le slot de concurrence du workspace est dérivé du nombre de
+            // déploiements "running" (QuotaGuard::runningDeploymentCount) :
+            // le passage en "echec" ci-dessus le libère de lui-même.
 
             $this->warn("Déploiement #{$deployment->id} marqué en échec (bloqué en \"running\" depuis {$deployment->updated_at}).");
         }

@@ -181,9 +181,10 @@ class DeploymentConcurrencyTest extends TestCase
         $deploymentA = $this->triggerLocally($teA);
         $deploymentB = $this->triggerLocally($teB);
 
-        // Simule le slot de A déjà acquis (comme si son job tournait déjà),
-        // sans exécuter A pour garder ce test focalisé sur le comportement du quota.
-        app(QuotaGuard::class)->acquireDeploymentSlot($workspace);
+        // Simule le job de A déjà en cours d'exécution (le slot est désormais
+        // dérivé du statut "running"), sans exécuter A pour garder ce test
+        // focalisé sur le comportement du quota.
+        $deploymentA->update(['status' => 'running', 'started_at' => now()]);
 
         app(RunDeploymentJob::class, ['deploymentId' => $deploymentB->id])->handle(
             app(\App\Services\SshAuthenticator::class),
@@ -199,22 +200,59 @@ class DeploymentConcurrencyTest extends TestCase
     }
 
     /**
-     * Deux workspaces différents ont chacun leur propre compteur de
-     * concurrence (QuotaGuard::concurrencyKey scope par workspace_id) : le
-     * quota de l'un n'affecte jamais l'autre.
+     * Deux workspaces différents ont chacun leur propre quota de concurrence
+     * (compté par workspace_id) : le quota de l'un n'affecte jamais l'autre.
      */
     public function test_concurrency_quota_is_isolated_per_workspace(): void
     {
         $workspaceA = $this->makeWorkspace('free'); // max 1
         $workspaceB = $this->makeWorkspace('free'); // max 1
 
-        app(QuotaGuard::class)->acquireDeploymentSlot($workspaceA);
+        $teA = $this->makeTargetEnvironment($workspaceA);
+        $teB = $this->makeTargetEnvironment($workspaceB);
 
-        // workspaceB doit pouvoir acquérir son propre slot sans être affecté
-        // par le slot déjà pris par workspaceA.
-        app(QuotaGuard::class)->acquireDeploymentSlot($workspaceB);
+        $deploymentA = $this->triggerLocally($teA);
+        $deploymentB = $this->triggerLocally($teB);
 
-        $this->assertTrue(Cache::has(QuotaGuard::concurrencyKey($workspaceA->id)));
-        $this->assertTrue(Cache::has(QuotaGuard::concurrencyKey($workspaceB->id)));
+        app(QuotaGuard::class)->claimDeploymentSlot($workspaceA, $deploymentA);
+
+        // workspaceB doit pouvoir réserver son propre slot sans être affecté
+        // par celui déjà consommé par workspaceA.
+        app(QuotaGuard::class)->claimDeploymentSlot($workspaceB, $deploymentB);
+
+        $this->assertSame('running', $deploymentA->refresh()->status);
+        $this->assertSame('running', $deploymentB->refresh()->status);
+        $this->assertSame(1, app(QuotaGuard::class)->runningDeploymentCount($workspaceA));
+        $this->assertSame(1, app(QuotaGuard::class)->runningDeploymentCount($workspaceB));
     }
+
+    /**
+     * Régression : le slot de concurrence ne doit pas pouvoir « fuiter ».
+     * Avec l'ancien compteur Redis (sans TTL, incrémenté avant le try du job
+     * et décrémenté dans son finally), un worker tué en cours de route
+     * laissait le compteur au plafond et TOUS les déploiements suivants du
+     * workspace bouclaient indéfiniment en "pending". Le slot étant
+     * désormais dérivé du statut réel, un déploiement terminé le libère
+     * toujours, quoi qu'il soit arrivé au worker.
+     */
+    public function test_a_finished_deployment_always_frees_its_concurrency_slot(): void
+    {
+        $workspace = $this->makeWorkspace('free'); // max 1
+        $teA = $this->makeTargetEnvironment($workspace);
+        $teB = $this->makeTargetEnvironment($workspace);
+
+        $deploymentA = $this->triggerLocally($teA);
+        $deploymentB = $this->triggerLocally($teB);
+
+        app(QuotaGuard::class)->claimDeploymentSlot($workspace, $deploymentA);
+
+        // Worker de A tué sans passer par son bloc finally : c'est
+        // deploy:reconcile-stuck qui le sortira de "running".
+        $deploymentA->update(['status' => 'echec', 'finished_at' => now()]);
+
+        app(QuotaGuard::class)->claimDeploymentSlot($workspace, $deploymentB);
+
+        $this->assertSame('running', $deploymentB->refresh()->status);
+    }
+
 }

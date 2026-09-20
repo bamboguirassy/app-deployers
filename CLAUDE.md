@@ -71,15 +71,35 @@ custom SCSS design system, Horizon (queues), Reverb (broadcasting), Sanctum, and
    (listens on `DeploymentStatusUpdated`, registered in `AppServiceProvider::boot()`) — emails
    workspace owners + the triggering user via `DeploymentFailedNotification`.
 
+The per-workspace **concurrency slot** (plan limit `max_concurrent_deployments`) is *derived*,
+not counted: `QuotaGuard::claimDeploymentSlot()` takes a short cache lock
+(`deploy:concurrency-claim:{workspaceId}`), counts the workspace's deployments actually in
+status `running`, and — in the same critical section — flips this deployment to `running`.
+There is deliberately **no** slot counter to release: leaving `running` frees the slot. This
+replaced a `deploy:concurrency:{workspaceId}` Redis counter with no TTL that was incremented
+before `RunDeploymentJob`'s `try` and decremented in its `finally` — any worker killed between
+the two leaked a slot **permanently**, and once the plan's limit was reached every subsequent
+deployment of that workspace looped in `pending` (releasing itself every
+`deploy.concurrency_retry_seconds`) until `retryUntil()` expired. If you ever reintroduce a
+counter here, give it a reconciliation path; don't trust a `finally` to be reached.
+
 Cancellation is **cooperative only** — if a worker process dies outright mid-run, the
-`finally` block in `RunDeploymentJob` never executes, so the lock, the concurrency slot, and
-the deployment's `running` status would stay stuck forever. `App\Console\Commands\ReconcileStuckDeployments`
+`finally` block in `RunDeploymentJob` never executes, so the lock and the deployment's
+`running` status (and with it the concurrency slot it implies) would stay stuck forever.
+`App\Console\Commands\ReconcileStuckDeployments`
 (`deploy:reconcile-stuck`, scheduled every 5 minutes in `routes/console.php`) is the safety
 net: any deployment still `running` after `config('deploy.stuck_running_after_minutes')`
-(default 60) is force-marked `echec`, its remaining steps `annule`, and its lock/slot
-released. `pending` deployments are deliberately left alone — that state is already bounded
-by `RunDeploymentJob::retryUntil()`/`failed()` (queue-wait timeout). Don't "fix" stuck
-deployments by clearing cache keys by hand — extend this command instead.
+(default 60) is force-marked `echec`, its remaining steps `annule`, and its lock
+released — which also frees the slot. `pending` deployments are deliberately left alone —
+that state is already bounded by `RunDeploymentJob::retryUntil()`/`failed()` (queue-wait
+timeout). Don't "fix" stuck deployments by clearing cache keys by hand — extend this command
+instead.
+
+**Self-deploying pipelines**: this app can deploy itself, and a pipeline step that restarts
+the queue (`php artisan horizon:terminate`) kills the very worker running that deployment.
+Any such step must come last and be detached (`nohup … &`), otherwise the job's `finally`
+never runs. See `tests/Feature/DeploymentConcurrencyTest.php` for the slot-leak regression
+this caused.
 
 ## Permissions
 
@@ -314,7 +334,8 @@ php artisan schedule:work  # required for deploy:reconcile-stuck / billing:expir
 php artisan inertia:start-ssr  # required for SEO-relevant pages to be server-rendered (see SSR section below)
 ```
 
-`tests/Feature/DeploymentServiceTest.php` and `tests/Feature/ReconcileStuckDeploymentsTest.php`
-cover the deployment domain's locking/reconciliation behavior (run with `php artisan test`,
+`tests/Feature/DeploymentServiceTest.php`, `tests/Feature/DeploymentConcurrencyTest.php` and
+`tests/Feature/ReconcileStuckDeploymentsTest.php`
+cover the deployment domain's locking/concurrency/reconciliation behavior (run with `php artisan test`,
 sqlite in-memory). Most other deployment/application/webhook code paths are still untested —
 be cautious about claiming behavior beyond these two files is "tested."

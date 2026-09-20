@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Deployment;
 use App\Models\User;
 use App\Models\Workspace;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -14,9 +16,13 @@ use Illuminate\Support\Facades\Cache;
  */
 class QuotaGuard
 {
-    public static function concurrencyKey(int $workspaceId): string
+    /**
+     * Verrou court sérialisant le "compte puis réserve" entre workers
+     * concurrents (voir claimDeploymentSlot).
+     */
+    public static function concurrencyLockKey(int $workspaceId): string
     {
-        return "deploy:concurrency:{$workspaceId}";
+        return "deploy:concurrency-claim:{$workspaceId}";
     }
 
     /**
@@ -86,45 +92,74 @@ class QuotaGuard
     }
 
     /**
-     * Réserve un slot de déploiement concurrent pour ce workspace. À libérer
-     * impérativement via releaseDeploymentSlot() une fois le déploiement
-     * terminé (succès, échec ou annulation) — voir RunDeploymentJob.
+     * Réserve un slot de déploiement concurrent pour ce workspace en faisant
+     * passer $deployment en "running" — les deux opérations sont atomiques
+     * (verrou court), sans quoi deux workers pourraient compter le même
+     * "0 déploiement en cours" et démarrer tous les deux.
+     *
+     * Le nombre de slots consommés est **dérivé** des déploiements réellement
+     * en statut "running" plutôt que d'un compteur Redis maintenu à la main.
+     * Contexte : ce compteur (clé `deploy:concurrency:{id}`, sans TTL) était
+     * incrémenté avant le try de RunDeploymentJob et décrémenté dans son
+     * finally — tout worker tué entre les deux (ex. une étape de pipeline
+     * auto-déployante qui fait `horizon:terminate`) fuitait un slot
+     * **définitivement**, et une fois le plafond atteint plus aucun
+     * déploiement du workspace ne démarrait : ils bouclaient en "pending"
+     * jusqu'à expiration de retryUntil(). Dériver l'état de la base rend la
+     * chose auto-réparante : un worker tué laisse un déploiement "running"
+     * que deploy:reconcile-stuck repasse en échec, ce qui libère le slot.
      *
      * @throws DeploymentConcurrencyExceededException
      */
-    public function acquireDeploymentSlot(Workspace $workspace): void
+    public function claimDeploymentSlot(Workspace $workspace, Deployment $deployment): void
     {
         $limit = $workspace->effectivePlan()->max_concurrent_deployments;
 
         if ($limit === null) {
+            $this->markRunning($deployment);
+
             return;
         }
 
-        $key = self::concurrencyKey($workspace->id);
-        $current = Cache::increment($key);
+        // block() relâche lui-même le verrou dans son propre finally, y
+        // compris quand le callback lève (slot indisponible).
+        try {
+            Cache::lock(self::concurrencyLockKey($workspace->id), 10)->block(5, function () use ($workspace, $deployment, $limit) {
+                if ($this->runningDeploymentCount($workspace) >= $limit) {
+                    throw new DeploymentConcurrencyExceededException(
+                        "Limite de {$limit} déploiement(s) simultané(s) atteinte pour le plan actuel."
+                    );
+                }
 
-        if ($current > $limit) {
-            $this->releaseDeploymentSlot($workspace);
-
+                $this->markRunning($deployment);
+            });
+        } catch (LockTimeoutException) {
+            // Un autre worker du même workspace est en train de réserver :
+            // on traite ça comme "pas de slot maintenant", le job se remet
+            // simplement en file comme dans le cas nominal.
             throw new DeploymentConcurrencyExceededException(
-                "Limite de {$limit} déploiement(s) simultané(s) atteinte pour le plan actuel."
+                'Réservation de slot de déploiement momentanément indisponible.'
             );
         }
     }
 
-    public function releaseDeploymentSlot(Workspace $workspace): void
+    /**
+     * Déploiements actuellement en cours d'exécution sur l'ensemble des
+     * applications du workspace.
+     */
+    public function runningDeploymentCount(Workspace $workspace): int
     {
-        if ($workspace->effectivePlan()->max_concurrent_deployments === null) {
-            return;
-        }
+        return Deployment::query()
+            ->where('status', 'running')
+            ->whereHas(
+                'targetEnvironment.target.application',
+                fn ($query) => $query->where('workspace_id', $workspace->id),
+            )
+            ->count();
+    }
 
-        $key = self::concurrencyKey($workspace->id);
-        $current = Cache::decrement($key);
-
-        // Cache::decrement peut créer la clé à -1 si elle n'existait pas déjà
-        // (implémentation Redis) : on la nettoie pour éviter qu'elle traîne.
-        if ($current !== false && $current <= 0) {
-            Cache::forget($key);
-        }
+    private function markRunning(Deployment $deployment): void
+    {
+        $deployment->update(['status' => 'running', 'started_at' => now()]);
     }
 }

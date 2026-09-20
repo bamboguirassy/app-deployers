@@ -100,7 +100,9 @@ class RunDeploymentJob implements ShouldQueue
         }
 
         try {
-            $quotaGuard->acquireDeploymentSlot($workspace);
+            // Réserve le slot ET passe le déploiement en "running" de façon
+            // atomique — voir QuotaGuard::claimDeploymentSlot().
+            $quotaGuard->claimDeploymentSlot($workspace, $deployment);
         } catch (DeploymentConcurrencyExceededException) {
             // Aucun slot de déploiement simultané disponible pour ce
             // workspace : on se remet en file plutôt que d'échouer — le
@@ -118,7 +120,7 @@ class RunDeploymentJob implements ShouldQueue
         $workspaceDir = storage_path("app/deployments/{$deployment->id}/workspace");
 
         try {
-            $deployment->update(['status' => 'running', 'started_at' => now()]);
+            // Le passage en "running" a déjà été fait par claimDeploymentSlot().
             $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
 
             $env = $this->buildEnv($targetEnvironment);
@@ -216,7 +218,9 @@ class RunDeploymentJob implements ShouldQueue
             $this->broadcastSafely(fn () => event(new DeploymentStatusUpdated($applicationId, $workspaceId, $deployment)));
             Cache::forget($cancelKey);
             Cache::forget(DeploymentService::lockKey($targetEnvironment->id));
-            $quotaGuard->releaseDeploymentSlot($workspace);
+            // Aucun slot de concurrence à relâcher ici : il est dérivé du
+            // statut du déploiement, que les blocs try/catch ci-dessus ont
+            // déjà fait sortir de "running".
             $ssh?->disconnect();
 
             // Nettoyage systématique du workspace éphémère (succès, échec ou

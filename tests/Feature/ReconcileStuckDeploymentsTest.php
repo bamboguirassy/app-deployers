@@ -80,7 +80,6 @@ class ReconcileStuckDeploymentsTest extends TestCase
 
         // Simule ce que RunDeploymentJob a posé avant que le worker ne soit tué.
         Cache::put(DeploymentService::lockKey($targetEnvironment->id), true, now()->addMinutes(20));
-        app(QuotaGuard::class)->acquireDeploymentSlot($workspace);
 
         return compact('workspace', 'targetEnvironment', 'deployment', 'step');
     }
@@ -99,7 +98,8 @@ class ReconcileStuckDeploymentsTest extends TestCase
         $this->assertNotNull($deployment->finished_at);
         $this->assertSame('annule', $step->status);
         $this->assertNull(Cache::get(DeploymentService::lockKey($targetEnvironment->id)));
-        $this->assertNull(Cache::get(QuotaGuard::concurrencyKey($workspace->id)));
+        // Le slot de concurrence est dérivé du statut : sortir de "running" le libère.
+        $this->assertSame(0, app(QuotaGuard::class)->runningDeploymentCount($workspace));
     }
 
     public function test_it_leaves_recently_started_running_deployments_untouched(): void

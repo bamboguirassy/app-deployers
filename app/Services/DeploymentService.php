@@ -95,7 +95,7 @@ class DeploymentService
 
     /**
      * Crée toujours le déploiement et le dispatch immédiatement — la
-     * concurrence de plan (QuotaGuard::acquireDeploymentSlot) n'est plus
+     * concurrence de plan (QuotaGuard::claimDeploymentSlot) n'est plus
      * vérifiée ici mais au démarrage du job (RunDeploymentJob::handle), qui
      * se remet en file plutôt que d'échouer si aucun slot n'est disponible.
      *
