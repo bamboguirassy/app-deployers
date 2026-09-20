@@ -63,9 +63,16 @@ class AdminSystemHealthController extends Controller
                 'application' => optional($d->targetEnvironment?->target?->application)->name,
             ]);
 
-        // Statut Reverb — vérification basique via socket TCP
-        $reverbPort = (int) env('REVERB_PORT', 8080);
-        $reverbHost = env('REVERB_HOST', '127.0.0.1');
+        // Statut Reverb — vérification basique via socket TCP sur l'adresse
+        // d'écoute réelle du process (REVERB_SERVER_*), pas sur REVERB_HOST/
+        // REVERB_PORT : ces dernières sont les valeurs client-facing (utilisées
+        // par VITE_REVERB_* pour construire l'URL wss:// publique, ex.
+        // app-deployer.dev:443) et ne correspondent pas forcément à une adresse
+        // joignable en TCP brut depuis le serveur lui-même derrière un reverse
+        // proxy.
+        $reverbPort = (int) env('REVERB_SERVER_PORT', env('REVERB_PORT', 8080));
+        $reverbHost = env('REVERB_SERVER_HOST', '127.0.0.1');
+        $reverbHost = $reverbHost === '0.0.0.0' ? '127.0.0.1' : $reverbHost;
         $reverbOnline = false;
         try {
             $sock = @fsockopen($reverbHost, $reverbPort, $errno, $errstr, 1);
